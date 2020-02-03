@@ -1,0 +1,13 @@
+# PowerSensor changelog
+
+3.0
+-Increased time resolution
+-New command line utilities
+
+2.0
+-First public release
+-Added EEPROM support to store configuration parameters (as opposed to hard-coded parameters in the firmware sources)
+-Added `psconfig` tool to configure the PowerSensor
+
+1.0
+-Initial release
