@@ -66,6 +66,7 @@ inline uint8_t nextSensor(uint8_t currentSensor)
 inline void setADMUX(uint8_t sensor)
 {
 #if defined __AVR_ATmega32U4__
+  //  REFS0 this bit is used to determine what reference voltage source to be used for AD Conversion. When it is 0
   ADMUX = _BV(REFS0) | ((sensor <= 2 ? 6 : 4) - sensor);
 #else
   ADMUX = _BV(REFS0) | (sensor + 1); // ADC0 reads the LCD buttons; skip it
@@ -77,13 +78,16 @@ ISR(ADC_vect)
 {
   static uint8_t currentSensor = 0;
 
-  uint8_t low = ADCL, high = ADCH; // read in this order
+  // Since the Digital value of corresponding Analog vary from 0 to 1024, value can't be stored in a single register
+  // that's why two registers (ADCH & ADCL) are used to store that digital value.
+  uint8_t low = ADCL, high = ADCH; // read in this order.
+
 
   // start next ADC ASAP.
   uint8_t previousSensor = currentSensor;
   currentSensor = nextSensor(currentSensor);
 
-  setADMUX(currentSensor);
+  setADMUX(currentSensor); // set the ADC multiplexer to the channel we want to read next.
   ADCSRA |= _BV(ADSC); // start ADC conversion ADSC == ADC Start Conversion && ADCSRA == ADC Control and Status Register A
 
   int16_t level = (high << 8) | low;
