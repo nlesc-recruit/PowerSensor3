@@ -1,41 +1,9 @@
-//  Copyright (C) 2016
-//  ASTRON (Netherlands Institute for Radio Astronomy) / John W. Romein
-//  P.O. Box 2, 7990 AA  Dwingeloo, the Netherlands
+// Includes
+#include <Arduino.h>
 
-//  This file is part of PowerSensor.
-
-//  PowerSensor is free software: you can redistribute it and/or modify
-//  it under the terms of the GNU General Public License as published by
-//  the Free Software Foundation, either version 3 of the License, or
-//  (at your option) any later version.
-
-//  PowerSensor is distributed in the hope that it will be useful,
-//  but WITHOUT ANY WARRANTY; without even the implied warranty of
-//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//  GNU General Public License for more details.
-
-//  You should have received a copy of the GNU General Public License
-//  along with PowerSensor.  If not, see <http://www.gnu.org/licenses/>.
-
-
-#include <avr/eeprom.h>
-#include <Wire.h>
-#include <LiquidCrystal.h>
-
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
-
-
-#define MAX_SENSORS 5
-
-struct EEPROM
-{
-  struct Sensor {
-    double volt;
-    double type;
-    double nullLevel;
-  } sensors[MAX_SENSORS];
-} eeprom __attribute__((section(".eeprom")));
-
+// Defines
+#define MAX_SENSORS 3
+#define __PRINT__
 struct Sensor
 {
   bool     inUse;
@@ -44,202 +12,111 @@ struct Sensor
   double   weight;
   double   nullLevel;
 
+  double   currentLevel; //remove this later
+
   double power() const { return weight * total / count - nullLevel; }
 
 } sensors[MAX_SENSORS];
 
-
 bool streamValues = false;
 
+inline void setADMUX(uint8_t sensor)
+{ // The REFS0 bit is used to determine what reference voltage source to be used for AD Conversion. Other words: which channel or pin.
+  #if defined __AVR_ATmega32U4__
+  ADMUX = _BV(REFS0) | ((sensor <= 2 ? 6 : 4) - sensor);
+  #else
+  ADMUX = _BV(REFS0) | (sensor + 1); // ADC0 reads the LCD buttons; skip it
+  #endif
+}
 
 inline uint8_t nextSensor(uint8_t currentSensor)
 {
-  do
-    if (++ currentSensor == MAX_SENSORS)
-      currentSensor = 0;
-  while (!sensors[currentSensor].inUse);
+  if (++ currentSensor == MAX_SENSORS)
+    currentSensor = 0;
 
   return currentSensor;
 }
 
-
-inline void setADMUX(uint8_t sensor)
-{
-#if defined __AVR_ATmega32U4__
-  //  REFS0 this bit is used to determine what reference voltage source to be used for AD Conversion. When it is 0
-  ADMUX = _BV(REFS0) | ((sensor <= 2 ? 6 : 4) - sensor);
-#else
-  ADMUX = _BV(REFS0) | (sensor + 1); // ADC0 reads the LCD buttons; skip it
-#endif
-}
-
-
 ISR(ADC_vect)
-{
+{ // Interrupt service routine
   static uint8_t currentSensor = 0;
 
   // Since the Digital value of corresponding Analog vary from 0 to 1024, value can't be stored in a single register
   // that's why two registers (ADCH & ADCL) are used to store that digital value.
-  uint8_t low = ADCL, high = ADCH; // read in this order.
-
+  uint8_t low = ADCL, high = ADCH; // read in this order. They are right-orientated
 
   // start next ADC ASAP.
   uint8_t previousSensor = currentSensor;
   currentSensor = nextSensor(currentSensor);
 
   setADMUX(currentSensor); // set the ADC multiplexer to the channel we want to read next.
-  ADCSRA |= _BV(ADSC); // start ADC conversion ADSC == ADC Start Conversion && ADCSRA == ADC Control and Status Register A
+  ADCSRA |= _BV(ADSC); // start ADC conversion
 
   int16_t level = (high << 8) | low;
+  sensors[currentSensor].currentLevel = (((level/512.0)*2.5)); //<-- used to get mVolts
+
+  #if defined __PRINT__
+  String R = "\r";
+  for (unsigned i = 0; i < MAX_SENSORS; i++) {
+    if (sensors[i].currentLevel >= 2.5) {
+      R += "HIGH";
+    } else {
+      R += "LOW ";
+    }
+    R += "  ";
+  }
+  Serial.print(R);
+  #endif
+
   sensors[previousSensor].total += level - 512;
   sensors[previousSensor].count ++;
 
-  if (streamValues) {
-    Serial.write((previousSensor << 5) | (level >> 5));
+  if (streamValues)
+  {
+    Serial.write((previousSensor << 5) | (level >> 5)); // Writes first 3 bits for sensorID and last 5 bits as upper parts of level bits.
     Serial.write(0xE0 | (level & 0x1F));
-
-#if defined __AVR_ATmega32U4__
-    Serial.flush();
-#endif
-
-    //for (int i = 2; i < 16; i ++)
-      //Serial.write(0
   }
 }
 
-
-void configureFromEEPROM()
+float retrieveNullLevel(uint8_t currentSensor)
 {
-  EEPROM copy;
-  eeprom_read_block(&copy, &eeprom, sizeof copy);
+  uint8_t low = ADCL, high = ADCH;
+  setADMUX(currentSensor);
+  ADCSRA |= _BV(ADSC); // start ADC conversion
+  return ((((high << 8) | low)/512.0)*2.5);
+}
 
+void configureSensors(double volt)
+{
   for (unsigned i = 0; i < MAX_SENSORS; i ++) {
-    sensors[i].inUse = copy.sensors[i].volt != 0;
-    sensors[i].weight = sensors[i].inUse ? (2.5 / 512) * (copy.sensors[i].volt / copy.sensors[i].type) : 0;
-    sensors[i].nullLevel = copy.sensors[i].nullLevel;
+    sensors[i].inUse = true; //Sensors now always in use else: copy.sensors[i].volt != 0;
+    sensors[i].weight = sensors[i].inUse ? (2.5 / 512) * (volt / .185) : 0; //copy.sensors[i].type is ACS712-05 for now.
+    sensors[i].nullLevel = 2.5; //mVolt; copy.sensors[i].nullLevel if it is calibrated else take 1 measurement
+
+    sensors[i].currentLevel = 0; //remove this later
   }
 }
-
-
-void readConfig()
-{
-  EEPROM copy;
-  eeprom_read_block(&copy, &eeprom, sizeof copy);
-  Serial.write((const uint8_t *) &copy, sizeof copy);
-}
-
-
-void writeConfig()
-{
-#if !defined __AVR_ATmega32U4__
-  Serial.begin(115200); // serial comm from host to Arduino seems less reliable --> reduce baud rate
-#endif
-
-  EEPROM copy;
-
-  for (unsigned i = 0; i < sizeof copy; i ++) {
-    while (Serial.available() == 0)
-      ;
-
-    ((uint8_t *) &copy)[i] = Serial.read();
-  }
-
-#if !defined __AVR_ATmega32U4__
-  Serial.begin(2000000);
-#endif
-
-  eeprom_update_block(&copy, &eeprom, sizeof copy);
-  configureFromEEPROM();
-}
-
-
-void serialEventRun()
-{
-  switch (Serial.read()) {
-    case 'r': readConfig();
-	      break;
-
-    case 'w': writeConfig();
-	      break;
-
-    case 'S': streamValues = true;
-	      break;
-
-    case 'T': streamValues = false;
-	      break;
-
-    case 'X': streamValues = false;
-	      Serial.write((const uint8_t []) { 0xFF, 0xE0 }, 2);
-	      break;
-  }
-}
-
 
 void setup()
 {
-  configureFromEEPROM();
+  // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);
 
-  lcd.begin(16, 2);
-  lcd.print("Sensor  :      W");
-  lcd.setCursor(0, 1);
-  lcd.print("Total:         W");
+  //ADCSRA |= _BV(ADIE); // Analog-to-Digital Interrupt Enable
+  //ADCSRA |= _BV(ADSC); // Analog-to-Digital Start Conversion
+  configureSensors(3.3); // now configured at 3.3 volts
 
-  Serial.begin(2000000);
+  #if defined __PRINT__
+  Serial.println(" ");
+  Serial.println("SEN1  SEN2  SEN3");
+  #endif
 
-  setADMUX(0);
-  ADCSRA |= _BV(ADIE); // enable ADC interrupts
-  ADCSRA |= _BV(ADSC); // start ADC conversion
+  setADMUX(0); // Start measuring with the first sensor
+  ADCSRA |= _BV(ADIE); // Analog-to-Digital Interrupt Enable
+  ADCSRA |= _BV(ADSC); // Analog-to-Digital Start Conversion
 }
-
 
 void loop()
 {
-  static unsigned long previousPrintTime;
-  static uint8_t count, currentSensor = nextSensor(MAX_SENSORS - 1), currentLine;
-
-  uint16_t currentTime = millis(), timeDifference = currentTime - previousPrintTime;
-
-  if (timeDifference > 333) {
-    double power;
-
-    if (currentLine == 0) {
-      // print top line; rotate among the used sensors
-
-      noInterrupts();
-      power = sensors[currentSensor].power();
-      interrupts();
-
-      if ((++ count & 7) == 0)
-	      currentSensor = nextSensor(currentSensor);
-
-      if ((count & 7) == 1) {
-	      lcd.setCursor(7, 0);
-	      lcd.print((char) ('0' + currentSensor));
-      }
-    } else { // currentLine == 1
-      // print bottom line; the sum of all sensors
-      power = 0;
-
-      noInterrupts();
-
-      for (uint8_t sensor = 0; sensor < MAX_SENSORS; sensor ++) {
-	if (sensors[sensor].inUse) {
-	  power += sensors[sensor].power();
-	  sensors[sensor].total = 0;
-	  sensors[sensor].count = 0;
-	}
-      }
-
-      interrupts();
-
-      previousPrintTime = currentTime;
-    }
-
-    char buffer[16];
-    dtostrf(power, 6, 1, buffer);
-    lcd.setCursor(9, currentLine);
-    lcd.print(buffer);
-
-    currentLine ^= 1;
-  }
+  // do nothing
 }
