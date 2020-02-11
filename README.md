@@ -1,3 +1,4 @@
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3701/badge)](https://bestpractices.coreinfrastructure.org/projects/3701)
 ## Introduction
 PowerSensor is a tool that measures the instantaneous power consumption of PCIe cards and SoC development boards like GPUs, Xeon Phis, FPGAs, DSPs, and network cards, at sub-millisecond time scale. It consists of a commodity microcontroller, commodity current sensors, and (for PCIe devices) a PCIe riser card. The microcontroller reports measurements to the host via USB. A small host library allows an application to determine its own energy efficiency. The high time resolution (up to 8.62 kHz) provides much better insight into energy usage than low-resolution built-in power meters (if available at all), as PowerSensor enables analysis of individual compute kernels.
 
