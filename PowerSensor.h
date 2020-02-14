@@ -46,7 +46,7 @@ struct State
 class PowerSensor
 {
   public:
-    PowerSensor(const char *device = "/dev/ttyACM0");
+    PowerSensor(const char *device = "/dev/ttyACM1");
     ~PowerSensor();
 
     State read() const;
