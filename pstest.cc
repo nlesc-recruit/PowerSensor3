@@ -27,17 +27,22 @@
 
 int main(int argc, char *argv[])
 {
-  const char *device = "/dev/ttyACM0";
+  const char *device = "/dev/ttyACM1";
+  const char *dumpFileName = "output.txt";
 
-  std::cout << "Setting up PowerSensor" << std::endl;
+  std::cout << "Setting up PowerSensor on port: " << device << std::endl;
   PowerSensor::PowerSensor powerSensor(device);
-
+  std::cout << "PowerSensor up and running" << std::endl;
+  powerSensor.dump(dumpFileName);
+  std::cout << "Writing to: " << dumpFileName << std::endl;
   //std::cout << powerSensor << std::endl;
 
-  
+  //char command[1];
   while (1) 
   {
-
+    usleep(10000000);
+    std::cout << "MARKING " << std::endl;
+    powerSensor.mark();
   }
 
   

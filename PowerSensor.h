@@ -52,7 +52,7 @@ class PowerSensor
     State read() const;
 
     void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
-    void mark(const State &, const char *name = 0, unsigned tag = 0) const;
+    void mark() const;
     void mark(const State &start, const State &stop, const char *name = 0, unsigned tag = 0) const;
 
     float getVolt(unsigned sensorID) const;
