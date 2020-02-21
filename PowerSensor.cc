@@ -6,6 +6,8 @@
 #include <cstring>
 #include <iostream>
 
+#include <bitset>
+
 #include <omp.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -22,6 +24,10 @@
 
 namespace PowerSensor {
 
+  bool temprunning = true;
+
+  uint32_t countera = 0, counterb = 0;
+
     PowerSensor::PowerSensor(const char *device)
     :
         fd(openDevice(device)),
@@ -34,35 +40,85 @@ namespace PowerSensor {
 
     PowerSensor::~PowerSensor()
     {
-        //stopIOthread();
+        stopIOthread();
+        std::cout << "No of samples: " << countera << std::endl;
+        std::cout << "No of bytelosses: " << counterb << std::endl;
         if (close(fd))
             perror("close device");
     }
 
-    bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level)
+
+    bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
     {
       // two 8-bit integer buffers, currently to store the whole ADC DR of 32 bits (needs to be downscaled for writing performance);
       uint8_t buffer[2]; 
 
       // return value storage and bytesRead counter;
       uint8_t returnValue, bytesRead = 0;
-
+      //std::cout << 'S';
       while (true) 
       {
+        //std::cout << 'W';
         // read N amount and save in the buffer, N is determined by subtracting amount of bytes it already received from the total buffer size expected;
-        if ((returnValue = ::read(fd, &buffer, sizeof(buffer))) < 0)
+        if ((returnValue = ::read(fd, (char *) &buffer + bytesRead, sizeof buffer - bytesRead)) < 0)
         {
           perror("read device");
           exit(1);
         }
         // if the amount of bytes it received is equal to the amount it expected, also checks if the return value of read is 0;
-        else //if ((bytesRead += returnValue) == sizeof buffer)
+        else if ((bytesRead += returnValue) == sizeof buffer) //if ((bytesRead += returnValue) == sizeof buffer)
         {
-          // reconstruct the uint from individual bytes;
-          level = buffer[0] << 8 | buffer[1];
-          return true;
-        }
+          // if the received corresponds to kill signal, return false to terminate the IOthread;
+          if (buffer[0] == 0xFF && buffer[1] == 0xE0)
+          {
+            //std::cout << 'D' << std::endl;
+            return false;
+          }
+          // checks if first byte corresponds with predetermined first byte format;
+          else if ((buffer[0] & 0x80) &&
+          ((buffer[1] & 0x80) == 0))                    
+          {
+            //std::cout << 'G';
+            countera++;
+
+            // extracts sensor number;
+            sensorNumber = (buffer[0] >> 4) & 0x7;
+
+            // extracts the level from the buffers;
+            level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
+
+            // checks if there is a marker present;
+            marker = (buffer[1] >> 6) & 0x1; 
+            //std::cout << 'D' << std::endl;
+            return true;
+          }
+          else
+          {
+            //std::cout << 'B';
+            //std::bitset<8> x(buffer[0]);
+            //std::bitset<8> y(buffer[1]);
+            //std::cout << x << ':' << y;
+            counterb++;
+
+            // if a byte is lost, drop the first byte and try again;
+            buffer[0] = buffer[1];
+
+            bytesRead = 1;
+          }
+        } 
       }
+    }
+
+    void PowerSensor::Sensor::updateLevel(int16_t level)
+    {
+      // get the current time;
+      //double now = omp_get_wtime();
+
+      //wattAtlastMeasurement = (level - 512) * weight - nullLevel;
+
+      //consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
+
+      //timeAtLastMeasurement = now;
     }
 
     // constantly reads data from the device and saves it;
@@ -71,13 +127,23 @@ namespace PowerSensor {
       // signal that the thread is running
       threadStarted.up();
 
-      unsigned sensorNumber; // not in the protocol yet
-      uint32_t level; // too large, scale down?
+      unsigned sensorNumber, level, marker; // not in the protocol yet
+      //double volt, amp; // too large, scale down?
 
-      while (readLevelFromDevice(sensorNumber, level))
+      while (readLevelFromDevice(sensorNumber, level, marker))
       {
+        std::unique_lock<std::mutex> lock(mutex);
+        //sensors[sensorNumber]; //.updateLevel(level);
+
+        //volt = ((volt = level) / 512) * 2.5;
+        //amp = ((volt - 2.5) / .185);
+
         if(dumpFile != nullptr) 
         {
+          if (marker) 
+          {
+            *dumpFile << 'M' << std::endl;
+          }
           *dumpFile << level << std::endl;
         }
       }
@@ -151,19 +217,19 @@ namespace PowerSensor {
         tcgetattr(fileDescriptor, &terminalOptions);
 
         // sets the input baud rate;
-        cfsetispeed(&terminalOptions, B2000000);
+        cfsetispeed(&terminalOptions, B4000000);
 
         // sets the output baud rate;
-        cfsetospeed(&terminalOptions, B2000000);
+        cfsetospeed(&terminalOptions, B4000000);
 
         // set control mode flags;
-        terminalOptions.c_cflag |= (terminalOptions.c_cflag & ~CSIZE) | CS8;
-        terminalOptions.c_cflag |= CLOCAL | CREAD;
-        terminalOptions.c_cflag |= (PARENB | PARODD);
+        terminalOptions.c_cflag |=  CLOCAL | CREAD | CS8;
+        //terminalOptions.c_cflag |= (PARENB | PARODD);
 
         // set input mode flags;
-        terminalOptions.c_iflag |= IGNBRK;
-        terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);
+        terminalOptions.c_iflag = 0;
+        //terminalOptions.c_iflag |= IGNBRK;
+        //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);
 
         // clear local mode flag
         terminalOptions.c_lflag = 0;
