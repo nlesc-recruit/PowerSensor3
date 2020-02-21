@@ -62,6 +62,7 @@ class PowerSensor
     float getNullLevel(unsigned sensorID) const;
     void  setNullLevel(unsigned sensorID, float nullLevel);
     bool  inUse(unsigned sensorID) const;
+    void    stopRunning();
 
   private:
     struct Sensor
@@ -101,10 +102,9 @@ class PowerSensor
     double	  totalEnergy() const;
 
     void	  readSensorsFromEEPROM(), writeSensorsToEEPROM();
-    bool	  readLevelFromDevice(unsigned &sensorNumber, unsigned &level);
+    bool	  readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker);
     void	  dumpCurrentWattToFile();
     void	  IOthread();
-
     void	  startCleanupProcess();
 };
 
