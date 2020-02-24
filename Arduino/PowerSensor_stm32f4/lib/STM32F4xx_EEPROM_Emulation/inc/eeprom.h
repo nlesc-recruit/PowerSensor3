@@ -25,7 +25,8 @@
 #define __EEPROM_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
+#include "../../STM32F4xx_DSP_StdPeriph_Lib_V1.8.0/Libraries/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+#include "../lib/STM32F4xx_DSP_StdPeriph_Lib_V1.8.0/Libraries/STM32F4xx_StdPeriph_Driver/inc/stm32f4xx_flash.h"
 
 /* Exported constants --------------------------------------------------------*/
 /* Define the size of the sectors to be used */
@@ -37,7 +38,7 @@
 
 /* EEPROM start address in Flash */
 #define EEPROM_START_ADDRESS  ((uint32_t)0x08008000) /* EEPROM emulation start address:
-                                                  from sector2 : after 16KByte of used 
+                                                  /*from sector2 : after 16KByte of used 
                                                   Flash memory */
 
 /* Pages 0 and 1 base and end addresses */

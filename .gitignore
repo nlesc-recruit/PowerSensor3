@@ -1,0 +1,8 @@
+# vs code
+.vscode/
+
+# outputs
+testoutput/
+
+#tempfiles
+temp.cc
