@@ -34,7 +34,7 @@ namespace PowerSensor {
         thread(nullptr) 
     {
         //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
-        //readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
+      readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
       startIOthread();
     }
 
@@ -47,6 +47,12 @@ namespace PowerSensor {
             perror("close device");
     }
 
+    void PowerSensor::readSensorsFromEEPROM() 
+    {
+      for (Sensor &sensor : sensors) {
+        sensor.readFromEEPROM(fd);
+      }
+    }
 
     bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
     {
@@ -89,15 +95,10 @@ namespace PowerSensor {
 
             // checks if there is a marker present;
             marker = (buffer[1] >> 6) & 0x1; 
-            //std::cout << 'D' << std::endl;
             return true;
           }
           else
           {
-            //std::cout << 'B';
-            //std::bitset<8> x(buffer[0]);
-            //std::bitset<8> y(buffer[1]);
-            //std::cout << x << ':' << y;
             counterb++;
 
             // if a byte is lost, drop the first byte and try again;
@@ -127,24 +128,22 @@ namespace PowerSensor {
       // signal that the thread is running
       threadStarted.up();
 
-      unsigned sensorNumber, level, marker; // not in the protocol yet
-      //double volt, amp; // too large, scale down?
+      unsigned sensorNumber, level, marker; 
 
       while (readLevelFromDevice(sensorNumber, level, marker))
       {
         std::unique_lock<std::mutex> lock(mutex);
-        //sensors[sensorNumber]; //.updateLevel(level);
+        sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
 
-        //volt = ((volt = level) / 512) * 2.5;
-        //amp = ((volt - 2.5) / .185);
+        double volt = ((volt = level) / 512) * 2.5;
+        double amp = ((volt - 2.5) / .185);
 
         if(dumpFile != nullptr) 
         {
           if (marker) 
-          {
             *dumpFile << 'M' << std::endl;
-          }
-          *dumpFile << level << std::endl;
+
+          *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
         }
       }
     }

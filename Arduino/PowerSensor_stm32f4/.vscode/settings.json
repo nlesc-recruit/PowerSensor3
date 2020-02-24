@@ -3,6 +3,7 @@
         "atomic": "cpp",
         "*.tcc": "cpp",
         "fstream": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "eeprom.h": "c"
     }
 }
