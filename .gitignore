@@ -1,0 +1,9 @@
+# vs code
+.vscode/
+Arduino/PowerSensor_stm32f4/.vscode/
+
+# outputs
+testoutput/
+
+#tempfiles
+temp.cc
