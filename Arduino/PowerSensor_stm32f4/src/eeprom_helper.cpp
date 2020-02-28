@@ -1,35 +1,4 @@
-/**
-  ******************************************************************************
-  * @file    EEPROM_Emulation/src/eeprom.c 
-  * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    10-October-2011
-  * @brief   This file provides all the EEPROM emulation firmware functions.
-  ******************************************************************************
-  * @attention
-  *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-  *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
-  ******************************************************************************
-  */ 
-
-/** @addtogroup EEPROM_Emulation
-  * @{
-  */ 
-
-/* Includes ------------------------------------------------------------------*/
-#include "../inc/eeprom.h"
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
+#include "eeprom_helper.h"
 
 /* Global variable used to store variable value in read sequence */
 uint16_t DataVar = 0;
@@ -44,13 +13,6 @@ static uint16_t EE_FindValidPage(uint8_t Operation);
 static uint16_t EE_VerifyPageFullWriteVariable(uint16_t VirtAddress, uint16_t Data);
 static uint16_t EE_PageTransfer(uint16_t VirtAddress, uint16_t Data);
 
-/**
-  * @brief  Restore the pages to a known good state in case of page's status
-  *   corruption after a power loss.
-  * @param  None.
-  * @retval - Flash error code: on write Flash error
-  *         - FLASH_COMPLETE: on success
-  */
 uint16_t EE_Init(void)
 {
   uint16_t PageStatus0 = 6, PageStatus1 = 6;
@@ -608,9 +570,3 @@ static uint16_t EE_PageTransfer(uint16_t VirtAddress, uint16_t Data)
   /* Return last operation flash status */
   return FlashStatus;
 }
-
-/**
-  * @}
-  */ 
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
