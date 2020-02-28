@@ -1,25 +1,28 @@
 #include <Arduino.h>
 
-// includes libmaple;
-#include <scb.h>
-#include <adc.h>
-#include <gpio.h>
+#include "eeprom_helper.h"
 
 // defines;
 #define MAX_SENSORS 5
 
+// PowerSensor Serial variables
 bool streamValues = false;
 uint8_t sendMarkerNext = 0;
 
+// Some EEPROM test values;
+
+// Virtual adress table;
+// uint16_t VirtAddVarTab[NB_OF_VAR] = {0x5555, 0x6666, 0x7777};
+
+// Data table;
+// uint16_t VarDataTab[NB_OF_VAR] = {0, 0, 0};
+
+// Variable value;
+// uint16_t VarValue = 0;
+
 struct Sensor {
   bool inUse;
-  uint16_t count;
-  int32_t total;
-  double weight;
-  double nullLevel;
   uint8_t pin;
-
-  double power() const { return weight * total / count - nullLevel; }
 
 } sensors[MAX_SENSORS];
 
@@ -78,6 +81,8 @@ void serialEvent()
   }
 }
 
+
+// "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
   // read out the Data Register of ADC1;
@@ -89,9 +94,8 @@ void ADC_Handler(void)
   if (streamValues) 
   {
     // write the level, write() only writes per byte;
-    Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
-
+    SerialUSB.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
+    SerialUSB.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
     // reset the marker
     sendMarkerNext = 0;
   }
@@ -112,16 +116,14 @@ void ADC_Handler(void)
 
 void setup() 
 {
-  // baudrate 9600 for development, upgrade to 2M later;
-  Serial.begin(4000000); 
+  // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
+  SerialUSB.begin(4000000); 
 
-  // set vector table to the start of the flash;
-  //nvic_init(0x08000000, 0);
-  //SCB_BASE->VTOR = 0x08000000 | (0 & 0x1FFFFF80);
+  // Unlock the flash for EEPROM emulation;
+  // FLASH_Unlock();
 
-  // set vecor handler to ADC hander
-  //nvic_irq_enable(NVIC_ADC_1_2);
-  //NVIC_BASE->ISER[NVIC_ADC_1_2 / 32] |= BIT(NVIC_ADC_1_2 % 32);
+  // Initialize EEPROM, this will also check for valid pages;
+  // EE_Init();
 
   // set ADON bit in ADC control register to turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
@@ -137,6 +139,18 @@ void setup()
 
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
+
+
+  // ##########################################################
+  // #            Interrupt things that do not work           #
+  // ##########################################################
+  // SCB_BASE->VTOR = 0x08000000 | (0 & 0x1FFFFF80);
+  // NVIC_BASE->ISER[0] |= BIT(NVIC_ADC_1_2 % 32);
+  //nvic_init(0x08000000, 0);
+  //nvic_irq_enable(NVIC_ADC_1_2);
+  //nvic_irq_set_priority(NVIC_ADC_1_2, 3);
+  // ##########################################################
+
 
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
