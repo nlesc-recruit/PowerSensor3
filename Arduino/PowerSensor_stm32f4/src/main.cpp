@@ -27,65 +27,40 @@ struct Sensor {
 
 } sensors[MAX_SENSORS];
 
-void writeSensorConfiguration()
-{
-  uint16_t halfWord;
-  uint16_t virtAddress;
-  for (int i = 0; i < MAX_SENSORS; i++)
-  {
-    virtAddress = VirtAddVarTab[i];
-    halfWord = (sensors[i].inUse << 8) | sensors[i].pin;
-    EE_WriteVariable(virtAddress, halfWord);
-    virtAddress++;
-    halfWord = ((uint32_t) sensors[i].nullLevel >> 16) & 0xFFFF;
-    EE_WriteVariable(virtAddress, halfWord);
-    virtAddress++;
-    halfWord = ((uint32_t) sensors[i].nullLevel) & 0xFFFF;
-    EE_WriteVariable(virtAddress, halfWord);
-
-    /* this extra DC balanced variable is to get the config to 64 bits,
-       ensuring that the whole sector is used; */
-    virtAddress++;
-    halfWord = 0xAAAA;
-    EE_WriteVariable(virtAddress, halfWord);
-  }
-}
-
-void readSensorConfiguration() 
+void configureSensors()
 {
   // configure sensors from EEPROM?
   sensors[0].pin = PA4;
   sensors[0].inUse = true;
+  sensors[0].nullLevel = 2.5;
   sensors[1].pin = PA5;
   sensors[1].inUse = true;
+  sensors[1].nullLevel = 2.5;
   sensors[2].pin = PA6;
   sensors[2].inUse = true;
+  sensors[2].nullLevel = 2.5;
+}
 
-  uint16_t *halfWord;
-  uint32_t fullWord;
+void writeSensorConfiguration()
+{
+  uint16_t halfWord;
   uint16_t virtAddress;
-  for (int i = 0; i < MAX_SENSORS; i++)
-  {
-    virtAddress = VirtAddVarTab[i];
 
-    EE_ReadVariable(virtAddress, halfWord);
-    sensors[i].inUse = (*halfWord >> 8) & 0xFF;
-    sensors[i].pin = (*halfWord) & 0xFF;
+  virtAddress = VirtAddVarTab[0];
+  halfWord = 214;
+  EE_WriteVariable(virtAddress, halfWord);
+}
 
-    virtAddress++;
+void readSensorConfiguration() 
+{
+  uint16_t halfWord;
+  uint16_t virtAddress;
 
-    EE_ReadVariable(virtAddress, halfWord);
-
-    fullWord = (*halfWord << 16);
-
-    virtAddress++;
-
-    EE_ReadVariable(virtAddress, halfWord);
-
-    fullWord |= *halfWord;
-
-    sensors[i].nullLevel = (float) fullWord;
-  }
+  virtAddress = VirtAddVarTab[0];
+  EE_ReadVariable(virtAddress, &halfWord);
+  
+  Serial.write(((1 & 0x7) << 4) | ((halfWord & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
+  Serial.write(((sendMarkerNext << 6) | (halfWord & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level 
 }
 
 uint8_t nextSensor(uint8_t currentSensor) 
@@ -107,6 +82,14 @@ void serialEvent()
   {
     switch (Serial.read())
     {
+      case 'R':
+        readSensorConfiguration();
+        break;
+
+      case 'W':
+        writeSensorConfiguration();
+        break;
+
       // S: start character, turns the streaming of values on;
       case 'S':
         streamValues = true;
@@ -146,8 +129,8 @@ void ADC_Handler(void)
   if (streamValues) 
   {
     // write the level, write() only writes per byte;
-    SerialUSB.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-    SerialUSB.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
+    Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
+    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
     // reset the marker
     sendMarkerNext = 0;
   }
@@ -169,13 +152,16 @@ void ADC_Handler(void)
 void setup() 
 {
   // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
-  SerialUSB.begin(4000000); 
+  Serial.begin(4000000); 
 
   // Unlock the flash for EEPROM emulation;
   FLASH_Unlock();
 
   // Initialize EEPROM, this will also check for valid pages;
-  EE_Init();
+  if (EE_Init() != FLASH_COMPLETE)
+  {
+    Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
+  }
 
   // set ADON bit in ADC control register to turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
@@ -198,9 +184,9 @@ void setup()
   // ##########################################################
   // SCB_BASE->VTOR = 0x08000000 | (0 & 0x1FFFFF80);
   // NVIC_BASE->ISER[0] |= BIT(NVIC_ADC_1_2 % 32);
-  //nvic_init(0x08000000, 0);
-  //nvic_irq_enable(NVIC_ADC_1_2);
-  //nvic_irq_set_priority(NVIC_ADC_1_2, 3);
+  // nvic_init(0x08000000, 0);
+  // nvic_irq_enable(NVIC_ADC_1_2);
+  // nvic_irq_set_priority(NVIC_ADC_1_2, 3);
   // ##########################################################
 
 
@@ -208,7 +194,7 @@ void setup()
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 
   // configure sensors;
-  readSensorConfiguration();
+  configureSensors();
 }
 
 void loop() 

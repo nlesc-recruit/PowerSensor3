@@ -30,28 +30,44 @@ namespace PowerSensor {
 
     PowerSensor::PowerSensor(const char *device)
     :
-        fd(openDevice(device)),
-        thread(nullptr) 
+      fd(openDevice(device)),
+      thread(nullptr) 
     {
-        //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
+      //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
       //readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
       startIOthread();
     }
 
     PowerSensor::~PowerSensor()
     {
-        stopIOthread();
-        std::cout << "No of samples: " << countera << std::endl;
-        std::cout << "No of bytelosses: " << counterb << std::endl;
-        if (close(fd))
-            perror("close device");
+      stopIOthread();
+      std::cout << "No of samples: " << countera << std::endl;
+      std::cout << "No of bytelosses: " << counterb << std::endl;
+      if (close(fd))
+        perror("close device");
     }
 
     void PowerSensor::readSensorsFromEEPROM() 
     {
-      for (Sensor &sensor : sensors) {
-        //sensor.readFromEEPROM(fd);
+      if (write(fd, "R", 1) != 1) 
+      {
+        perror("write device");
+        exit(1);
       }
+      std::cout << "readSensorsFromEEPROM()" << std::endl;
+      //for (Sensor &sensor : sensors) {
+        //sensor.readFromEEPROM(fd);
+      //}
+    }
+
+    void PowerSensor::writeSensorsToEEPROM()
+    {
+      if (write(fd, "W", 1) != 1) 
+      {
+        perror("write device");
+        exit(1);
+      }
+      std::cout << "writeSensorsToEEPROM()" << std::endl;
     }
 
     bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
@@ -77,7 +93,7 @@ namespace PowerSensor {
           // if the received corresponds to kill signal, return false to terminate the IOthread;
           if (buffer[0] == 0xFF && buffer[1] == 0xE0)
           {
-            //std::cout << 'D' << std::endl;
+            std::cout << 'D' << std::endl;
             return false;
           }
           // checks if first byte corresponds with predetermined first byte format;
@@ -143,7 +159,7 @@ namespace PowerSensor {
           if (marker) 
             *dumpFile << 'M' << std::endl;
 
-          *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
+          std::cout << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
         }
       }
     }
@@ -155,12 +171,13 @@ namespace PowerSensor {
       if (thread == nullptr)
       {
         thread = new std::thread(&PowerSensor::IOthread, this);
+
         // write start character S to device;
-        if (write(fd, "S", 1) != 1) 
-        {
-          perror("write device");
-          exit(1);
-        }
+        //if (write(fd, "S", 1) != 1) 
+        //{
+        //  perror("write device");
+        //  exit(1);
+        //}
       }
 
       // wait for the IOthread to run smoothly;
