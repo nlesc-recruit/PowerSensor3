@@ -26,6 +26,12 @@
 #include <unistd.h>
 #include <bitset>
 
+void shizzle() 
+{
+
+}
+
+
 int main(int argc, char *argv[])
 {
   const char *device = "/dev/ttyACM1";
@@ -36,18 +42,8 @@ int main(int argc, char *argv[])
   std::cout << "PowerSensor up and running" << std::endl;
   powerSensor.dump(dumpFileName);
   std::cout << "Writing to: " << dumpFileName << std::endl;
-  //std::cout << "WriteSensorsToEEPROM" << std::endl;
   //powerSensor.writeSensorsToEEPROM();
-  //usleep(2000000);
-  std::cout << "ReadSensorsFromEEPROM" << std::endl;
-  powerSensor.readSensorsFromEEPROM();
   usleep(2000000);
-
-
-
-
-
-
-
-  return 0;
+  powerSensor.readSensorsFromEEPROM();
+  usleep(2000000);  
 }
