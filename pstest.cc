@@ -29,7 +29,7 @@
 int main(int argc, char *argv[])
 {
   const char *device = "/dev/ttyACM1";
-  const char *dumpFileName = "testoutput/output.txt";
+  const char *dumpFileName = "output.txt";
 
   std::cout << "Setting up PowerSensor on port: " << device << std::endl;
   PowerSensor::PowerSensor powerSensor(device);

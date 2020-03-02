@@ -34,7 +34,7 @@ namespace PowerSensor {
         thread(nullptr) 
     {
         //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
-      readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
+      //readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
       startIOthread();
     }
 
@@ -50,7 +50,7 @@ namespace PowerSensor {
     void PowerSensor::readSensorsFromEEPROM() 
     {
       for (Sensor &sensor : sensors) {
-        sensor.readFromEEPROM(fd);
+        //sensor.readFromEEPROM(fd);
       }
     }
 
@@ -135,8 +135,8 @@ namespace PowerSensor {
         std::unique_lock<std::mutex> lock(mutex);
         sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
 
-        double volt = ((volt = level) / 512) * 2.5;
-        double amp = ((volt - 2.5) / .185);
+        float volt = ((volt = level) / 512) * 1.65;
+        float amp = ((volt - 1.65) / .185);
 
         if(dumpFile != nullptr) 
         {

@@ -3,7 +3,7 @@
 #include "eeprom_helper.h"
 
 // defines;
-#define MAX_SENSORS 5
+#define MAX_SENSORS 3
 
 // PowerSensor Serial variables
 bool streamValues = false;
@@ -12,10 +12,10 @@ uint8_t sendMarkerNext = 0;
 // Some EEPROM test values;
 
 // Virtual adress table;
-// uint16_t VirtAddVarTab[NB_OF_VAR] = {0x5555, 0x6666, 0x7777};
+uint16_t VirtAddVarTab[NB_OF_VAR] = {0x5555, 0x6666, 0x7777};
 
 // Data table;
-// uint16_t VarDataTab[NB_OF_VAR] = {0, 0, 0};
+uint16_t VarDataTab[NB_OF_VAR] = {0, 0, 0};
 
 // Variable value;
 // uint16_t VarValue = 0;
@@ -23,17 +23,69 @@ uint8_t sendMarkerNext = 0;
 struct Sensor {
   bool inUse;
   uint8_t pin;
+  float nullLevel;
 
 } sensors[MAX_SENSORS];
 
-void configureSensors() 
+void writeSensorConfiguration()
 {
+  uint16_t halfWord;
+  uint16_t virtAddress;
+  for (int i = 0; i < MAX_SENSORS; i++)
+  {
+    virtAddress = VirtAddVarTab[i];
+    halfWord = (sensors[i].inUse << 8) | sensors[i].pin;
+    EE_WriteVariable(virtAddress, halfWord);
+    virtAddress++;
+    halfWord = ((uint32_t) sensors[i].nullLevel >> 16) & 0xFFFF;
+    EE_WriteVariable(virtAddress, halfWord);
+    virtAddress++;
+    halfWord = ((uint32_t) sensors[i].nullLevel) & 0xFFFF;
+    EE_WriteVariable(virtAddress, halfWord);
+
+    /* this extra DC balanced variable is to get the config to 64 bits,
+       ensuring that the whole sector is used; */
+    virtAddress++;
+    halfWord = 0xAAAA;
+    EE_WriteVariable(virtAddress, halfWord);
+  }
+}
+
+void readSensorConfiguration() 
+{
+  // configure sensors from EEPROM?
   sensors[0].pin = PA4;
   sensors[0].inUse = true;
   sensors[1].pin = PA5;
   sensors[1].inUse = true;
   sensors[2].pin = PA6;
   sensors[2].inUse = true;
+
+  uint16_t *halfWord;
+  uint32_t fullWord;
+  uint16_t virtAddress;
+  for (int i = 0; i < MAX_SENSORS; i++)
+  {
+    virtAddress = VirtAddVarTab[i];
+
+    EE_ReadVariable(virtAddress, halfWord);
+    sensors[i].inUse = (*halfWord >> 8) & 0xFF;
+    sensors[i].pin = (*halfWord) & 0xFF;
+
+    virtAddress++;
+
+    EE_ReadVariable(virtAddress, halfWord);
+
+    fullWord = (*halfWord << 16);
+
+    virtAddress++;
+
+    EE_ReadVariable(virtAddress, halfWord);
+
+    fullWord |= *halfWord;
+
+    sensors[i].nullLevel = (float) fullWord;
+  }
 }
 
 uint8_t nextSensor(uint8_t currentSensor) 
@@ -120,10 +172,10 @@ void setup()
   SerialUSB.begin(4000000); 
 
   // Unlock the flash for EEPROM emulation;
-  // FLASH_Unlock();
+  FLASH_Unlock();
 
   // Initialize EEPROM, this will also check for valid pages;
-  // EE_Init();
+  EE_Init();
 
   // set ADON bit in ADC control register to turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
@@ -156,7 +208,7 @@ void setup()
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 
   // configure sensors;
-  configureSensors();
+  readSensorConfiguration();
 }
 
 void loop() 
