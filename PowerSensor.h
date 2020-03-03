@@ -33,7 +33,7 @@
 namespace PowerSensor {
 
 
-const static unsigned MAX_SENSORS = 5;
+const static unsigned MAX_SENSORS = 3;
 
 
 struct State
@@ -50,6 +50,16 @@ class PowerSensor
     ~PowerSensor();
 
     State read() const;
+    
+    struct EEPROM
+    {
+      struct Sensor
+      {
+        float volt;
+	      float type;
+	      float nullLevel;
+      } sensors[MAX_SENSORS];
+    };
 
     void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
     void mark() const;
@@ -68,12 +78,6 @@ class PowerSensor
   private:
     struct Sensor
     {
-      struct EEPROM
-      {
-	float volt __attribute__((packed));
-	float type __attribute__((packed));
-	float nullLevel __attribute__((packed));
-      };
 
       float    volt, type, nullLevel;
       double   weight;
