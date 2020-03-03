@@ -49,15 +49,31 @@ namespace PowerSensor {
 
     void PowerSensor::readSensorsFromEEPROM() 
     {
+      //stopIOthread();
+      sleep(2);
       if (write(fd, "R", 1) != 1) 
       {
         perror("write device");
         exit(1);
       }
       std::cout << "readSensorsFromEEPROM()" << std::endl;
-      //for (Sensor &sensor : sensors) {
-        //sensor.readFromEEPROM(fd);
-      //}
+      struct EEPROM eeprom;
+      ssize_t retval, bytesRead = 0;
+
+      do {
+        if ((retval = ::read(fd, (char *) &eeprom + bytesRead, sizeof eeprom - bytesRead)) < 0) {
+          perror("read device");
+          exit(1);
+        }
+      } while ((bytesRead += retval) < sizeof eeprom);
+      
+      for (int i = 0; i < MAX_SENSORS; i++)
+      {
+        std::cout << "Sensor: " << i << std::endl;
+        std::cout << eeprom.sensors[i].type << std::endl;
+        std::cout << eeprom.sensors[i].volt << std::endl;
+        std::cout << eeprom.sensors[i].nullLevel << std::endl;
+      }
     }
 
     void PowerSensor::writeSensorsToEEPROM()
@@ -68,6 +84,23 @@ namespace PowerSensor {
         exit(1);
       }
       std::cout << "writeSensorsToEEPROM()" << std::endl;
+      struct EEPROM eeprom;
+      for (int i = 0; i < MAX_SENSORS; i++)
+      {
+        eeprom.sensors[i].type = .6;
+        eeprom.sensors[i].volt = 3.3;
+        eeprom.sensors[i].nullLevel = i;
+      }
+      ssize_t retval, bytesWritten = 0;
+      do
+      {
+        if ((retval = ::write(fd, (char *) &eeprom + bytesWritten, sizeof eeprom - bytesWritten)) < 0) {
+          perror("write device");
+          exit(1);
+        }
+      } while ((bytesWritten += retval) < sizeof eeprom);
+      
+      
     }
 
     bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
@@ -159,7 +192,7 @@ namespace PowerSensor {
           if (marker) 
             *dumpFile << 'M' << std::endl;
 
-          std::cout << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
+          *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
         }
       }
     }
@@ -173,11 +206,11 @@ namespace PowerSensor {
         thread = new std::thread(&PowerSensor::IOthread, this);
 
         // write start character S to device;
-        //if (write(fd, "S", 1) != 1) 
-        //{
-        //  perror("write device");
-        //  exit(1);
-        //}
+        if (write(fd, "S", 1) != 1) 
+        {
+          perror("write device");
+          exit(1);
+        }
       }
 
       // wait for the IOthread to run smoothly;

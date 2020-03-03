@@ -43,7 +43,11 @@ int main(int argc, char *argv[])
   powerSensor.dump(dumpFileName);
   std::cout << "Writing to: " << dumpFileName << std::endl;
   //powerSensor.writeSensorsToEEPROM();
-  usleep(2000000);
-  powerSensor.readSensorsFromEEPROM();
+  //powerSensor.readSensorsFromEEPROM();
+  usleep(1000000);
+  powerSensor.mark();
   usleep(2000000);  
+  powerSensor.mark();
+  usleep(3000000); 
+  powerSensor.mark();
 }

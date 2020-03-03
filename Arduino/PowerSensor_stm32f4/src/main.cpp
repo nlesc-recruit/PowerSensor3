@@ -12,16 +12,40 @@ uint8_t sendMarkerNext = 0;
 // Virtual adress table for the EEPROM emulation;
 uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
 
+struct EEPROM{
+  struct Sensor
+  {
+    float type;
+    float volt;
+    float nullLevel;
+  } sensors[MAX_SENSORS];
+};
+
 struct Sensor {
   bool inUse;
   uint8_t pin;
-
-  // EEPROM stored variables;
   float type;
   float volt;
   float nullLevel;
 
 } sensors[MAX_SENSORS];
+
+bool approximates(float a, float b)
+{
+  return a / b > .999999 && a / b < 1.000001;
+}
+
+bool conversionComplete() 
+{
+  if (ADC1_BASE->SR & ADC_SR_EOC)
+  {
+    return true;
+  } 
+  else
+  {
+    return false;
+  }
+}
 
 void configureSensors()
 {
@@ -43,63 +67,68 @@ void configureSensors()
   sensors[2].type = .185;
 }
 
-void writeSensorConfiguration()
+void writeConfigurationToEEPROM(EEPROM recv)
 {
   uint16_t halfWord[4];
-  uint16_t virtAddress;
   uint32_t fullWord;
 
+  uint16_t virtualBaseAddress = 0x1111;
+  uint16_t virtualVariableAddress;
+  
   for (int i = 0; i < MAX_SENSORS; i++)
   {
-    memcpy(&fullWord, &sensors[i].nullLevel, 4);
-
-    halfWord[0] = (uint16_t) (sensors[i].type * 1000);
-    halfWord[1] = (uint16_t) (sensors[i].volt * 10);
+    virtualVariableAddress = virtualBaseAddress;
+    memcpy(&fullWord, &recv.sensors[i].nullLevel, 4);
+    halfWord[0] = (uint16_t) (recv.sensors[i].type * 1000);
+    halfWord[1] = (uint16_t) (recv.sensors[i].volt * 1000);
     halfWord[2] = (fullWord >> 16) & 0xFFFF;
     halfWord[3] = fullWord & 0xFFFF;
 
-    virtAddress = VirtAddVarTab[i];
     for (int j= 0; j < 4; j++) 
     {
-      EE_WriteVariable(virtAddress, halfWord[j]);
-      virtAddress++;
+      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
+      virtualVariableAddress++;
     }
+    virtualBaseAddress += 0x1111;
   }
-
 }
 
-void readSensorConfiguration() 
+EEPROM readSensorConfiguration()
 {
+  EEPROM copy;
+
   uint16_t halfWord[4];
-  uint16_t virtAddress;
   uint32_t fullWord;
+
+  uint16_t virtualBaseAddress = 0x1111;
+  uint16_t virtualVariableAddress;
 
   for (int i = 0; i < MAX_SENSORS; i++)
   {
-    virtAddress = VirtAddVarTab[i];
-    for (int j= 0; j < 4; j++) 
+    virtualVariableAddress = virtualBaseAddress;
+    for (int j = 0; j < 4; j++) 
     {
-      EE_ReadVariable(virtAddress, &halfWord[j]);
-      virtAddress++;
+      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
+      virtualVariableAddress++;
     }
-
-    sensors[i].type = ((float) halfWord[0]) / 1000;
-    sensors[i].volt = ((float) halfWord[1]) / 10;
+    copy.sensors[i].type = ((float) halfWord[0]) / 1000;
+    copy.sensors[i].volt = ((float) halfWord[1]) / 1000;
     fullWord = (halfWord[2] << 16) | halfWord[3];
-    memcpy(&sensors[i].nullLevel, &fullWord, 4);
+    memcpy(&copy.sensors[i].nullLevel, &fullWord, 4);
+    virtualBaseAddress += 0x1111;
+  }
 
-    uint16_t level;
+  return copy;
+}
 
-    if (sensors[i].nullLevel == 2.5 && sensors[i].volt == 3.30) //&& sensors[i].type == .185 )
-    {
-      level = 254;
-    } else
-    {
-      level = 253;
-    }
-    
-    Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
-    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); 
+void configureFromEEEPROM() 
+{
+  EEPROM copy = readSensorConfiguration();
+  for (int i = 0; i < MAX_SENSORS; i++)
+  {
+    sensors[i].type = copy.sensors[i].type;
+    sensors[i].volt = copy.sensors[i].type;
+    sensors[i].nullLevel = copy.sensors[i].nullLevel;
   }
 }
 
@@ -114,6 +143,25 @@ uint8_t nextSensor(uint8_t currentSensor)
   return currentSensor;
 }
 
+void readConfig()
+{
+  EEPROM send = readSensorConfiguration();
+  Serial.write((const uint8_t *) &send, sizeof send);
+}
+
+void writeConfig()
+{
+  EEPROM recv;
+  for (int i = 0; i < sizeof recv; i++)
+  {
+    while (Serial.available() == 0)
+      ;
+    ((uint8_t *) &recv)[i] = Serial.read();
+  }
+  writeConfigurationToEEPROM(recv);
+  configureFromEEEPROM();
+}
+
 // is called once per loop();
 void serialEvent() 
 {
@@ -123,26 +171,26 @@ void serialEvent()
     switch (Serial.read())
     {
       case 'R':
-        readSensorConfiguration();
+        readConfig();
         break;
 
       case 'W':
-        writeSensorConfiguration();
+        writeConfig();
         break;
 
       // S: start character, turns the streaming of values on;
       case 'S':
-        //streamValues = true;
+        streamValues = true;
         break;
 
       // T: stop character, turns the streaming of values off;
       case 'T':
-        //streamValues = false;
+        streamValues = false;
         break;
 
       // X: shutdown character, turns the stream off and kills the IOthread;
       case 'X':
-        //streamValues = false;
+        streamValues = false;
         Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
         break;
   
@@ -178,11 +226,10 @@ void ADC_Handler(void)
   // get next sensor in line to convert from;
   currentSensor = nextSensor(currentSensor);
 
+  // clear SQR conversion channel register;
+  ADC1_BASE->SQR3 &= ~(0xF);
+
   // set pin in sequence register 3 to be input for conversion;
-  ADC1_BASE->SQR3 &= ~(1 << 0);
-  ADC1_BASE->SQR3 &= ~(1 << 1);
-  ADC1_BASE->SQR3 &= ~(1 << 2);
-  ADC1_BASE->SQR3 &= ~(1 << 3);
   ADC1_BASE->SQR3 |= sensors[currentSensor].pin; // |= PA5; |= PA6;
 
   // set Start conversion bit in Control Register 2;
@@ -239,12 +286,8 @@ void setup()
 
 void loop() 
 {
-  //delay(2000);
-
-  //Serial.println((uint16_t) (3.3 * 10));
-  //Serial.println(((float) 33) / 10);
   // check if the End of Conversion bit is set in the ADC1 Status Register;
-  if (ADC1_BASE->SR & ADC_SR_EOC) 
+  if (conversionComplete()) 
   {
     ADC_Handler();
   }
