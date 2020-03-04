@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "eeprom_helper.h"
+#include "dma.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -11,6 +12,8 @@ uint8_t sendMarkerNext = 0;
 
 // Virtual adress table for the EEPROM emulation;
 uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
+
+uint16_t dmaBuffer[MAX_SENSORS];
 
 struct EEPROM{
   struct Sensor
@@ -208,29 +211,30 @@ void serialEvent()
 // "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
-  // read out the Data Register of ADC1;
-  uint16_t level = ADC1_BASE->DR;
-
-  static uint8_t currentSensor = 0;
-
-  
-  if (streamValues) 
+  for (int i = 0; i < MAX_SENSORS; i++) 
   {
-    // write the level, write() only writes per byte;
-    Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
-    // reset the marker
-    sendMarkerNext = 0;
-  }
+    uint16_t level = dmaBuffer[i];
+
+    static uint8_t currentSensor = 0;
+
+    if (streamValues) 
+    {
+      // write the level, write() only writes per byte;
+      Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
+      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
+      // reset the marker
+      sendMarkerNext = 0;
+    }
 
   // get next sensor in line to convert from;
   currentSensor = nextSensor(currentSensor);
 
+  }
   // clear SQR conversion channel register;
-  ADC1_BASE->SQR3 &= ~(0xF);
+  //ADC1_BASE->SQR3 &= ~(0xFFF);
 
   // set pin in sequence register 3 to be input for conversion;
-  ADC1_BASE->SQR3 |= sensors[currentSensor].pin; // |= PA5; |= PA6;
+  //ADC1_BASE->SQR3 |= sensors[currentSensor].pin; // |= PA5; |= PA6;
 
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
@@ -253,8 +257,13 @@ void setup()
   // set ADON bit in ADC control register to turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
 
+  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
+
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4; // |= PA5; |= PA6;
+  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
+
+  ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
   GPIOA_BASE->MODER |= 0x00003F00;
@@ -264,6 +273,32 @@ void setup()
 
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
+  
+  ADC1_BASE->CR2 |= ADC_CR2_DMA;
+
+  ADC1_BASE->CR2 |= (0x1 << 9);
+
+  //## DMA
+
+  //DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
+
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_MSIZE_16BITS;
+
+  DMA2_BASE->STREAM[0].M0AR |= (uint32_t) &dmaBuffer;
+
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_PSIZE_16BITS;
+
+  DMA2_BASE->STREAM[0].PAR |= (uint32_t) &ADC1_BASE->DR;
+
+  DMA2_BASE->STREAM[0].NDTR |= 3;
+
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_MINC;
+
+  DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
+
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_PL_VERY_HIGH;
+  
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
 
 
   // ##########################################################
@@ -279,6 +314,8 @@ void setup()
 
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+
+  ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   // configure sensors;
   configureSensors();
