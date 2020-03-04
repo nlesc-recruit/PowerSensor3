@@ -34,7 +34,7 @@ void shizzle()
 
 int main(int argc, char *argv[])
 {
-  const char *device = "/dev/ttyACM1";
+  const char *device = "/dev/ttyACM0";
   const char *dumpFileName = "output.txt";
 
   std::cout << "Setting up PowerSensor on port: " << device << std::endl;
@@ -45,9 +45,4 @@ int main(int argc, char *argv[])
   //powerSensor.writeSensorsToEEPROM();
   //powerSensor.readSensorsFromEEPROM();
   usleep(1000000);
-  powerSensor.mark();
-  usleep(2000000);  
-  powerSensor.mark();
-  usleep(3000000); 
-  powerSensor.mark();
 }
