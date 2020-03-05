@@ -34,7 +34,7 @@ namespace PowerSensor {
       thread(nullptr) 
     {
       //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
-      //readSensorsFromEEPROM(); // no EEPROM in the STM32F407 so this will need to be done some other way
+      //readSensorsFromEEPROM(); // Emulated EEPROM is working so this can be implemented?
       startIOthread();
     }
 
