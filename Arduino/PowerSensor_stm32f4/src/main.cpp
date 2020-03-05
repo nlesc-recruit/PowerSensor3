@@ -154,6 +154,7 @@ void readConfig()
 
 void writeConfig()
 {
+  // create EEPROM instance;
   EEPROM recv;
   for (int i = 0; i < sizeof recv; i++)
   {
@@ -213,8 +214,10 @@ void ADC_Handler(void)
 {
   for (int i = 0; i < MAX_SENSORS; i++)
   {
+    // put the corresponding value from the buffer in level;
     uint16_t level = dmaBuffer[i];
 
+    // init current sensor;
     static uint8_t currentSensor = 0;
 
     if (streamValues)
@@ -251,6 +254,7 @@ void setup()
   // Initialize EEPROM, this will also check for valid pages;
   if (EE_Init() != FLASH_COMPLETE)
   {
+    // if eeprom failes to initialize send kill signal?? (bit useless);
     Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
   }
 
@@ -284,26 +288,57 @@ void setup()
   // set 9th bit in ADC control register 2 ??;
   ADC1_BASE->CR2 |= (0x1 << 9);
 
-  // ############ START OF DIRECT MEMORY ACCESS CONFIGURATION ############
+  /* If the stream is enabled, disable it by resetting the EN bit in the DMA_SxCR register,
+     then read this bit in order to confirm that there is no ongoing stream operation. */
+  DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
 
-  //DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
+  while (DMA2_BASE->STREAM[0].CR & DMA_CR_EN)
+  {
 
-  DMA2_BASE->STREAM[0].CR |= DMA_CR_MSIZE_16BITS;
+  }
 
-  DMA2_BASE->STREAM[0].M0AR |= (uint32_t) &dmaBuffer;
-
-  DMA2_BASE->STREAM[0].CR |= DMA_CR_PSIZE_16BITS;
-
+  /* Set the peripheral port register address in the DMA_SxPAR register. The data will be
+    moved from/ to this address to/ from the peripheral port after the peripheral event. */
   DMA2_BASE->STREAM[0].PAR |= (uint32_t) &ADC1_BASE->DR;
 
-  DMA2_BASE->STREAM[0].NDTR |= 3;
+  /* Set the memory address in the DMA_SxMA0R register. The data will be written to or read
+    from this memory after the peripheral event. */
+  DMA2_BASE->STREAM[0].M0AR |= (uint32_t) &dmaBuffer;
 
+  /* Configure the total number of data items to be transferred in the DMA_SxNDTR
+    register. After each peripheral event or each beat of the burst, this value is
+    decremented. */
+  DMA2_BASE->STREAM[0].NDTR |= MAX_SENSORS;
+
+  /* Select the DMA channel (request) using CHSEL[2:0] in the DMA_SxCR register. */
+
+
+
+  // set memory unit size to 16 bits;
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_MSIZE_16BITS;
+
+  // set memory target address to the created DMA buffer;
+
+
+  // set pheripheral unit size to 16 bits;
+  DMA2_BASE->STREAM[0].CR |= DMA_CR_PSIZE_16BITS;
+
+  // set pheripheral target address to the data register of ADC1;
+
+
+  // set number of conversions in one sequence to 3, for 3 sensors;
+
+
+  // set memory increment on, so that it will fill the buffer/array correctly;
   DMA2_BASE->STREAM[0].CR |= DMA_CR_MINC;
 
+  // set DMA to circular mode so it will refill the increment once its empty;
   DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
 
+  // set priority level of the DMA stream to very high;
   DMA2_BASE->STREAM[0].CR |= DMA_CR_PL_VERY_HIGH;
 
+  // after all configurations are done, set the enable bit (from this on the registers are read-only);
   DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
 
 
@@ -321,6 +356,7 @@ void setup()
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 
+  // set ADC1 to continuous conversion mode;
   ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   // configure sensors;
@@ -329,9 +365,10 @@ void setup()
 
 void loop()
 {
-  // check if the End of Conversion bit is set in the ADC1 Status Register;
+  // check if the conversion has ended;
   if (conversionComplete())
   {
+    // run the ADC handler script;
     ADC_Handler();
   }
 
