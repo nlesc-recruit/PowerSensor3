@@ -292,10 +292,10 @@ void setup()
      then read this bit in order to confirm that there is no ongoing stream operation. */
   DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
 
-  while (DMA2_BASE->STREAM[0].CR & DMA_CR_EN)
-  {
+  //while (DMA2_BASE->STREAM[0].CR & DMA_CR_EN)
+  //{
 
-  }
+  //}
 
   /* Set the peripheral port register address in the DMA_SxPAR register. The data will be
     moved from/ to this address to/ from the peripheral port after the peripheral event. */
