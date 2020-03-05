@@ -38,12 +38,12 @@ bool approximates(float a, float b)
   return a / b > .999999 && a / b < 1.000001;
 }
 
-bool conversionComplete() 
+bool conversionComplete()
 {
   if (ADC1_BASE->SR & ADC_SR_EOC)
   {
     return true;
-  } 
+  }
   else
   {
     return false;
@@ -77,7 +77,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
   uint16_t virtualBaseAddress = 0x1111;
   uint16_t virtualVariableAddress;
-  
+
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     virtualVariableAddress = virtualBaseAddress;
@@ -87,7 +87,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
     halfWord[2] = (fullWord >> 16) & 0xFFFF;
     halfWord[3] = fullWord & 0xFFFF;
 
-    for (int j= 0; j < 4; j++) 
+    for (int j= 0; j < 4; j++)
     {
       EE_WriteVariable(virtualVariableAddress, halfWord[j]);
       virtualVariableAddress++;
@@ -109,7 +109,7 @@ EEPROM readSensorConfiguration()
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     virtualVariableAddress = virtualBaseAddress;
-    for (int j = 0; j < 4; j++) 
+    for (int j = 0; j < 4; j++)
     {
       EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
       virtualVariableAddress++;
@@ -124,7 +124,7 @@ EEPROM readSensorConfiguration()
   return copy;
 }
 
-void configureFromEEEPROM() 
+void configureFromEEEPROM()
 {
   EEPROM copy = readSensorConfiguration();
   for (int i = 0; i < MAX_SENSORS; i++)
@@ -135,7 +135,7 @@ void configureFromEEEPROM()
   }
 }
 
-uint8_t nextSensor(uint8_t currentSensor) 
+uint8_t nextSensor(uint8_t currentSensor)
 {
   do
   {
@@ -166,10 +166,10 @@ void writeConfig()
 }
 
 // is called once per loop();
-void serialEvent() 
+void serialEvent()
 {
   // checks if there is something in the input buffer, ensures the function read() does not block;
-  if (Serial.available() > 0) 
+  if (Serial.available() > 0)
   {
     switch (Serial.read())
     {
@@ -196,7 +196,7 @@ void serialEvent()
         streamValues = false;
         Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
         break;
-  
+
       case 'M': // M: marker character, places a marker in the output file;
         sendMarkerNext = 1;
         break;
@@ -211,13 +211,13 @@ void serialEvent()
 // "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
-  for (int i = 0; i < MAX_SENSORS; i++) 
+  for (int i = 0; i < MAX_SENSORS; i++)
   {
     uint16_t level = dmaBuffer[i];
 
     static uint8_t currentSensor = 0;
 
-    if (streamValues) 
+    if (streamValues)
     {
       // write the level, write() only writes per byte;
       Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
@@ -240,10 +240,10 @@ void ADC_Handler(void)
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 }
 
-void setup() 
+void setup()
 {
   // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
-  Serial.begin(4000000); 
+  Serial.begin(4000000);
 
   // Unlock the flash for EEPROM emulation;
   FLASH_Unlock();
@@ -255,14 +255,18 @@ void setup()
   }
 
   // set ADON bit in ADC control register to turn the converter on;
-  ADC1_BASE->CR2 |= ADC_CR2_ADON; 
+  ADC1_BASE->CR2 |= ADC_CR2_ADON;
 
+  // enable ADC system clock;
   RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+
+  // enable DMA system clock;
   RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
 
   // set PA4 in sequence register 3 to be the first input for conversion;
   ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
 
+  // set amount of conversions to 3 (0 = 1 conversion);
   ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
@@ -273,12 +277,14 @@ void setup()
 
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
-  
+
+  // enable DMA in ADC control register 2;
   ADC1_BASE->CR2 |= ADC_CR2_DMA;
 
+  // set 9th bit in ADC control register 2 ??;
   ADC1_BASE->CR2 |= (0x1 << 9);
 
-  //## DMA
+  // ############ START OF DIRECT MEMORY ACCESS CONFIGURATION ############
 
   //DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
 
@@ -297,7 +303,7 @@ void setup()
   DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
 
   DMA2_BASE->STREAM[0].CR |= DMA_CR_PL_VERY_HIGH;
-  
+
   DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
 
 
@@ -321,14 +327,14 @@ void setup()
   configureSensors();
 }
 
-void loop() 
+void loop()
 {
   // check if the End of Conversion bit is set in the ADC1 Status Register;
-  if (conversionComplete()) 
+  if (conversionComplete())
   {
     ADC_Handler();
   }
-  
+
   // manually check if there is input from the host;
   serialEvent();
 }
