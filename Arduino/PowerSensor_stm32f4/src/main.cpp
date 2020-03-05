@@ -212,10 +212,10 @@ void serialEvent()
 // "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
-  for (int i = 0; i < MAX_SENSORS; i++)
-  {
+//  for (int i = 0; i < MAX_SENSORS; i++)
+//  {
     // put the corresponding value from the buffer in level;
-    uint16_t level = dmaBuffer[i];
+    uint16_t level = ADC1_BASE->DR;
 
     // init current sensor;
     static uint8_t currentSensor = 0;
@@ -232,12 +232,15 @@ void ADC_Handler(void)
   // get next sensor in line to convert from;
   currentSensor = nextSensor(currentSensor);
 
-  }
+  //}
   // clear SQR conversion channel register;
   //ADC1_BASE->SQR3 &= ~(0xFFF);
 
   // set pin in sequence register 3 to be input for conversion;
   //ADC1_BASE->SQR3 |= sensors[currentSensor].pin; // |= PA5; |= PA6;
+
+  //DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
+  //DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
 
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
@@ -283,23 +286,25 @@ void setup()
   ADC1_BASE->CR1 |= 0x01000000;
 
   // enable DMA in ADC control register 2;
-  ADC1_BASE->CR2 |= ADC_CR2_DMA;
+  ADC1_BASE->CCR |= ADC_CCR_DMA;
+
+  ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
   // set 9th bit in ADC control register 2 ??;
-  ADC1_BASE->CR2 |= (0x1 << 9);
+  //ADC1_BASE->CR2 |= (0x1 << 9);
 
   /* If the stream is enabled, disable it by resetting the EN bit in the DMA_SxCR register,
      then read this bit in order to confirm that there is no ongoing stream operation. */
   DMA2_BASE->STREAM[0].CR &= ~(DMA_CR_EN);
 
-  //while (DMA2_BASE->STREAM[0].CR & DMA_CR_EN)
-  //{
+  while (DMA2_BASE->STREAM[0].CR & DMA_CR_EN)
+  {
 
-  //}
+  }
 
   /* Set the peripheral port register address in the DMA_SxPAR register. The data will be
     moved from/ to this address to/ from the peripheral port after the peripheral event. */
-  DMA2_BASE->STREAM[0].PAR |= (uint32_t) &ADC1_BASE->DR;
+  DMA2_BASE->STREAM[0].PAR |= (uint32_t) ADC1_BASE->DR;
 
   /* Set the memory address in the DMA_SxMA0R register. The data will be written to or read
     from this memory after the peripheral event. */
@@ -333,7 +338,7 @@ void setup()
   DMA2_BASE->STREAM[0].CR |= DMA_CR_MINC;
 
   // set DMA to circular mode so it will refill the increment once its empty;
-  DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
+  //DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
 
   // set priority level of the DMA stream to very high;
   DMA2_BASE->STREAM[0].CR |= DMA_CR_PL_VERY_HIGH;
@@ -357,7 +362,7 @@ void setup()
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 
   // set ADC1 to continuous conversion mode;
-  ADC1_BASE->CR2 |= ADC_CR2_CONT;
+  // ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   // configure sensors;
   configureSensors();

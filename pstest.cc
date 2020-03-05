@@ -34,7 +34,7 @@ void shizzle()
 
 int main(int argc, char *argv[])
 {
-  const char *device = "/dev/ttyACM0";
+  const char *device = "/dev/ttyACM1";
   const char *dumpFileName = "output.txt";
 
   std::cout << "Setting up PowerSensor on port: " << device << std::endl;
