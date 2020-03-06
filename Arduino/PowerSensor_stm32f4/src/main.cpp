@@ -212,10 +212,10 @@ void serialEvent()
 // "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
-//  for (int i = 0; i < MAX_SENSORS; i++)
-//  {
+  for (int i = 0; i < MAX_SENSORS; i++)
+  {
     // put the corresponding value from the buffer in level;
-    uint16_t level = ADC1_BASE->DR;
+    uint16_t level = dmaBuffer[i];
 
     // init current sensor;
     static uint8_t currentSensor = 0;
@@ -232,7 +232,7 @@ void ADC_Handler(void)
   // get next sensor in line to convert from;
   currentSensor = nextSensor(currentSensor);
 
-  //}
+  }
   // clear SQR conversion channel register;
   //ADC1_BASE->SQR3 &= ~(0xFFF);
 
@@ -243,7 +243,7 @@ void ADC_Handler(void)
   //DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
 
   // set Start conversion bit in Control Register 2;
-  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+  //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 }
 
 void setup()
@@ -270,6 +270,9 @@ void setup()
   // enable DMA system clock;
   RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
 
+  RCC_BASE->APB2ENR |= (1 << 1);
+
+
   // set PA4 in sequence register 3 to be the first input for conversion;
   ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
 
@@ -286,9 +289,14 @@ void setup()
   ADC1_BASE->CR1 |= 0x01000000;
 
   // enable DMA in ADC control register 2;
-  ADC1_BASE->CCR |= ADC_CCR_DMA;
+  ADC1_BASE->CR2 |= ADC_CR2_DMA;
 
+  // enable ADC channel scanning;
   ADC1_BASE->CR1 |= ADC_CR1_SCAN;
+
+  // set ADC to continuous mode;
+  ADC1_BASE->CR2 |= ADC_CR2_CONT;
+
 
   // set 9th bit in ADC control register 2 ??;
   //ADC1_BASE->CR2 |= (0x1 << 9);
@@ -338,7 +346,7 @@ void setup()
   DMA2_BASE->STREAM[0].CR |= DMA_CR_MINC;
 
   // set DMA to circular mode so it will refill the increment once its empty;
-  //DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
+  DMA2_BASE->STREAM[0].CR |= DMA_CIRC_MODE;
 
   // set priority level of the DMA stream to very high;
   DMA2_BASE->STREAM[0].CR |= DMA_CR_PL_VERY_HIGH;
@@ -359,10 +367,9 @@ void setup()
 
 
   // set Start conversion bit in Control Register 2;
-  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+  //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 
   // set ADC1 to continuous conversion mode;
-  // ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   // configure sensors;
   configureSensors();
