@@ -192,7 +192,7 @@ namespace PowerSensor {
           if (marker) 
             *dumpFile << 'M' << std::endl;
 
-          *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
+          *dumpFile <<  level << std::endl;
         }
       }
     }

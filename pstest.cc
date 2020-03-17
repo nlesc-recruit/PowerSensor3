@@ -44,5 +44,5 @@ int main(int argc, char *argv[])
   std::cout << "Writing to: " << dumpFileName << std::endl;
   //powerSensor.writeSensorsToEEPROM();
   //powerSensor.readSensorsFromEEPROM();
-  usleep(1000000);
+  usleep(10000);
 }
