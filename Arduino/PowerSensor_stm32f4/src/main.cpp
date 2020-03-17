@@ -315,7 +315,7 @@ void configureADC(bool DMA)
 
   ADC1_BASE->SMPR2 |= 0x3FF;
 
-  ADC1_BASE->CR2 |= ADC_CR2_EOCS;
+  ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
 
   ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
@@ -329,7 +329,7 @@ void configureADC(bool DMA)
     // enable ADC channel scanning;
     ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
-    ADC1_BASE->CR2 |= ADC_CR2_EOCS;
+    ADC1_BASE->CR2 |= 0x200;
 
     // set ADC to continuous mode;
     ADC1_BASE->CR2 |= ADC_CR2_CONT;
