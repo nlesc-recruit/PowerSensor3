@@ -247,7 +247,7 @@ void ADC_Handler(void)
   //ADC1_BASE->SQR3 |= sensors[currentSensor].pin; // |= PA5; |= PA6;
 
   // set Start conversion bit in Control Register 2;
-  //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 }
 
 void configureDMA()
@@ -299,10 +299,10 @@ void configureADC(bool DMA)
   ADC1_BASE->CR2 |= ADC_CR2_ADON;
 
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
+  ADC1_BASE->SQR3 |= PA4; //| (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
 
   // set amount of conversions to 3 (0 = 1 conversion);
-  ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
+  // ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
   GPIOA_BASE->MODER |= 0x00003F00;
@@ -313,13 +313,13 @@ void configureADC(bool DMA)
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
 
-  ADC1_BASE->SMPR2 |= 0x3FF;
+  //ADC1_BASE->SMPR2 |= 0x3FF;
 
-  ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
+  //ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
 
-  ADC1_BASE->CR1 |= ADC_CR1_SCAN;
+  //ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
-  ADC1_BASE->CR2 |= ADC_CR2_CONT;
+  //ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   if (DMA)
   {
@@ -367,11 +367,11 @@ void setup()
   // set 9th bit in ADC control register 2 ??;
   //ADC1_BASE->CR2 |= (0x1 << 9);
 
-  // set Start conversion bit in Control Register 2;
-  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
-
   // configure sensors;
   configureSensors();
+
+  // set Start conversion bit in Control Register 2;
+  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 }
 
 uint16_t challa;

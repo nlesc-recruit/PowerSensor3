@@ -184,8 +184,8 @@ namespace PowerSensor {
         std::unique_lock<std::mutex> lock(mutex);
         sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
 
-        float volt = ((volt = level) / 512) * 1.65;
-        float amp = ((volt - 1.65) / .185);
+        float volt = (((volt = level) / 512) * 2.5) - 2.5;
+        float amp = ((volt) / .185);
 
         if(dumpFile != nullptr) 
         {
