@@ -41,7 +41,7 @@ bool approximates(float a, float b)
 
 bool conversionComplete()
 {
-  if (ADC1_BASE->SR & ADC_SR_EOC)
+  if (DMA1_BASE->LISR & (1 << 0x5)) // ADC1_BASE->SR & ADC_SR_EOC  <- adc conversion complete flag in sr
   {
     return true;
   }
@@ -220,18 +220,12 @@ void ADC_Handler(void)
   //for (int i = 0; i < MAX_SENSORS; i++)
   //{
     // put the corresponding value from the buffer in level;
-    static uint8_t currentSensor = 0;
+  static uint8_t currentSensor = 0;
 
-    uint16_t level = dmaBuffer[currentSensor];
+  uint16_t level = dmaBuffer[currentSensor]; //ADC1_BASE->DR;
 
-    if (streamValues)
-    {
-      // write the level, write() only writes per byte;
-      Serial.write(((currentSensor & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
-      // reset the marker
-      sendMarkerNext = 0;
-    }
+  // write the level, write() only writes per byte;
+  Serial.println(level); //(sendMarkerNext << 6) | (level & 0x3F));
 
   // get next sensor in line to convert from;
   currentSensor = nextSensor(currentSensor);
@@ -245,7 +239,10 @@ void ADC_Handler(void)
 
   // set Start conversion bit in Control Register 2;
   //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+
 }
+
+uint32_t registers = 3;
 
 void configureDMA()
 {
@@ -264,9 +261,13 @@ void configureDMA()
 
   // set memory unit size to 16 bits;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_MSIZE_16BITS;
+  registers = DMA2_BASE->STREAM[stream].CR;
+
 
   // set memory target address to the created DMA buffer;
   DMA2_BASE->STREAM[stream].M0AR |= (uint32_t) &dmaBuffer;
+
+  //DMA2_BASE->STREAM[stream].M1AR |= (uint32_t) dmaBuffer;
 
   // set pheripheral unit size to 16 bits;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_PSIZE_16BITS;
@@ -291,6 +292,7 @@ void configureDMA()
 
   // set priority level of the DMA stream to very high;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_PL_VERY_HIGH;
+
 
   // after all configurations are done, set the enable bit (from this on the registers are read-only);
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_EN;
@@ -325,7 +327,7 @@ void configureADC(bool DMA)
   ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
 
   // enable scan mode to scan for next channel for conversion
-  ADC1_BASE->CR1 |= ADC_CR1_SCAN;
+  //ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
   if (DMA)
   {
@@ -344,24 +346,24 @@ void configureADC(bool DMA)
 void setup()
 {
   // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
-  Serial.begin(4000000);
+  Serial.begin(9600);
 
   // Unlock the flash for EEPROM emulation;
-  FLASH_Unlock();
+  //FLASH_Unlock();
 
   // Initialize EEPROM, this will also check for valid pages;
-  if (EE_Init() != FLASH_COMPLETE)
-  {
+  //if (EE_Init() != FLASH_COMPLETE)
+  //{
     // if eeprom failes to initialize send kill signal?? (bit useless);
-    Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
-  }
+  //  Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
+  //}
 
 
   // enable ADC system clock;
-  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  //RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
   // enable DMA system clock;
-  RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
+  // RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA2EN;
 
   //RCC_BASE->APB2ENR |= (1 << 1);
 
@@ -378,36 +380,19 @@ uint16_t challa;
 
 void loop()
 {
+  delay(1000);
+  Serial.println(registers);
   // check if the conversion has ended;
+  if (DMA2_BASE->LISR > 0) 
+  {
+    Serial.println("Fakka");
+  }
+
   if (conversionComplete())
   {
+    Serial.println("Hey");
     ADC_Handler();
   }
-
-  // checks if the Overwrite bit is set in SR ( if data is written to DR when previous data is not read yet)
-  if (ADC1_BASE->SR & (1 << 5))
-  {
-    
-
-    ADC1_BASE->SR & ~(1 << 5);
-
-
-
-
-      //Serial.write(((1 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-      //Serial.write(((sendMarkerNext << 6) | (512 & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
-    if (test == true) {
-      Serial.write(((3 & 0x7) << 4) | ((challa & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-      Serial.write(((sendMarkerNext << 6) | (challa & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
-
-    }
-  }
-  else
-  {
-    test = true;
-    challa++;
-  }
-  
   // manually check if there is input from the host;
   serialEvent();
 }
