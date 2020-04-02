@@ -222,10 +222,7 @@ void ADC_Handler(void)
     // put the corresponding value from the buffer in level;
     static uint8_t currentSensor = 0;
 
-    uint16_t level = ADC1_BASE->DR;
-
-    // init current sensor;
-    
+    uint16_t level = dmaBuffer[currentSensor];
 
     if (streamValues)
     {
@@ -252,7 +249,7 @@ void ADC_Handler(void)
 
 void configureDMA()
 {
-  int stream = 4;
+  int stream = 0;
 
   /* If the stream is enabled, disable it by resetting the EN bit in the DMA_SxCR register,
      then read this bit in order to confirm that there is no ongoing stream operation. */
@@ -262,6 +259,8 @@ void configureDMA()
   {
 
   }
+
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_CH0;
 
   // set memory unit size to 16 bits;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_MSIZE_16BITS;
@@ -279,10 +278,16 @@ void configureDMA()
   DMA2_BASE->STREAM[stream].NDTR |= MAX_SENSORS;
 
   // set memory increment on, so that it will fill the buffer/array correctly;
-  DMA2_BASE->STREAM[0].CR |= MAX_SENSORS;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_MINC;
 
   // set DMA to circular mode so it will refill the increment once its empty;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_CIRC;
+
+  // Peripheral address pointer is incremented after each data transfer
+  // DMA2_BASE->STREAM[stream].CR |= DMA_CR_PINC;
+
+  // Memory target switched at the end of the DMA transfer
+  // DMA2_BASE->STREAM[stream].CR |= DMA_CR_DBM;
 
   // set priority level of the DMA stream to very high;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_PL_VERY_HIGH;
@@ -299,10 +304,10 @@ void configureADC(bool DMA)
   ADC1_BASE->CR2 |= ADC_CR2_ADON;
 
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
+  ADC1_BASE->SQR3 |= PA4; //| (PA5 << 5) | (PA6 << 10); // |= PA5; |= PA6;
 
   // set amount of conversions to 3 (0 = 1 conversion);
-  ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
+  //ADC1_BASE->SQR1 |= (2 << ADC_SQR1_L);
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
   GPIOA_BASE->MODER |= 0x00003F00;
@@ -313,29 +318,27 @@ void configureADC(bool DMA)
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
 
-  //ADC1_BASE->SMPR2 |= 0x3FF;
+  // highest conversion time
+  ADC1_BASE->SMPR2 |= 0x3FF;
 
-  //ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
+  // enable EOCS bit which triggers interrupt after every normal conversion
+  ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
 
+  // enable scan mode to scan for next channel for conversion
   ADC1_BASE->CR1 |= ADC_CR1_SCAN;
-
-  ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
   if (DMA)
   {
-    // enable DMA in ADC control register 2;
+    // DMA mode enabled;
     ADC1_BASE->CR2 |= ADC_CR2_DMA;
 
-    // enable ADC channel scanning;
-    ADC1_BASE->CR1 |= ADC_CR1_SCAN;
-
-    ADC1_BASE->CR2 |= 0x200;
-
-    // set ADC to continuous mode;
-    ADC1_BASE->CR2 |= ADC_CR2_CONT;
-
+    // DMA requests are issued as long as data are converted and DMA=1;
+    ADC1_BASE->CR2 |= (0x1 << 9); // DDS bit
+    
     configureDMA();
   }
+    // enable continuous mode
+  ADC1_BASE->CR2 |= ADC_CR2_CONT;
 }
 
 void setup()
@@ -355,17 +358,14 @@ void setup()
 
 
   // enable ADC system clock;
-  //RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
   // enable DMA system clock;
-  //RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
+  RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
 
   //RCC_BASE->APB2ENR |= (1 << 1);
 
-  configureADC(false);
-
-  // set 9th bit in ADC control register 2 ??;
-  //ADC1_BASE->CR2 |= (0x1 << 9);
+  configureADC(true);
 
   // configure sensors;
   configureSensors();
@@ -387,6 +387,13 @@ void loop()
   // checks if the Overwrite bit is set in SR ( if data is written to DR when previous data is not read yet)
   if (ADC1_BASE->SR & (1 << 5))
   {
+    
+
+    ADC1_BASE->SR & ~(1 << 5);
+
+
+
+
       //Serial.write(((1 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
       //Serial.write(((sendMarkerNext << 6) | (512 & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
     if (test == true) {
