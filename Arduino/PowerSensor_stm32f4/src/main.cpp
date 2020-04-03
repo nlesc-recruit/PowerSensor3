@@ -243,26 +243,40 @@ void ADC_Handler(void)
 }
 
 uint32_t registers = 3;
+uint32_t register2 = 3;
+uint32_t testvar = 0;
 
 void configureDMA()
 {
-  int stream = 0;
+  int stream = 4;
 
   /* If the stream is enabled, disable it by resetting the EN bit in the DMA_SxCR register,
      then read this bit in order to confirm that there is no ongoing stream operation. */
-  DMA2_BASE->STREAM[stream].CR &= ~(DMA_CR_EN);
+  DMA2_BASE->STREAM[stream].CR &= ~((uint32_t)DMA_CR_EN);
+
+  //DMA2_BASE->LISR &= ~((uint32_t)0xFFFFFFFF);
+  //DMA2_BASE->HISR &= ~((uint32_t)0xFFFFFFFF);
+
+  delay(1000);
+  //DMA2_BASE->STREAM[stream].CR |= 1;
 
   while (DMA2_BASE->STREAM[stream].CR & DMA_CR_EN)
   {
-
+    Serial.println("enbit");
   }
 
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_CH0;
 
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_DIR_P2M;
+
   // set memory unit size to 16 bits;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_MSIZE_16BITS;
-  registers = DMA2_BASE->STREAM[stream].CR;
 
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_EN;
+
+  registers = DMA2_BASE->HISR;//DMA2_BASE->STREAM[stream].CR;
+
+  DMA2_BASE->STREAM[stream].CR &= ~((uint32_t)DMA_CR_EN);
 
   // set memory target address to the created DMA buffer;
   DMA2_BASE->STREAM[stream].M0AR |= (uint32_t) &dmaBuffer;
@@ -332,15 +346,19 @@ void configureADC(bool DMA)
   if (DMA)
   {
     // DMA mode enabled;
-    ADC1_BASE->CR2 |= ADC_CR2_DMA;
+    
 
     // DMA requests are issued as long as data are converted and DMA=1;
     ADC1_BASE->CR2 |= (0x1 << 9); // DDS bit
     
     configureDMA();
+
+    ADC1_BASE->CR2 |= ADC_CR2_DMA;
   }
     // enable continuous mode
   ADC1_BASE->CR2 |= ADC_CR2_CONT;
+
+  register2 = ADC1_BASE->CR1;
 }
 
 void setup()
@@ -360,10 +378,10 @@ void setup()
 
 
   // enable ADC system clock;
-  //RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
   // enable DMA system clock;
-  // RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA2EN;
+  RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA2EN;
 
   //RCC_BASE->APB2ENR |= (1 << 1);
 
@@ -381,7 +399,9 @@ uint16_t challa;
 void loop()
 {
   delay(1000);
-  Serial.println(registers);
+  Serial.println(registers, BIN);
+  Serial.println(register2, BIN);
+  Serial.println(testvar);
   // check if the conversion has ended;
   if (DMA2_BASE->LISR > 0) 
   {
