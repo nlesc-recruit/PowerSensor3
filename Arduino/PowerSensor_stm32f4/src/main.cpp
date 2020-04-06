@@ -242,13 +242,26 @@ void ADC_Handler(void)
 
 }
 
-uint32_t registers = 3;
+uint32_t register1 = 3;
 uint32_t register2 = 3;
-uint32_t testvar = 0;
+uint32_t registermap[8];
 
 void configureDMA()
 {
-  int stream = 4;
+  uint8_t stream = 3;
+  uint32_t tmpreg = 0;
+
+  tmpreg = DMA2_BASE->STREAM[stream].CR;
+
+  tmpreg &= ((uint32_t)~(0xFFFFFFFF));
+
+  tmpreg |= DMA_CR_MSIZE_16BITS;
+  DMA2_BASE->STREAM[stream].CR &= ~((uint32_t)DMA_CR_EN);
+
+  register1 = tmpreg;
+
+  DMA2_BASE->STREAM[stream].CR = tmpreg;
+  register2 = DMA2_BASE->STREAM[stream].CR;
 
   /* If the stream is enabled, disable it by resetting the EN bit in the DMA_SxCR register,
      then read this bit in order to confirm that there is no ongoing stream operation. */
@@ -258,6 +271,8 @@ void configureDMA()
   //DMA2_BASE->HISR &= ~((uint32_t)0xFFFFFFFF);
 
   delay(1000);
+  
+  
   //DMA2_BASE->STREAM[stream].CR |= 1;
 
   while (DMA2_BASE->STREAM[stream].CR & DMA_CR_EN)
@@ -265,18 +280,14 @@ void configureDMA()
     Serial.println("enbit");
   }
 
+  DMA2_BASE->STREAM[stream].PAR |= (uint32_t) &ADC1_BASE->DR;
+
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_CH0;
 
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_DIR_P2M;
 
   // set memory unit size to 16 bits;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_MSIZE_16BITS;
-
-  DMA2_BASE->STREAM[stream].CR |= DMA_CR_EN;
-
-  registers = DMA2_BASE->HISR;//DMA2_BASE->STREAM[stream].CR;
-
-  DMA2_BASE->STREAM[stream].CR &= ~((uint32_t)DMA_CR_EN);
 
   // set memory target address to the created DMA buffer;
   DMA2_BASE->STREAM[stream].M0AR |= (uint32_t) &dmaBuffer;
@@ -358,8 +369,10 @@ void configureADC(bool DMA)
     // enable continuous mode
   ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
-  register2 = ADC1_BASE->CR1;
+  //register2 = ADC1_BASE->CR1;
 }
+
+volatile uint * addr;
 
 void setup()
 {
@@ -378,42 +391,37 @@ void setup()
 
 
   // enable ADC system clock;
-  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  //RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
   // enable DMA system clock;
-  RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA2EN;
+  //RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA2EN;
+  //RCC_BASE->AHB1ENR |= RCC_AHBENR_DMA1EN;
 
   //RCC_BASE->APB2ENR |= (1 << 1);
 
-  configureADC(true);
+  //configureADC(true);
 
   // configure sensors;
-  configureSensors();
+  //configureSensors();
 
   // set Start conversion bit in Control Register 2;
-  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
-}
+  //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
+  //
 
-uint16_t challa;
+  dma_init(DMA2);
+  dma_enable(DMA2, DMA_STREAM0);
+
+}
 
 void loop()
 {
   delay(1000);
-  Serial.println(registers, BIN);
-  Serial.println(register2, BIN);
-  Serial.println(testvar);
+  Serial.println(DMA2_BASE->STREAM[0].CR, BIN);
   // check if the conversion has ended;
-  if (DMA2_BASE->LISR > 0) 
-  {
-    Serial.println("Fakka");
-  }
-
   if (conversionComplete())
   {
-    Serial.println("Hey");
     ADC_Handler();
   }
   // manually check if there is input from the host;
   serialEvent();
 }
-
