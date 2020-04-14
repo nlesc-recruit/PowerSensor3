@@ -406,9 +406,13 @@ void setup()
 
   // set Start conversion bit in Control Register 2;
   //ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
-  //
+  // [RCC_DMA2]    = { .clk_domain = AHB1, .line_num = 22 }, //*
 
-  dma_init(DMA2);
+  //dma_init(DMA2);
+  //rcc_clk_enable(DMA2->clk_id);
+  
+  RCC_BASE->AHB1ENR |= 0x400000;
+
   dma_enable(DMA2, DMA_STREAM0);
 
 }
@@ -416,7 +420,18 @@ void setup()
 void loop()
 {
   delay(1000);
-  Serial.println(DMA2_BASE->STREAM[0].CR, BIN);
+  if (DMA2_BASE->STREAM[0].CR > 0)
+  {
+    Serial.println("DMA2 is enabled");
+  }
+  else
+  {
+    Serial.println("DMA2 is disnabled");
+  }
+
+  Serial.println(RCC_BASE->AHB1ENR, BIN);
+  Serial.println(RCC_AHBENR_DMA2EN, BIN);
+
   // check if the conversion has ended;
   if (conversionComplete())
   {
