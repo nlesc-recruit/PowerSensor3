@@ -13,8 +13,8 @@ uint8_t sendMarkerNext = 0;
 // Virtual adress table for the EEPROM emulation;
 uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
 
+// buffer for the DMA to transfer level values to;
 uint16_t dmaBuffer[MAX_SENSORS];
-uint16_t buffer[MAX_SENSORS];
 
 struct EEPROM{
   struct Sensor
@@ -41,7 +41,8 @@ bool approximates(float a, float b)
 
 bool conversionComplete()
 {
-  if (DMA2_BASE->LISR & (1 << 4)) // ADC1_BASE->SR & ADC_SR_EOC  <- adc conversion complete flag in sr
+  // check if the DMA is done with its sequence;
+  if (DMA2_BASE->LISR & (1 << 4))
   {
     return true;
   }
@@ -278,21 +279,14 @@ void configureDMA()
   // set DMA to circular mode so it will refill the increment once its empty;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_CIRC;
 
-  // set priority level of the DMA stream to very high;
-  //DMA2_BASE->STREAM[stream].CR |= DMA_CR_PL_VERY_HIGH;
-
   // after all configurations are done, set the enable bit;
   DMA2_BASE->STREAM[stream].CR |= DMA_CR_EN;
 }
 
-
-
 void configureADC(bool DMA)
-{
-  // set ADON bit in ADC control register to turn the converter on;
- 
+{ 
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10);// | (PA6 << 10); // |= PA5; |= PA6;
+  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10);
 
   // set amount of conversions to 3 (0 = 1 conversion);
   ADC1_BASE->SQR1 |= 2<<20;
@@ -300,62 +294,39 @@ void configureADC(bool DMA)
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
   GPIOA_BASE->MODER |= 0x00003F00;
 
-  // set End of Conversion Interrupt Enable bit to enable interrupts;
-  //ADC1_BASE->CR1 |= ADC_CR1_EOCIE;
-
-  //nvic_irq_enable(NVIC_ADC_1_2);
-
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
 
   // highest conversion time
   ADC1_BASE->SMPR2 |= 0x3FF;
 
-  // enable EOCS bit which triggers interrupt after every normal conversion
-  //ADC1_BASE->CR2 |= 0x200; //ADC_CR2_EOCS;
-
   // enable scan mode to scan for next channel for conversion
   ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
-
   if (DMA)
   {
-    // DMA mode enabled;
-    
-
     // DMA requests are issued as long as data are converted and DMA=1;
     ADC1_BASE->CR2 |= (1 << 9); // DDS bit
     
     configureDMA();
 
+    // enable the DMA in the ADC after the DMA is configured;
     ADC1_BASE->CR2 |= ADC_CR2_DMA;
   }
+  // set ADON bit in ADC control register to turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
 
     // enable continuous mode
   ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
+ // set ADON bit in ADC control register for the second time to actually turn the converter on;
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
-
-
-  //register2 = ADC1_BASE->CR1;
 }
 
 void setup()
 {
   // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
   Serial.begin(4000000);
-
-  // Unlock the flash for EEPROM emulation;
-  //FLASH_Unlock();
-
-  // Initialize EEPROM, this will also check for valid pages;
-  //if (EE_Init() != FLASH_COMPLETE)
-  //{
-    // if eeprom failes to initialize send kill signal?? (bit useless);
-  //  Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
-  //}
-
 
   // enable ADC system clock;
   RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
@@ -368,20 +339,8 @@ void setup()
   // configure sensors;
   configureSensors();
 
-  //dma_attach_interrupt(DMA2, DMA_STREAM0, *hanlder);
-
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
-  // [RCC_DMA2]    = { .clk_domain = AHB1, .line_num = 22 }, //*
-
-  //dma_init(DMA2);
-  //rcc_clk_enable(DMA2->clk_id);
-  
-  
-  //DMA2_BASE->STREAM[0].CR |= DMA_CR_EN;
-
-  //dma_enable(DMA2, DMA_STREAM0);
-
 }
 
 void loop()
@@ -389,6 +348,7 @@ void loop()
   // check if OVR bit is set in ADC status register;
   if (ADC1_BASE->SR & (1<<5))
   {
+    // this should get another value;
     Serial.write(((3 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));
     Serial.write(((sendMarkerNext << 6) | (512 & 0x3F)) & ~(1 << 7));  
   }
