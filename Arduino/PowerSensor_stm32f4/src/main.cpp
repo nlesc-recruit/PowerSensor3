@@ -4,14 +4,14 @@
 #include "dma.h"
 
 // defines;
-#define MAX_SENSORS 2
+#define MAX_SENSORS 3
 
 // PowerSensor Serial variables
 bool streamValues = false;
 uint8_t sendMarkerNext = 0;
 
 // Virtual adress table for the EEPROM emulation;
-uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666}; //0x7777};
+uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
 
 uint16_t dmaBuffer[MAX_SENSORS];
 uint16_t buffer[MAX_SENSORS];
@@ -227,6 +227,8 @@ void ADC_Handler(void)
       
       // reset the marker
       sendMarkerNext = 0;
+      // rest buffer;
+      dmaBuffer[i];
     }
   }
   // get next sensor in line to convert from;
@@ -290,10 +292,10 @@ void configureADC(bool DMA)
   // set ADON bit in ADC control register to turn the converter on;
  
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5);// | (PA6 << 10); // |= PA5; |= PA6;
+  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10);// | (PA6 << 10); // |= PA5; |= PA6;
 
   // set amount of conversions to 3 (0 = 1 conversion);
-  ADC1_BASE->SQR1 |= 1<<20;
+  ADC1_BASE->SQR1 |= 2<<20;
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
   GPIOA_BASE->MODER |= 0x00003F00;
@@ -322,7 +324,7 @@ void configureADC(bool DMA)
     
 
     // DMA requests are issued as long as data are converted and DMA=1;
-    //ADC1_BASE->CR2 |= (0x1 << 9); // DDS bit
+    ADC1_BASE->CR2 |= (1 << 9); // DDS bit
     
     configureDMA();
 
@@ -384,12 +386,20 @@ void setup()
 
 void loop()
 {
-  // check if the conversion has ended;
-  if (conversionComplete())
+  // check if OVR bit is set in ADC status register;
+  if (ADC1_BASE->SR & (1<<5))
   {
-    ADC_Handler();
+    Serial.write(((3 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));
+    Serial.write(((sendMarkerNext << 6) | (512 & 0x3F)) & ~(1 << 7));  
   }
-  //Serial.println(dmaBuffer[0]);
+  else
+  {
+    // check if the conversion has ended;
+    if (conversionComplete())
+    {
+      ADC_Handler();
+    }
+  }
   // manually check if there is input from the host;
   serialEvent();
 }
