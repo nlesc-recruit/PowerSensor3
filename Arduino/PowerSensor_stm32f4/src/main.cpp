@@ -52,26 +52,6 @@ bool conversionComplete()
   }
 }
 
-void configureSensors()
-{
-  // configure sensors from EEPROM?
-  sensors[0].pin = PA4;
-  sensors[0].inUse = true;
-  sensors[0].nullLevel = 2.5;
-  sensors[0].volt = 3.3;
-  sensors[0].type = .185;
-  sensors[1].pin = PA5;
-  sensors[1].inUse = true;
-  sensors[1].nullLevel = 2.5;
-  sensors[1].volt = 3.3;
-  sensors[1].type = .185;
-  sensors[2].pin = PA6;
-  sensors[2].inUse = true;
-  sensors[2].nullLevel = 2.5;
-  sensors[2].volt = 3.3;
-  sensors[2].type = .185;
-}
-
 void writeConfigurationToEEPROM(EEPROM recv)
 {
   uint16_t halfWord[4];
@@ -285,8 +265,11 @@ void configureDMA()
 
 void configureADC(bool DMA)
 { 
-  // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= 1 | (2 << 5) | (3 << 10);
+  // set sensor input channels in sequence registers;
+  for (int i = 0; i < MAX_SENSORS; i++)
+  {
+    ADC1_BASE->SQR3 |= ((i+1)<<(i*5));
+  }
 
   // set amount of conversions to 3 (0 = 1 conversion);
   ADC1_BASE->SQR1 |= 2<<20;
@@ -323,6 +306,34 @@ void configureADC(bool DMA)
   ADC1_BASE->CR2 |= ADC_CR2_ADON; 
 }
 
+void configureSensors(boolean init)
+{
+  // configure sensors from EEPROM?
+  if (init)
+  {
+    sensors[0].pin = PA4;
+    sensors[0].inUse = true;
+    sensors[0].nullLevel = 2.5;
+    sensors[0].volt = 3.3;
+    sensors[0].type = .185;
+    sensors[1].pin = PA5;
+    sensors[1].inUse = true;
+    sensors[1].nullLevel = 2.5;
+    sensors[1].volt = 3.3;
+    sensors[1].type = .185;
+    sensors[2].pin = PA6;
+    sensors[2].inUse = true;
+    sensors[2].nullLevel = 2.5;
+    sensors[2].volt = 3.3;
+    sensors[2].type = .185;
+  } 
+  else 
+  {
+    configureFromEEEPROM();
+  }
+
+}
+
 void setup()
 {
   // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
@@ -337,7 +348,7 @@ void setup()
   configureADC(true);
 
   // configure sensors;
-  configureSensors();
+  configureSensors(true);
 
   // set Start conversion bit in Control Register 2;
   ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
