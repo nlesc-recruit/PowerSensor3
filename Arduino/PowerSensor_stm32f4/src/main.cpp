@@ -265,17 +265,18 @@ void configureDMA()
 
 void configureADC(bool DMA)
 { 
-  // set sensor input channels in sequence registers;
+  // initialise sensors;
   for (int i = 0; i < MAX_SENSORS; i++)
   {
-    ADC1_BASE->SQR3 |= ((i+1)<<(i*5));
+    // set sensor input channel in sequence registers;
+    ADC1_BASE->SQR3 |= (i << (i * 5));
+
+    // set pins to analog input in the GPIO mode register;
+    GPIOA_BASE->MODER |= (0x3 << (i * 2));
   }
 
   // set amount of conversions to 3 (0 = 1 conversion);
-  ADC1_BASE->SQR1 |= 2<<20;
-
-  // set PA4, PA5, PA6 to analog input in the GPIO mode register;
-  GPIOA_BASE->MODER |= 0xFC;
+  ADC1_BASE->SQR1 |= ((MAX_SENSORS - 1) << 20);
 
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
