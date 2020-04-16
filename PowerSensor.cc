@@ -30,6 +30,7 @@ namespace PowerSensor {
 
     PowerSensor::PowerSensor(const char *device)
     :
+      startTime(omp_get_wtime()),
       fd(openDevice(device)),
       thread(nullptr) 
     {
@@ -41,7 +42,7 @@ namespace PowerSensor {
     PowerSensor::~PowerSensor()
     {
       stopIOthread();
-      std::cout << "No of samples: " << countera/3 << std::endl;
+      std::cout << "No of samples: " << countera << std::endl;
       std::cout << "No of bytelosses: " << counterb << std::endl;
       dumpCurrentWattToFile();
       if (close(fd))
@@ -165,7 +166,12 @@ namespace PowerSensor {
       // get the current time;
       double now = omp_get_wtime();
 
-      wattAtlastMeasurement = (level - 512) * weight - nullLevel;
+      weight = 2.6 / 512 * 5 / .185;
+
+      float volt = (((volt = level) / 1023) * 3.3);
+      float amp = -((volt - 2.6) / .185);
+
+      wattAtlastMeasurement = amp * 5;//weight - 0;
 
       consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
 
@@ -192,10 +198,10 @@ namespace PowerSensor {
         {
           if (marker) 
             *dumpFile << 'M' << std::endl;
-          if (sensorNumber == 0)
-          {
+          //if (sensorNumber == 0)
+          //{
             *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
-          }
+          //}
         }
       }
     }
