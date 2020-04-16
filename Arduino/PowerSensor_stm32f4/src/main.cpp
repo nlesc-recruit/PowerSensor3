@@ -286,13 +286,13 @@ void configureDMA()
 void configureADC(bool DMA)
 { 
   // set PA4 in sequence register 3 to be the first input for conversion;
-  ADC1_BASE->SQR3 |= PA4 | (PA5 << 5) | (PA6 << 10);
+  ADC1_BASE->SQR3 |= 1 | (2 << 5) | (3 << 10);
 
   // set amount of conversions to 3 (0 = 1 conversion);
   ADC1_BASE->SQR1 |= 2<<20;
 
   // set PA4, PA5, PA6 to analog input in the GPIO mode register;
-  GPIOA_BASE->MODER |= 0x00003F00;
+  GPIOA_BASE->MODER |= 0xFC;
 
   // set Resolution bits to 10 bit resolution;
   ADC1_BASE->CR1 |= 0x01000000;
