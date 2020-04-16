@@ -41,8 +41,9 @@ namespace PowerSensor {
     PowerSensor::~PowerSensor()
     {
       stopIOthread();
-      std::cout << "No of samples: " << countera << std::endl;
+      std::cout << "No of samples: " << countera/3 << std::endl;
       std::cout << "No of bytelosses: " << counterb << std::endl;
+      dumpCurrentWattToFile();
       if (close(fd))
         perror("close device");
     }
@@ -162,13 +163,13 @@ namespace PowerSensor {
     void PowerSensor::Sensor::updateLevel(int16_t level)
     {
       // get the current time;
-      //double now = omp_get_wtime();
+      double now = omp_get_wtime();
 
-      //wattAtlastMeasurement = (level - 512) * weight - nullLevel;
+      wattAtlastMeasurement = (level - 512) * weight - nullLevel;
 
-      //consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
+      consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
 
-      //timeAtLastMeasurement = now;
+      timeAtLastMeasurement = now;
     }
 
     // constantly reads data from the device and saves it;
@@ -191,7 +192,10 @@ namespace PowerSensor {
         {
           if (marker) 
             *dumpFile << 'M' << std::endl;
-          *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
+          if (sensorNumber == 0)
+          {
+            *dumpFile << 'S' << ' ' << sensorNumber << '\t' << 'L' << ' ' << level << '\t' <<'V' << ' ' << volt << '\t' <<'A' << ' ' << amp << std::endl;
+          }
         }
       }
     }
@@ -313,6 +317,36 @@ namespace PowerSensor {
         perror("write device");
         exit(1);
       }
+    }
+
+    double PowerSensor::Sensor::currentWatt() const
+    {
+      return wattAtlastMeasurement;
+    }
+
+    void PowerSensor::dumpCurrentWattToFile()
+    {
+      std::unique_lock<std::mutex> lock(dumpFileMutex);
+      double totalWatt = 0;
+      double time      = omp_get_wtime();
+
+      *dumpFile << "S " << time - startTime;
+
+      #if 1
+        static double previousTime;
+        *dumpFile << ' ' << 1e6 * (time - previousTime);
+        previousTime = time;
+      #endif
+
+      for (const Sensor &sensor : sensors)
+      {
+        if (1) // sensor.inUse();
+        {
+          *dumpFile << ' ' << sensor.currentWatt();
+          totalWatt += sensor.currentWatt();
+        }
+      }
+      *dumpFile << ' ' << totalWatt << std::endl;
     }
 
 }
