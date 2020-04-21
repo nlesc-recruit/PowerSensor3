@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
-#include "eeprom_helper.h"
-#include "dma.h"
+//#include "eeprom_helper.h"
+//#include "dma.h"
 
 // defines;
 #define MAX_SENSORS 3
