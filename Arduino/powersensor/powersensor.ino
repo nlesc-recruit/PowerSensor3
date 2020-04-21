@@ -1,4 +1,5 @@
 #include <Arduino.h>
+//#include "eeprom_helper.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -78,6 +79,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
 EEPROM readSensorConfiguration()
 {
   EEPROM copy;
+
 
   uint16_t halfWord[4];
   uint32_t fullWord;
