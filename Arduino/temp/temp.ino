@@ -42,7 +42,7 @@ bool approximates(float a, float b)
 bool conversionComplete()
 {
   // check if the DMA is done with its sequence;
-  if (DMA2->LISR & (1 << 4))
+  if (DMA2_BASE->LISR & (1 << 4))
   {
     return true;
   }
@@ -71,7 +71,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
     for (int j= 0; j < 4; j++)
     {
-      //EE_WriteVariable(virtualVariableAddress, halfWord[j]);
+      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
       virtualVariableAddress++;
     }
     virtualBaseAddress += 0x1111;
@@ -93,7 +93,7 @@ EEPROM readSensorConfiguration()
     virtualVariableAddress = virtualBaseAddress;
     for (int j = 0; j < 4; j++)
     {
-      //EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
+      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
       virtualVariableAddress++;
     }
     copy.sensors[i].type = ((float) halfWord[0]) / 1000;
@@ -218,48 +218,49 @@ void ADC_Handler(void)
 
 void configureDMA()
 {
+  uint8_t stream = 0;
 
   // disable the stream, the dma registers cannot be altered when this bit is 1;
-  DMA2_Stream0->CR &= ~((uint32_t)DMA_SxCR_EN);
+  DMA2_BASE->STREAM[stream].CR &= ~((uint32_t)DMA_CR_EN);
 
   // wait for the EN bit to go to 0;
-  while (DMA2_Stream0->CR & DMA_SxCR_EN)
+  while (DMA2_BASE->STREAM[stream].CR & DMA_CR_EN)
   {
     // do nothing (maybe add timeout later);
   }
 
   // set the peripheral address to ADC1's data register;
-  DMA2_Stream0->PAR |= (uint32_t) &ADC1->DR;
+  DMA2_BASE->STREAM[stream].PAR |= (uint32_t) &ADC1_BASE->DR;
 
   // set the channel to channel 0, 0 and 3 are channels connected to ADC1;
-  // DMA2_Stream0->CR |= 0 << DMA_SxCR_CHSEL0;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_CH0;
 
   // set the data transfer direction to peripheral to memory;
-  // DMA2_Stream0->CR |= DMA_CR_DIR_P2M;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_DIR_P2M;
 
   // set memory unit size to 16 bits, ADC resolution is 10;
-  DMA2_Stream0->CR |= DMA_SxCR_MSIZE_0;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_MSIZE_16BITS;
 
   // set memory target address to the created DMA buffer;
-  DMA2_Stream0->M0AR |= (uint32_t) &dmaBuffer;
+  DMA2_BASE->STREAM[stream].M0AR |= (uint32_t) &dmaBuffer;
 
   // set pheripheral unit size to 16 bits;
-  DMA2_Stream0->CR |= DMA_SxCR_PSIZE_0;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_PSIZE_16BITS;
 
   // set pheripheral target address to the data register of ADC1;
-  DMA2_Stream0->PAR |= (uint32_t) &ADC1->DR;
+  DMA2_BASE->STREAM[stream].PAR |= (uint32_t) &ADC1_BASE->DR;
 
   // set number of conversions in one sequence to 3, for 3 sensors;
-  DMA2_Stream0->NDTR |= MAX_SENSORS;
+  DMA2_BASE->STREAM[stream].NDTR |= MAX_SENSORS;
 
   // set memory increment on, so that it will fill the buffer/array correctly;
-  DMA2_Stream0->CR |= DMA_SxCR_MINC;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_MINC;
 
   // set DMA to circular mode so it will refill the increment once its empty;
-  DMA2_Stream0->CR |= DMA_SxCR_CIRC;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_CIRC;
 
   // after all configurations are done, set the enable bit;
-  DMA2_Stream0->CR |= DMA_SxCR_EN;
+  DMA2_BASE->STREAM[stream].CR |= DMA_CR_EN;
 }
 
 void configureADC(bool DMA)
@@ -268,42 +269,42 @@ void configureADC(bool DMA)
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     // set sensor input channel in sequence registers;
-    ADC1->SQR3 |= (i << (i * 5));
+    ADC1_BASE->SQR3 |= (i << (i * 5));
 
     // set pins to analog input in the GPIO mode register;
-    GPIOA->MODER |= (0x3 << (i * 2));
+    GPIOA_BASE->MODER |= (0x3 << (i * 2));
   }
 
   // set amount of conversions to 3 (0 = 1 conversion);
-  ADC1->SQR1 |= ((MAX_SENSORS - 1) << 20);
+  ADC1_BASE->SQR1 |= ((MAX_SENSORS - 1) << 20);
 
   // set Resolution bits to 10 bit resolution;
-  ADC1->CR1 |= 0x01000000;
+  ADC1_BASE->CR1 |= 0x01000000;
 
   // highest conversion time
-  ADC1->SMPR2 |= 0x3FF;
+  ADC1_BASE->SMPR2 |= 0x3FF;
 
   // enable scan mode to scan for next channel for conversion
-  ADC1->CR1 |= ADC_CR1_SCAN;
+  ADC1_BASE->CR1 |= ADC_CR1_SCAN;
 
   if (DMA)
   {
     // DMA requests are issued as long as data are converted and DMA=1;
-    ADC1->CR2 |= (1 << 9); // DDS bit
+    ADC1_BASE->CR2 |= (1 << 9); // DDS bit
     
     configureDMA();
 
     // enable the DMA in the ADC after the DMA is configured;
-    ADC1->CR2 |= ADC_CR2_DMA;
+    ADC1_BASE->CR2 |= ADC_CR2_DMA;
   }
   // set ADON bit in ADC control register to turn the converter on;
-  ADC1->CR2 |= ADC_CR2_ADON; 
+  ADC1_BASE->CR2 |= ADC_CR2_ADON; 
 
     // enable continuous mode
-  ADC1->CR2 |= ADC_CR2_CONT;
+  ADC1_BASE->CR2 |= ADC_CR2_CONT;
 
  // set ADON bit in ADC control register for the second time to actually turn the converter on;
-  ADC1->CR2 |= ADC_CR2_ADON; 
+  ADC1_BASE->CR2 |= ADC_CR2_ADON; 
 }
 
 void configureSensors(boolean init)
@@ -340,10 +341,10 @@ void setup()
   Serial.begin(4000000);
 
   // enable ADC system clock;
-  RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
+  RCC_BASE->APB2ENR |= RCC_APB2ENR_ADC1EN;
 
   // enable DMA system clock;
-  RCC->AHB1ENR |= 0x400000;
+  RCC_BASE->AHB1ENR |= 0x400000;
 
   configureADC(true);
 
@@ -351,13 +352,13 @@ void setup()
   configureSensors(true);
 
   // set Start conversion bit in Control Register 2;
-  ADC1->CR2 |= ADC_CR2_SWSTART;
+  ADC1_BASE->CR2 |= ADC_CR2_SWSTART;
 }
 
 void loop()
 {
   // check if OVR bit is set in ADC status register;
-  if (ADC1->SR & (1<<5))
+  if (ADC1_BASE->SR & (1<<5))
   {
     // this should get another value;
     Serial.write(((3 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));
