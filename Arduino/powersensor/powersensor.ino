@@ -1,8 +1,5 @@
 #include <Arduino.h>
 
-//#include "eeprom_helper.h"
-//#include "dma.h"
-
 // defines;
 #define MAX_SENSORS 3
 
@@ -230,12 +227,6 @@ void configureDMA()
 
   // set the peripheral address to ADC1's data register;
   DMA2_Stream0->PAR |= (uint32_t) &ADC1->DR;
-
-  // set the channel to channel 0, 0 and 3 are channels connected to ADC1;
-  // DMA2_Stream0->CR |= 0 << DMA_SxCR_CHSEL0;
-
-  // set the data transfer direction to peripheral to memory;
-  // DMA2_Stream0->CR |= DMA_CR_DIR_P2M;
 
   // set memory unit size to 16 bits, ADC resolution is 10;
   DMA2_Stream0->CR |= DMA_SxCR_MSIZE_0;
