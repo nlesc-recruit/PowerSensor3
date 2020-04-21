@@ -99,7 +99,7 @@ exp. time: 0.0032 s, measured: 0.00333613 s, 0.0786753 J, 23.5828 W
 exp. time: 0.0064 s, measured: 0.00653597 s, 0.150446 J, 23.0182 W
 exp. time: 0.0128 s, measured: 0.0129376 s, 0.295892 J, 22.8707 W
 exp. time: 0.0256 s, measured: 0.0257391 s, 0.585381 J, 22.7429 W
-exp. time: 0.0512 s, measured: 0.0513383 s, 1.1743 J, 22.8738 W
+exp. time: 0.0512 s, measured: 0.0512283 s, 1.1743 J, 22.8738 W
 exp. time: 0.1024 s, measured: 0.102544 s, 2.36651 J, 23.078 W
 exp. time: 0.2048 s, measured: 0.204941 s, 4.70485 J, 22.9571 W
 exp. time: 0.4096 s, measured: 0.409762 s, 9.39299 J, 22.923 W
