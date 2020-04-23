@@ -1,5 +1,9 @@
+// #include <stm32_eeprom.h>
+
 #include <Arduino.h>
-#include <eeprom.h>
+#include <stm32f4xx.h>
+//#include "eeprom.h"
+//#include "stm32f4xx_hal_adc.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -58,6 +62,8 @@ void writeConfigurationToEEPROM(EEPROM recv)
   uint16_t virtualBaseAddress = 0x1111; // needs to be incremented
   uint16_t virtualVariableAddress;
 
+  uint16_t retval;
+
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     virtualVariableAddress = virtualBaseAddress;
@@ -69,7 +75,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
     for (int j= 0; j < 4; j++)
     {
-      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
+      // EE_WriteVariable(virtualVariableAddress, halfWord[j]);
       virtualVariableAddress++;
     }
     virtualBaseAddress += 0x1111;
@@ -92,7 +98,7 @@ EEPROM readSensorConfiguration()
     virtualVariableAddress = virtualBaseAddress;
     for (int j = 0; j < 4; j++)
     {
-      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
+      // EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
       virtualVariableAddress++;
     }
     copy.sensors[i].type = ((float) halfWord[0]) / 1000;
@@ -339,6 +345,8 @@ void setup()
   RCC->AHB1ENR |= 0x400000;
 
   configureADC(true);
+
+  EE_Init();
 
   // configure sensors;
   configureSensors(true);
