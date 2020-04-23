@@ -1,5 +1,5 @@
 #include <Arduino.h>
-//#include "eeprom_helper.h"
+#include <eeprom.h>
 
 // defines;
 #define MAX_SENSORS 3
@@ -9,7 +9,7 @@ bool streamValues = false;
 uint8_t sendMarkerNext = 0;
 
 // Virtual adress table for the EEPROM emulation;
-uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
+//uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
 
 // buffer for the DMA to transfer level values to;
 uint16_t dmaBuffer[MAX_SENSORS];
@@ -55,7 +55,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
   uint16_t halfWord[4];
   uint32_t fullWord;
 
-  uint16_t virtualBaseAddress = 0x1111;
+  uint16_t virtualBaseAddress = 0x1111; // needs to be incremented
   uint16_t virtualVariableAddress;
 
   for (int i = 0; i < MAX_SENSORS; i++)
@@ -69,7 +69,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
     for (int j= 0; j < 4; j++)
     {
-      //EE_WriteVariable(virtualVariableAddress, halfWord[j]);
+      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
       virtualVariableAddress++;
     }
     virtualBaseAddress += 0x1111;
@@ -92,7 +92,7 @@ EEPROM readSensorConfiguration()
     virtualVariableAddress = virtualBaseAddress;
     for (int j = 0; j < 4; j++)
     {
-      //EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
+      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
       virtualVariableAddress++;
     }
     copy.sensors[i].type = ((float) halfWord[0]) / 1000;
