@@ -347,9 +347,7 @@ void setup()
 
   HAL_FLASH_Unlock();
 
-  testFun();
-
-  uint8_t test = FLASH_COMPLETE;
+  EE_init();
   
   // configure sensors;
   configureSensors(true);
