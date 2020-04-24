@@ -40,8 +40,6 @@
 /* EEPROM start address in Flash */
 #define EEPROM_START_ADDRESS  ((uint32_t)0x08008000) /* EEPROM emulation start address: from sector2 : after 16KByte of used Flash memory */
 
-#define FLASH_COMPLETE        9
-
 /* Pages 0 and 1 base and end addresses */
 #define PAGE0_BASE_ADDRESS    ((uint32_t)(EEPROM_START_ADDRESS + 0x0000))
 #define PAGE0_END_ADDRESS     ((uint32_t)(EEPROM_START_ADDRESS + (PAGE_SIZE - 1)))
@@ -75,13 +73,12 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-uint16_t testFun();
+/* Exported functions ------------------------------------------------------- */
 uint16_t EE_Init(void);
 uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data);
 uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data);

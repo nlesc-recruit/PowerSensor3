@@ -51,11 +51,6 @@ static uint16_t EE_PageTransfer(uint16_t VirtAddress, uint16_t Data);
   * @retval - Flash error code: on write Flash error
   *         - HAL_FLASH_ERROR_NONE: on success
   */
-uint16_t testFun()
-{
-  return 1;
-}
-
 uint16_t EE_Init(void)
 {
   uint16_t PageStatus0 = 6, PageStatus1 = 6;
