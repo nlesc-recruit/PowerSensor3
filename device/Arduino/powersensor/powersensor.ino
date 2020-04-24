@@ -1,9 +1,8 @@
 // #include <stm32_eeprom.h>
 
 #include <Arduino.h>
-#include <stm32f4xx.h>
-//#include "eeprom.h"
-//#include "stm32f4xx_hal_adc.h"
+//#include <stm32f4xx.h>
+#include <eeprom.h>
 
 // defines;
 #define MAX_SENSORS 3
@@ -346,7 +345,7 @@ void setup()
 
   configureADC(true);
 
-  EE_Init();
+  //EE_Init();
 
   // configure sensors;
   configureSensors(true);
