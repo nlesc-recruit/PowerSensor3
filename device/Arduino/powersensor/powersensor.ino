@@ -1,8 +1,8 @@
 // #include <stm32_eeprom.h>
+//#include <stm32f4xx.h>
 
 #include <Arduino.h>
-//#include <stm32f4xx.h>
-#include <eeprom.h>
+#include "eeprom_emulation.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -334,7 +334,7 @@ void configureSensors(boolean init)
 
 void setup()
 {
-  // baudrate 4M for development, runs at max 1M baud, uses SerialUSB (not tested);
+  // baudrate 4M for development;
   Serial.begin(4000000);
 
   // enable ADC system clock;
@@ -345,8 +345,12 @@ void setup()
 
   configureADC(true);
 
-  //EE_Init();
+  HAL_FLASH_Unlock();
 
+  testFun();
+
+  uint8_t test = FLASH_COMPLETE;
+  
   // configure sensors;
   configureSensors(true);
 

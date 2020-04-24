@@ -20,17 +20,14 @@
   ******************************************************************************
   */ 
 
-
-
-
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __EEPROM_H
 #define __EEPROM_H
 
 /* Includes ------------------------------------------------------------------*/
-// #include <stm32f4xx.h>
-//#include <stm32f4xx_hal.h>
-#include <Arduino.h>
+#include <stm32f4xx.h>
+//#include <stm32f4xx_flash.h>
+#include <stm32f4xx_hal_flash.h>
 
 /* Exported constants --------------------------------------------------------*/
 /* Define the size of the sectors to be used */
@@ -41,9 +38,9 @@
 #define VOLTAGE_RANGE           (uint8_t)FLASH_VOLTAGE_RANGE_3
 
 /* EEPROM start address in Flash */
-#define EEPROM_START_ADDRESS  ((uint32_t)0x08008000) /* EEPROM emulation start address:
-                                                  from sector2 : after 16KByte of used 
-                                                  Flash memory */
+#define EEPROM_START_ADDRESS  ((uint32_t)0x08008000) /* EEPROM emulation start address: from sector2 : after 16KByte of used Flash memory */
+
+#define FLASH_COMPLETE        9
 
 /* Pages 0 and 1 base and end addresses */
 #define PAGE0_BASE_ADDRESS    ((uint32_t)(EEPROM_START_ADDRESS + 0x0000))
@@ -78,23 +75,20 @@
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
-typedef enum
-{ 
-  FLASH_BUSY = 1,
-  EE_FLASH_ERROR_RD,
-  EE_FLASH_ERROR_PGS,
-  EE_FLASH_ERROR_PGP,
-  EE_FLASH_ERROR_PGA,
-  EE_FLASH_ERROR_WRP,
-  EE_FLASH_ERROR_PROGRAM,
-  EE_FLASH_ERROR_OPERATION,
-  FLASH_COMPLETE
-}FLASH_Status;
-
 /* Exported functions ------------------------------------------------------- */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint16_t testFun();
 uint16_t EE_Init(void);
 uint16_t EE_ReadVariable(uint16_t VirtAddress, uint16_t* Data);
 uint16_t EE_WriteVariable(uint16_t VirtAddress, uint16_t Data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __EEPROM_H */
 
