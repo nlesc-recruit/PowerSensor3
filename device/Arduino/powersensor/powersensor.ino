@@ -2,7 +2,7 @@
 //#include <stm32f4xx.h>
 
 #include <Arduino.h>
-#include "eeprom_emulation.h"
+//#include "eeprom_emulation.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -347,7 +347,7 @@ void setup()
 
   HAL_FLASH_Unlock();
 
-  EE_init();
+  //EE_Init();
   
   // configure sensors;
   configureSensors(true);
