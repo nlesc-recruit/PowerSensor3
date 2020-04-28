@@ -2,7 +2,7 @@
 //#include <stm32f4xx.h>
 
 #include <Arduino.h>
-//#include "eeprom_emulation.h"
+#include "eeprom_emulation.h"
 
 // defines;
 #define MAX_SENSORS 3
@@ -12,7 +12,7 @@ bool streamValues = false;
 uint8_t sendMarkerNext = 0;
 
 // Virtual adress table for the EEPROM emulation;
-//uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
+uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
 
 // buffer for the DMA to transfer level values to;
 uint16_t dmaBuffer[MAX_SENSORS];
@@ -58,7 +58,7 @@ void writeConfigurationToEEPROM(EEPROM recv)
   uint16_t halfWord[4];
   uint32_t fullWord;
 
-  uint16_t virtualBaseAddress = 0x1111; // needs to be incremented
+  uint16_t virtualBaseAddress = 0x1111; 
   uint16_t virtualVariableAddress;
 
   uint16_t retval;
@@ -74,8 +74,9 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
     for (int j= 0; j < 4; j++)
     {
-      // EE_WriteVariable(virtualVariableAddress, halfWord[j]);
+      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
       virtualVariableAddress++;
+      delay(1);
     }
     virtualBaseAddress += 0x1111;
   }
@@ -97,8 +98,9 @@ EEPROM readSensorConfiguration()
     virtualVariableAddress = virtualBaseAddress;
     for (int j = 0; j < 4; j++)
     {
-      // EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
+      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
       virtualVariableAddress++;
+      delay(1);
     }
     copy.sensors[i].type = ((float) halfWord[0]) / 1000;
     copy.sensors[i].volt = ((float) halfWord[1]) / 1000;
@@ -106,7 +108,6 @@ EEPROM readSensorConfiguration()
     memcpy(&copy.sensors[i].nullLevel, &fullWord, 4);
     virtualBaseAddress += 0x1111;
   }
-
   return copy;
 }
 
@@ -207,8 +208,8 @@ void ADC_Handler(void)
     if (streamValues) 
     {
       // write the level, write() only writes per byte;
-      Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));// 0x80 | (currentSensor << 4) | (level >> 6));
-      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7)); //(sendMarkerNext << 6) | (level & 0x3F));
+      Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
+      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
       
       // reset the marker
       sendMarkerNext = 0;
@@ -347,7 +348,7 @@ void setup()
 
   HAL_FLASH_Unlock();
 
-  //EE_Init();
+  EE_Init();
   
   // configure sensors;
   configureSensors(true);

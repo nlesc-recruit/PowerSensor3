@@ -51,7 +51,7 @@ namespace PowerSensor {
 
     void PowerSensor::readSensorsFromEEPROM() 
     {
-      //stopIOthread();
+      stopIOthread();
       sleep(2);
       if (write(fd, "R", 1) != 1) 
       {
