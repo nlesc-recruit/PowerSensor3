@@ -4,6 +4,7 @@ Arduino/PowerSensor_stm32f4/.vscode/
 
 # outputs
 output.txt
+device/Arduino/powersensor/powersensor.STM32.*
 
 #tempfiles
 temp.cc
