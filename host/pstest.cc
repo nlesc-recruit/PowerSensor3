@@ -40,9 +40,12 @@ int main(int argc, char *argv[])
   std::cout << "Setting up PowerSensor on port: " << device << std::endl;
   PowerSensor::PowerSensor powerSensor(device);
   std::cout << "PowerSensor up and running" << std::endl;
-  //powerSensor.dump(dumpFileName);
-  //std::cout << "Writing to: " << dumpFileName << std::endl;
-  powerSensor.writeSensorsToEEPROM();
-  powerSensor.readSensorsFromEEPROM();
-  //usleep(1000000);
+  powerSensor.dump(dumpFileName);
+  std::cout << "Writing to: " << dumpFileName << std::endl;
+  //powerSensor.writeSensorsToEEPROM();
+  //powerSensor.readSensorsFromEEPROM();
+  usleep(1000000);
+  std::cout << "RUNNIT!!" << std::endl;
+  powerSensor.mark();
+  usleep(1000000);
 }
