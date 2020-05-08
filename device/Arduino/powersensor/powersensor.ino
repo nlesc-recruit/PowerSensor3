@@ -359,7 +359,7 @@ void setup()
 
 void loop()
 {
-
+  
 
   // check if OVR bit is set in ADC status register;
   if (ADC1->SR & (1<<5))
@@ -368,7 +368,7 @@ void loop()
     Serial.write(((3 & 0x7) << 4) | ((512 & 0x3C0) >> 6) | (1 << 7));
     Serial.write(((sendMarkerNext << 6) | (512 & 0x3F)) & ~(1 << 7));  
   }
-  else
+  else 
   {
     // check if the conversion has ended;
     if (conversionComplete())
