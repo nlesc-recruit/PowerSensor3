@@ -359,6 +359,8 @@ void setup()
 
 void loop()
 {
+
+
   // check if OVR bit is set in ADC status register;
   if (ADC1->SR & (1<<5))
   {
