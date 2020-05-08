@@ -55,30 +55,18 @@ bool conversionComplete()
 
 void writeConfigurationToEEPROM(EEPROM recv)
 {
-  uint16_t halfWord[4];
-  uint32_t fullWord;
+  uint8_t recvSize = sizeof(recv) / 2;
+  uint16_t virtualVariableAddress = 0x1111;
+  uint16_t *p_recv = (uint16_t)recv.sensors;
 
-  uint16_t virtualBaseAddress = 0x1111; 
-  uint16_t virtualVariableAddress;
-
-  uint16_t retval;
-
-  for (int i = 0; i < MAX_SENSORS; i++)
+  for (int i = 0; i < recvSize; i++)
   {
-    virtualVariableAddress = virtualBaseAddress;
-    memcpy(&fullWord, &recv.sensors[i].nullLevel, 4);
-    halfWord[0] = (uint16_t) (recv.sensors[i].type * 1000);
-    halfWord[1] = (uint16_t) (recv.sensors[i].volt * 1000);
-    halfWord[2] = (fullWord >> 16) & 0xFFFF;
-    halfWord[3] = fullWord & 0xFFFF;
-
-    for (int j= 0; j < 4; j++)
-    {
-      EE_WriteVariable(virtualVariableAddress, halfWord[j]);
-      virtualVariableAddress++;
-      delay(1);
-    }
-    virtualBaseAddress += 0x1111;
+    uint16_t halfWord = 0;
+    memcpy(&halfWord, p_recv, sizeof(uint16_t));
+    EE_WriteVariable(virtualVariableAddres, halfWord);
+    p_recv++; 
+    virtualVariableAddress++;
+    delay(1); 
   }
 }
 
