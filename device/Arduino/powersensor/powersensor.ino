@@ -192,7 +192,7 @@ void ADC_Handler(void)
 {
   // put the corresponding value from the buffer in level;
   //static uint8_t currentSensor = 0;
-
+  Serial.println("ad");  
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     uint16_t level = dmaBuffer[i]; //ADC1_BASE->DR;
@@ -325,6 +325,10 @@ void configureSensors(boolean init)
 
 }
 
+void isrhandler() {
+  Serial.print("TEST");
+}
+
 void setup()
 {
   // baudrate 4M for development;
@@ -338,6 +342,10 @@ void setup()
 
   configureADC(true);
 
+  //HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 3);
+
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  
   HAL_FLASH_Unlock();
 
   EE_Init();
@@ -349,10 +357,21 @@ void setup()
   ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
+uint16_t x = 0;
+
+//HAL_DMA_IRQHandler()     DMA_IRQHandler()
+void HAL_DMA_IRQHandler(void)
+{
+  Serial.print("challa");
+  x = 1;
+//HAL_DMA_IRQHandler(&isrhandler);
+}
+
+
 void loop()
 {
-  
-
+  delay(1000);
+  Serial.print(x);
   // check if OVR bit is set in ADC status register;
   if (ADC1->SR & (1<<5))
   {
