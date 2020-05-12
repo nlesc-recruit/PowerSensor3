@@ -42,10 +42,10 @@ int main(int argc, char *argv[])
   std::cout << "PowerSensor up and running" << std::endl;
   powerSensor.dump(dumpFileName);
   std::cout << "Writing to: " << dumpFileName << std::endl;
-  //powerSensor.writeSensorsToEEPROM();
-  //powerSensor.readSensorsFromEEPROM();
-  usleep(500000);
-  std::cout << "RUNNIT!!" << std::endl;
-  powerSensor.mark();
-  usleep(1000000);
+  powerSensor.writeSensorsToEEPROM();
+  powerSensor.readSensorsFromEEPROM();
+  //usleep(500000);
+  //std::cout << "RUNNIT!!" << std::endl;
+  //powerSensor.mark();
+  //usleep(1000000);
 }
