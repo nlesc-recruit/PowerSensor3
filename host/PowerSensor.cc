@@ -128,7 +128,7 @@ namespace PowerSensor {
           // if the received corresponds to kill signal, return false to terminate the IOthread;
           if (buffer[0] == 0xFF && buffer[1] == 0xE0)
           {
-            std::cout << 'D' << std::endl;
+            //std::cout << 'D' << std::endl;
             return false;
           }
           // checks if first byte corresponds with predetermined first byte format;

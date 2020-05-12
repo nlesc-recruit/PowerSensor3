@@ -55,15 +55,21 @@ bool conversionComplete()
 
 void writeConfigurationToEEPROM(EEPROM recv)
 {
-  uint8_t recvSize = sizeof(recv) / 2;
-  uint16_t virtualVariableAddress = 0x1111;
-  uint16_t *p_recv = (uint16_t)recv.sensors;
+  // get the size of the received struct; should become constant
+  uint16_t recvSize = sizeof(recv) / 2;
 
+  // the virtualvariables always start at adress 0x1111 (this is arbitrary);
+  uint16_t virtualVariableAddress = 0x1111;
+
+  // set a pointer of 16 bits to the start of the struct;
+  uint16_t *p_recv = (uint16_t *)&recv.sensors[0];
+
+  // write the data to the EEPROM;
   for (int i = 0; i < recvSize; i++)
   {
-    uint16_t halfWord = 0;
-    memcpy(&halfWord, p_recv, sizeof(uint16_t));
-    EE_WriteVariable(virtualVariableAddres, halfWord);
+    // uint16_t halfWord = 0;
+    // memcpy(&halfWord, p_recv, sizeof(uint16_t));  // TODO: this memcpy can go, just use 16 bits pointer in write()
+    EE_WriteVariable(virtualVariableAddress, *p_recv);
     p_recv++; 
     virtualVariableAddress++;
     delay(1); 
@@ -72,30 +78,28 @@ void writeConfigurationToEEPROM(EEPROM recv)
 
 EEPROM readSensorConfiguration()
 {
+  // create struct to put variables in;
   EEPROM copy;
 
+  uint16_t copySize = sizeof(copy) /2; // should become constant
 
-  uint16_t halfWord[4];
-  uint32_t fullWord;
+  // the virtual variables always start at address 0x1111;
+  uint16_t virtualVariableAddress = 0x1111;
 
-  uint16_t virtualBaseAddress = 0x1111;
-  uint16_t virtualVariableAddress;
+  // set a pointer to the start of the struct; 
+  uint16_t *p_copy = (uint16_t *)&copy.sensors[0];
 
-  for (int i = 0; i < MAX_SENSORS; i++)
+  // read the data from the EEPROM;
+  for (int i = 0; i < copySize; i++)
   {
-    virtualVariableAddress = virtualBaseAddress;
-    for (int j = 0; j < 4; j++)
-    {
-      EE_ReadVariable(virtualVariableAddress, &halfWord[j]);
-      virtualVariableAddress++;
-      delay(1);
-    }
-    copy.sensors[i].type = ((float) halfWord[0]) / 1000;
-    copy.sensors[i].volt = ((float) halfWord[1]) / 1000;
-    fullWord = (halfWord[2] << 16) | halfWord[3];
-    memcpy(&copy.sensors[i].nullLevel, &fullWord, 4);
-    virtualBaseAddress += 0x1111;
+    //uint16_t halfWord;
+    EE_ReadVariable(virtualVariableAddress, p_copy);
+    //memcpy(p_copy, &halfWord, sizeof(uint16_t));
+    p_copy++;
+    virtualVariableAddress++;
+    delay(1);
   }
+
   return copy;
 }
 
