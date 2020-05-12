@@ -214,8 +214,7 @@ void ADC_Handler(void)
 }
 
 void configureDMA()
-{
-
+{ 
   // disable the stream, the dma registers cannot be altered when this bit is 1;
   DMA2_Stream0->CR &= ~((uint32_t)DMA_SxCR_EN);
 
@@ -224,6 +223,8 @@ void configureDMA()
   {
     // do nothing (maybe add timeout later);
   }
+
+  //DMA2->LISR |= 0x20;
 
   // set the peripheral address to ADC1's data register;
   DMA2_Stream0->PAR |= (uint32_t) &ADC1->DR;
@@ -248,6 +249,9 @@ void configureDMA()
 
   // set DMA to circular mode so it will refill the increment once its empty;
   DMA2_Stream0->CR |= DMA_SxCR_CIRC;
+
+  //
+  DMA2_Stream0->CR |= (1 << 3);
 
   // after all configurations are done, set the enable bit;
   DMA2_Stream0->CR |= DMA_SxCR_EN;
@@ -325,14 +329,17 @@ void configureSensors(boolean init)
 
 }
 
-void isrhandler() {
-  Serial.print("TEST");
+uint16_t x = 0;
+
+void DMA2_Stream0_IRQHandler (void) {
+  //NVIC_ClearPendingIRQ(DMA2_Stream0_IRQn);
+  x = 1;
 }
 
 void setup()
 {
   // baudrate 4M for development;
-  Serial.begin(4000000);
+  Serial.begin(9600);
 
   // enable ADC system clock;
   RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
@@ -343,35 +350,47 @@ void setup()
   configureADC(true);
 
   //HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 3);
-
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   
-  HAL_FLASH_Unlock();
+  //__disable_irq();
 
-  EE_Init();
+  //HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  //uint32_t temp = NVIC_GetPriority(DMA2_Stream0_IRQn);
+  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  //NVIC_SetPriority(OTG_FS_IRQn, temp);
+  //NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  //SCB->VTOR for vector table address  
+  //&isrhandler;
+  //SCB->VTOR  
+
+
+  //HAL_FLASH_Unlock();
+
+  //EE_Init();
   
   // configure sensors;
   configureSensors(true);
 
+  NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+
+  __enable_irq();
   // set Start conversion bit in Control Register 2;
   ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
-uint16_t x = 0;
-
-//HAL_DMA_IRQHandler()      DMA_IRQHandler()
-void HAL_DMA_IRQHandler(void)
-{
-  Serial.print("challa");
-  x = 1;
-//HAL_DMA_IRQHandler(&isrhandler);
-}
-
-
 void loop()
-{
-  delay(1000);
-  Serial.print(x);
+{ 
+  __disable_irq();
+  NVIC_DisableIRQ(DMA2_Stream0_IRQn);
+  __enable_irq();
+  Serial.print(1);
+  Serial.print(NVIC->ISER[2],BIN);
+  Serial.println();
+  Serial.println(x);
+  Serial.println(NVIC->ICER[1],BIN);
+  Serial.print(NVIC->ISPR[1],BIN);
+  Serial.println();
+  __disable_irq();
+  NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   // check if OVR bit is set in ADC status register;
   if (ADC1->SR & (1<<5))
   {
@@ -389,4 +408,5 @@ void loop()
   }
   // manually check if there is input from the host;
   serialEvent();
+  
 }
