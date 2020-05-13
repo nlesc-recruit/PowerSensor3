@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <chrono>
 
+
 #include "../PowerSensor.h"
+
 
 int compare_arrays(float *c, float *d, int n);
 
@@ -28,6 +30,7 @@ int main() {
     //PowerSensor::PowerSensor powerSensor(device);// PowerSensor(device);
     //PowerSensor::PowerSensor powerSensor(device);
     //powerSensor.dump(dumpFileName);    
+    
 
     int n = 5e7; //problem size
     cudaError_t err;
@@ -97,7 +100,7 @@ int main() {
     //copy the result back to host memory
     err = cudaMemcpy(d, d_c, n*sizeof(float), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMemcpy device to host c: %s\n", cudaGetErrorString( err ));
-
+    //powerSensor.dump(0);
     //check the result
     int errors = compare_arrays(c, d, n);
     if (errors > 0) {
