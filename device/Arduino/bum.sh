@@ -16,4 +16,3 @@ sleep 5
 echo "5 (s) remaining"
 sleep 5
 echo "You can run host side program now"
-pio device monitor -p /dev/ttyACM1

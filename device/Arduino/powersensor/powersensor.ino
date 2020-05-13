@@ -192,7 +192,7 @@ void ADC_Handler(void)
 {
   // put the corresponding value from the buffer in level;
   //static uint8_t currentSensor = 0;
-  Serial.println("ad");  
+  //Serial.println("ad");  
   for (int i = 0; i < MAX_SENSORS; i++)
   {
     uint16_t level = dmaBuffer[i]; //ADC1_BASE->DR;
@@ -251,7 +251,7 @@ void configureDMA()
   DMA2_Stream0->CR |= DMA_SxCR_CIRC;
 
   //
-  DMA2_Stream0->CR |= (1 << 3);
+  //DMA2_Stream0->CR |= (1 << 3);
 
   // after all configurations are done, set the enable bit;
   DMA2_Stream0->CR |= DMA_SxCR_EN;
@@ -329,17 +329,17 @@ void configureSensors(boolean init)
 
 }
 
-uint16_t x = 0;
+//uint16_t x = 0;
 
-void DMA2_Stream0_IRQHandler (void) {
+//void DMA2_Stream0_IRQHandler (void) {
   //NVIC_ClearPendingIRQ(DMA2_Stream0_IRQn);
-  x = 1;
-}
+  //x = 1;
+//}
 
 void setup()
 {
   // baudrate 4M for development;
-  Serial.begin(9600);
+  Serial.begin(4000000);
 
   // enable ADC system clock;
   RCC->APB2ENR |= RCC_APB2ENR_ADC1EN;
@@ -355,7 +355,7 @@ void setup()
 
   //HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   //uint32_t temp = NVIC_GetPriority(DMA2_Stream0_IRQn);
-  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  //NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
   //NVIC_SetPriority(OTG_FS_IRQn, temp);
   //NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   //SCB->VTOR for vector table address  
@@ -370,27 +370,27 @@ void setup()
   // configure sensors;
   configureSensors(true);
 
-  NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  //NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
-  __enable_irq();
+  //__enable_irq();
   // set Start conversion bit in Control Register 2;
   ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
 void loop()
 { 
-  __disable_irq();
-  NVIC_DisableIRQ(DMA2_Stream0_IRQn);
-  __enable_irq();
-  Serial.print(1);
-  Serial.print(NVIC->ISER[2],BIN);
-  Serial.println();
-  Serial.println(x);
-  Serial.println(NVIC->ICER[1],BIN);
-  Serial.print(NVIC->ISPR[1],BIN);
-  Serial.println();
-  __disable_irq();
-  NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  //__disable_irq();
+  //NVIC_DisableIRQ(DMA2_Stream0_IRQn);
+  //__enable_irq();
+  //Serial.print(1);
+  //Serial.print(NVIC->ISER[2],BIN);
+  //Serial.println();
+  //Serial.println(x);
+  //Serial.println(NVIC->ICER[1],BIN);
+  //Serial.print(NVIC->ISPR[1],BIN);
+  //Serial.println();
+  //__disable_irq();
+  //NVIC_EnableIRQ(DMA2_Stream0_IRQn);
   // check if OVR bit is set in ADC status register;
   if (ADC1->SR & (1<<5))
   {
