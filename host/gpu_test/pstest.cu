@@ -4,7 +4,6 @@
 
 #include "../PowerSensor.h"
 
-
 int compare_arrays(float *c, float *d, int n);
 
 void vec_add(float *c, float *a, float *b, int n) {
@@ -25,11 +24,10 @@ extern "C" __global__ void vec_add_kernel(float *c, float *a, float *b, int n) {
 
 int main() {
     // PowerSensor init
-    //const char *device = "/dev/ttyACM1";
-    //const char *dumpFileName = "output.txt";
-    //PowerSensor::PowerSensor powerSensor(device);// PowerSensor(device);
-    //PowerSensor::PowerSensor powerSensor(device);
-    //powerSensor.dump(dumpFileName);    
+    const char *device = "/dev/ttyACM1";
+    const char *dumpFileName = "output.txt";
+    PowerSensor::PowerSensor powerSensor(device);// PowerSensor(device);
+    powerSensor.dump(dumpFileName);    
     
 
     int n = 5e7; //problem size
@@ -55,7 +53,7 @@ int main() {
     printf("vec_add took %.3f ms\n", time);
 
 
-    //powerSensor.mark();
+    powerSensor.mark();
     //allocate GPU memory
     float *d_a; float *d_b; float *d_c;
     err = cudaMalloc((void **)&d_a, n*sizeof(float));
@@ -65,7 +63,7 @@ int main() {
     err = cudaMalloc((void **)&d_c, n*sizeof(float));
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMalloc d_c: %s\n", cudaGetErrorString( err ));
 
-    //powerSensor.mark();
+    powerSensor.mark();
     //copy the input data to the GPU
     err = cudaMemcpy(d_a, a, n*sizeof(float), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMemcpy host to device a: %s\n", cudaGetErrorString( err ));
@@ -82,7 +80,7 @@ int main() {
     dim3 grid(nblocks, 1);
     dim3 threads(block_size, 1, 1);
     
-    //powerSensor.mark();
+    powerSensor.mark();
     //measure the GPU function
     cudaDeviceSynchronize();
     start = std::chrono::high_resolution_clock::now();
@@ -92,7 +90,7 @@ int main() {
     time = (float)std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/1000.0;
     printf("vec_add_kernel took %.3f ms\n", time);
     
-    //powerSensor.mark();
+    powerSensor.mark();
     //check to see if all went well
     err = cudaGetLastError();
     if (err != cudaSuccess) fprintf(stderr, "Error during kernel launch vec_add_kernel: %s\n", cudaGetErrorString( err ));

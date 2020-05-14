@@ -35,7 +35,7 @@ namespace PowerSensor {
       thread(nullptr) 
     {
       //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
-      //readSensorsFromEEPROM(); // Emulated EEPROM is working so this can be implemented?
+      readSensorsFromEEPROM(); // Emulated EEPROM is working so this can be implemented?
       startIOthread();
     }
 
@@ -79,7 +79,7 @@ namespace PowerSensor {
     }
 
     void PowerSensor::writeSensorsToEEPROM()
-    {
+    { 
       if (write(fd, "W", 1) != 1) 
       {
         perror("write device");
@@ -87,11 +87,14 @@ namespace PowerSensor {
       }
       std::cout << "writeSensorsToEEPROM()" << std::endl;
       struct EEPROM eeprom;
+      float nulllevels[MAX_SENSORS] = {0,0,0,0,0};
+      float types[MAX_SENSORS] = {.185,.1,.185,0,0};
+      float volts[MAX_SENSORS] = {12,3.3,12,0,0}; 
       for (int i = 0; i < MAX_SENSORS; i++)
       {
-        eeprom.sensors[i].type = .6;
-        eeprom.sensors[i].volt = 3.3;
-        eeprom.sensors[i].nullLevel = i;
+        eeprom.sensors[i].type = types[i];
+        eeprom.sensors[i].volt = volts[i];
+        eeprom.sensors[i].nullLevel = nulllevels[i];
       }
       ssize_t retval, bytesWritten = 0;
       do
@@ -101,7 +104,6 @@ namespace PowerSensor {
           exit(1);
         }
       } while ((bytesWritten += retval) < sizeof eeprom);
-      
       
     }
 
@@ -188,8 +190,8 @@ namespace PowerSensor {
 
       while (readLevelFromDevice(sensorNumber, level, marker))
       {
-        std::unique_lock<std::mutex> lock(mutex);
-        sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
+	std::unique_lock<std::mutex> lock(mutex);
+	sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
 
         float volt = (((volt = level) / 1023) * 3.3);
         float amp = -((volt - 2.6) / .185);
@@ -197,10 +199,10 @@ namespace PowerSensor {
         if(dumpFile != nullptr) 
         {
           if (marker) 
-            *dumpFile << 'M' << std::endl;
-             
-          *dumpFile << "S: " << sensorNumber << "L:" << level << std::endl;
-            
+	  {
+	    *dumpFile << 'M' << std::endl;
+	  }
+          *dumpFile << "S: " << sensorNumber << " L: " << level << std::endl;
  	}
       }
     }
@@ -212,13 +214,14 @@ namespace PowerSensor {
       if (thread == nullptr)
       {
         thread = new std::thread(&PowerSensor::IOthread, this);
-
+        std::cout << "thread made" << std::endl;
         // write start character S to device;
         if (write(fd, "S", 1) != 1) 
         {
           perror("write device");
           exit(1);
         }
+	std::cout << "told device to send" << std::endl;
       }
 
       // wait for the IOthread to run smoothly;

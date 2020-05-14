@@ -33,7 +33,7 @@
 namespace PowerSensor {
 
 
-const static unsigned MAX_SENSORS = 3;
+const static unsigned MAX_SENSORS = 5;
 
 
 struct State
@@ -55,9 +55,9 @@ class PowerSensor
     {
       struct Sensor
       {
-        float volt;
-	      float type;
-	      float nullLevel;
+        float type;
+	float volt;
+	float nullLevel;
       } sensors[MAX_SENSORS];
     };
 
