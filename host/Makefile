@@ -10,7 +10,6 @@ all::			lib/$(ARCH)/libPowerSensor.a\
 			bin/$(ARCH)/psconfig\
 			bin/$(ARCH)/psrun\
 			bin/$(ARCH)/pstest\
-			arduino
 
 lib/$(ARCH)/libPowerSensor.a: obj/$(ARCH)/PowerSensor.o
 			-mkdir -p lib/$(ARCH)
@@ -35,13 +34,3 @@ obj/$(ARCH)/psrun.o:	psrun.cc PowerSensor.h
 obj/$(ARCH)/pstest.o:	pstest.cc PowerSensor.h
 
 obj/$(ARCH)/PowerSensor.o: PowerSensor.cc PowerSensor.h Semaphore.h
-
-arduino::
-			+make -C Arduino
-
-upload::		all
-			+make -C Arduino upload
-
-clean::
-			make -C Arduino clean
-			$(RM) -r bin/$(ARCH) lib/$(ARCH) obj/$(ARCH)

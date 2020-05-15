@@ -52,14 +52,17 @@ namespace PowerSensor {
     void PowerSensor::readSensorsFromEEPROM() 
     {
       stopIOthread();
-      sleep(2);
+      
       if (write(fd, "R", 1) != 1) 
       {
         perror("write device");
         exit(1);
       }
+      
       std::cout << "readSensorsFromEEPROM()" << std::endl;
+      
       struct EEPROM eeprom;
+      
       ssize_t retval, bytesRead = 0;
 
       do {
@@ -72,29 +75,42 @@ namespace PowerSensor {
       for (int i = 0; i < MAX_SENSORS; i++)
       {
         std::cout << "Sensor: " << i << std::endl;
-        std::cout << eeprom.sensors[i].type << std::endl;
-        std::cout << eeprom.sensors[i].volt << std::endl;
-        std::cout << eeprom.sensors[i].nullLevel << std::endl;
+        
+	std::cout << eeprom.sensors[i].type << std::endl;
+        sensors[i].type = eeprom.sensors[i].type;
+
+	std::cout << eeprom.sensors[i].volt << std::endl;
+        sensors[i].volt = eeprom.sensors[i].volt;
+	
+	std::cout << eeprom.sensors[i].nullLevel << std::endl;
+        sensors[i].nullLevel = eeprom.sensors[i].nullLevel;
       }
+      startIOthread();
     }
 
     void PowerSensor::writeSensorsToEEPROM()
     { 
-      if (write(fd, "W", 1) != 1) 
+      stopIOthread();
+
+      if (write(fd, "W", 1) != 1)
       {
         perror("write device");
         exit(1);
       }
+
       std::cout << "writeSensorsToEEPROM()" << std::endl;
+      
       struct EEPROM eeprom;
-      float nulllevels[MAX_SENSORS] = {0,0,0,0,0};
-      float types[MAX_SENSORS] = {.185,.1,.185,0,0};
-      float volts[MAX_SENSORS] = {12,3.3,12,0,0}; 
+      
+      //float nulllevels[MAX_SENSORS] = {0,0,0,0,0};
+      //float types[MAX_SENSORS] = {.185,.1,.185,0,0};
+      //float volts[MAX_SENSORS] = {12,3.3,12,0,0}; 
+      
       for (int i = 0; i < MAX_SENSORS; i++)
       {
-        eeprom.sensors[i].type = types[i];
-        eeprom.sensors[i].volt = volts[i];
-        eeprom.sensors[i].nullLevel = nulllevels[i];
+        eeprom.sensors[i].type = sensors[i].type;
+        eeprom.sensors[i].volt = sensors[i].volt;
+        eeprom.sensors[i].nullLevel = sensors[i].nullLevel;
       }
       ssize_t retval, bytesWritten = 0;
       do
@@ -105,6 +121,7 @@ namespace PowerSensor {
         }
       } while ((bytesWritten += retval) < sizeof eeprom);
       
+      startIOthread();
     }
 
     bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
@@ -357,4 +374,57 @@ namespace PowerSensor {
       *dumpFile << ' ' << totalWatt << std::endl;
     }
 
+    // returns volt of specified sensor;
+    float PowerSensor::getVolt(unsigned sensorID) const
+    {
+      return sensorID < MAX_SENSORS ? sensors[sensorID].volt : 0;
+    }
+
+    // sets volt of specified sensor;
+    void setVolt(unsigned sensorID, float volt)
+    {
+      if (sensorID < MAX_SENSORS) 
+      {
+	sensors[sensorID].volt = volt;
+	writeSensorsToEEPROM();
+      }
+    }
+
+    // returns type of specified sensor;
+    float getType(unsigned sensorID) const
+    {
+      return sensorID < MAX_SENSORS ? sensors[sensorID].type : 0;
+    }
+
+    // sets type of specified sensor;
+    void setType(unsigned sensorID, float type)
+    {
+      if (sensorID < MAX_SENSORS) 
+      {
+	sensors[sensorID].type = type;
+	writeSensorsToEEPROM();
+      }
+    }
+
+    // returns null level of specified sensor;
+    float getNullLevel(unsigned sensorID) const
+    {
+      return sensorID < MAX_SENSORS ? sensors[sensorID].nullLevel : 0;
+    }
+
+    // sets null level of specified sensor;
+    void setNullLevel(unsigned sensorID, float nullLevel)
+    {
+      if (sensorID < MAX_SENSORS)
+      {
+        sensors[sensorID].nullLevel = nullLevel;
+	writeSensorsToEEPROM();
+      }
+    }
+
+    // returns whether specified sensor is in use;
+    bool inUse(unsigned sensorID) const
+    {
+      return sensorID < MAX_SENSORS && sensors[sensorID].inUse();
+    } 
 }
