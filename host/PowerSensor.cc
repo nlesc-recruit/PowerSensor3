@@ -1,430 +1,547 @@
+//  Copyright (C) 2016
+//  ASTRON (Netherlands Institute for Radio Astronomy) / John W. Romein
+//  P.O. Box 2, 7990 AA  Dwingeloo, the Netherlands
+
+//  This file is part of PowerSensor.
+
+//  PowerSensor is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+
+//  PowerSensor is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  GNU General Public License for more details.
+
+//  You should have received a copy of the GNU General Public License
+//  along with PowerSensor.  If not, see <http://www.gnu.org/licenses/>.
+
 #include "PowerSensor.h"
 
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 
-#include <bitset>
-
-#include <omp.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <unistd.h>
-#include <termios.h>
 #include <byteswap.h>
-#include <sys/stat.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <omp.h>
 #include <sys/file.h>
-#include <sys/wait.h>
-#include <sys/time.h>
+#include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/wait.h>
+#include <termios.h>
+#include <unistd.h>
 
+namespace PowerSensor
+{
 
+  void PowerSensor::Sensor::readFromEEPROM(int fd)
+  {
+    struct EEPROM eeprom;
+    ssize_t retval, bytesRead = 0;
 
-namespace PowerSensor {
-
-  bool temprunning = true;
-
-  uint32_t countera = 0, counterb = 0;
-
-    PowerSensor::PowerSensor(const char *device)
-    :
-      startTime(omp_get_wtime()),
-      fd(openDevice(device)),
-      thread(nullptr) 
+    do
     {
-      //startCleanupProcess(); // no clue what this is actually doing at the initialization of the program
-      readSensorsFromEEPROM(); // Emulated EEPROM is working so this can be implemented?
-      startIOthread();
-    }
+      if ((retval = ::read(fd, (char *)&eeprom + bytesRead, sizeof eeprom - bytesRead)) < 0)
+      {
+        perror("read device");
+        exit(1);
+      }
+    } while ((bytesRead += retval) < sizeof eeprom);
 
-    PowerSensor::~PowerSensor()
-    {
-      stopIOthread();
-      std::cout << "No of samples: " << countera << std::endl;
-      std::cout << "No of bytelosses: " << counterb << std::endl;
-      dumpCurrentWattToFile();
-      if (close(fd))
-        perror("close device");
-    }
+#if defined __BIG_ENDIAN__
+    eeprom.volt = __bswap_32(eeprom.volt);
+    eeprom.type = __bswap_32(eeprom.type);
+    eeprom.nullLevel = __bswap_32(eeprom.nullLevel);
+#endif
 
-    void PowerSensor::readSensorsFromEEPROM() 
+    setVolt(eeprom.volt);
+    setType(eeprom.type);
+    setNullLevel(eeprom.nullLevel);
+  }
+
+  void PowerSensor::Sensor::writeToEEPROM(int fd) const
+  {
+    struct EEPROM eeprom;
+
+    eeprom.volt = volt;
+    eeprom.type = type;
+    eeprom.nullLevel = nullLevel;
+
+#if defined __BIG_ENDIAN__
+    eeprom.volt = __bswap_32(eeprom.volt);
+    eeprom.type = __bswap_32(eeprom.type);
+    eeprom.nullLevel = __bswap_32(eeprom.nullLevel);
+#endif
+
+    ssize_t retval, bytesWritten = 0;
+
+    do
     {
-      stopIOthread();
-      
-      if (write(fd, "R", 1) != 1) 
+      if ((retval = ::write(fd, (char *)&eeprom + bytesWritten, sizeof eeprom - bytesWritten)) < 0)
       {
         perror("write device");
         exit(1);
       }
-      
-      std::cout << "readSensorsFromEEPROM()" << std::endl;
-      
-      struct EEPROM eeprom;
-      
-      ssize_t retval, bytesRead = 0;
+    } while ((bytesWritten += retval) < sizeof eeprom);
+  }
 
-      do {
-        if ((retval = ::read(fd, (char *) &eeprom + bytesRead, sizeof eeprom - bytesRead)) < 0) {
-          perror("read device");
-          exit(1);
-        }
-      } while ((bytesRead += retval) < sizeof eeprom);
-      
-      for (int i = 0; i < MAX_SENSORS; i++)
-      {
-        std::cout << "Sensor: " << i << std::endl;
-        
-	std::cout << eeprom.sensors[i].type << std::endl;
-        sensors[i].type = eeprom.sensors[i].type;
+  void PowerSensor::Sensor::updateDerivedValues()
+  {
+    weight = volt != 0 ? 2.5 / 512 * volt / type : 0;
+    consumedEnergy = 0;
+    wattAtlastMeasurement = 0;
+    timeAtLastMeasurement = omp_get_wtime();
+  }
 
-	std::cout << eeprom.sensors[i].volt << std::endl;
-        sensors[i].volt = eeprom.sensors[i].volt;
-	
-	std::cout << eeprom.sensors[i].nullLevel << std::endl;
-        sensors[i].nullLevel = eeprom.sensors[i].nullLevel;
-      }
-      startIOthread();
+  void PowerSensor::Sensor::setVolt(float volt)
+  {
+    this->volt = volt;
+    updateDerivedValues();
+  }
+
+  void PowerSensor::Sensor::setType(float type)
+  {
+    this->type = type;
+    updateDerivedValues();
+  }
+
+  void PowerSensor::Sensor::setNullLevel(float nullLevel)
+  {
+    this->nullLevel = nullLevel;
+    updateDerivedValues();
+  }
+
+  int PowerSensor::openDevice(const char *device)
+  {
+    int fileDescriptor;
+
+    // opens the file specified by pathname;
+    if ((fileDescriptor = open(device, O_RDWR)) < 0)
+    {
+      perror("open device");
+      exit(1);
+    }
+    // block if an incompatible lock is held by another process;
+    if (flock(fileDescriptor, LOCK_EX) < 0)
+    {
+      perror("flock");
+      exit(1);
     }
 
-    void PowerSensor::writeSensorsToEEPROM()
-    { 
-      stopIOthread();
+    // struct for configuring the port for communication with stm32;
+    struct termios terminalOptions;
 
-      if (write(fd, "W", 1) != 1)
+    // gets the current options for the port;
+    tcgetattr(fileDescriptor, &terminalOptions);
+
+    // sets the input baud rate;
+    cfsetispeed(&terminalOptions, B4000000);
+
+    // sets the output baud rate;
+    cfsetospeed(&terminalOptions, B4000000);
+
+    // set control mode flags;
+    terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
+    //terminalOptions.c_cflag |= (PARENB | PARODD);
+
+    // set input mode flags;
+    terminalOptions.c_iflag = 0;
+    //terminalOptions.c_iflag |= IGNBRK;
+    //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);
+
+    // clear local mode flag
+    terminalOptions.c_lflag = 0;
+
+    // clear output mode flag;
+    terminalOptions.c_oflag = 0;
+
+    // set control characters;
+    terminalOptions.c_cc[VMIN] = 2;
+    terminalOptions.c_cc[VTIME] = 0;
+
+    // commit the options;
+    tcsetattr(fileDescriptor, TCSANOW, &terminalOptions);
+
+    // flush anything already in the serial buffer;
+    tcflush(fileDescriptor, TCIFLUSH);
+
+    return fileDescriptor;
+  }
+
+  PowerSensor::PowerSensor(const char *device)
+      : startTime(omp_get_wtime()),
+        fd(openDevice(device)),
+        thread(nullptr)
+  {
+    startCleanupProcess();
+    readSensorsFromEEPROM();
+    startIOthread();
+  }
+
+  PowerSensor::~PowerSensor()
+  {
+    stopIOthread();
+
+    if (close(fd))
+      perror("close device");
+  }
+
+  void PowerSensor::readSensorsFromEEPROM()
+  {
+    if (write(fd, "R", 1) != 1)
+    {
+      perror("write device");
+      exit(1);
+    }
+
+    for (Sensor &sensor : sensors)
+      sensor.readFromEEPROM(fd);
+  }
+
+  void PowerSensor::writeSensorsToEEPROM()
+  {
+    stopIOthread();
+
+    if (write(fd, "W", 1) != 1)
+    {
+      perror("write device");
+      exit(1);
+    }
+
+#if defined UNO
+    struct termios options;
+
+    usleep(200000);
+    tcgetattr(fd, &options);
+    cfsetospeed(&options, B115200);
+    tcsetattr(fd, TCSANOW, &options);
+#endif
+
+    for (const Sensor &sensor : sensors)
+      sensor.writeToEEPROM(fd);
+
+#if defined UNO
+    usleep(200000);
+    tcgetattr(fd, &options);
+    cfsetospeed(&options, B2000000);
+    tcsetattr(fd, TCSANOW, &options);
+#endif
+
+    startIOthread();
+  }
+
+  void PowerSensor::startCleanupProcess()
+  {
+    // spawn child process to make sure that the Arduino receives a 'T', no matter how the application terminates
+
+    int pipe_fds[2];
+
+    if (pipe(pipe_fds) < 0)
+    {
+      perror("pipe");
+      exit(1);
+    }
+
+    switch (fork())
+    {
+      ssize_t retval;
+
+    case -1:
+      perror("fork");
+      exit(1);
+
+    case 0: // detach from the parent process, so signals to the parent are not caught by the child
+      setsid();
+
+      // close all file descriptors, except pipe read end and Arduino fd
+      for (int i = 3, last = getdtablesize(); i < last; i++)
+        if (i != fd && i != pipe_fds[0])
+          close(i);
+
+      // wait until parent closes pipe_fds[1] so that read fails
+      char byte;
+      retval = ::read(pipe_fds[0], &byte, sizeof byte);
+
+      // tell Arduino to stop sending data
+      retval = write(fd, "T", 1);
+
+      // drain garbage
+      usleep(100000);
+      tcflush(fd, TCIFLUSH);
+
+      exit(0);
+
+    default:
+      close(pipe_fds[0]);
+    }
+  }
+
+  bool PowerSensor::Sensor::inUse() const
+  {
+    return volt != 0;
+  }
+
+  void PowerSensor::Sensor::updateLevel(int16_t level)
+  {
+    double now = omp_get_wtime();
+
+    wattAtlastMeasurement = (level - 512) * weight - nullLevel;
+    consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
+    timeAtLastMeasurement = now;
+  }
+
+  double PowerSensor::Sensor::totalEnergy(double now) const
+  {
+    return /* weight == 0 ? 0 : */ consumedEnergy + wattAtlastMeasurement * (now - timeAtLastMeasurement);
+  }
+
+  double PowerSensor::Sensor::currentWatt() const
+  {
+    return /* weight == 0 ? 0 : */ wattAtlastMeasurement;
+  }
+
+  bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
+  {
+    // two 8-bit integer buffers, currently to store the whole ADC DR of 32 bits (needs to be downscaled for writing performance);
+    uint8_t buffer[2];
+
+    // return value storage and bytesRead counter;
+    uint8_t returnValue, bytesRead = 0;
+    //std::cout << 'S';
+    while (true)
+    {
+      //std::cout << 'W';
+      // read N amount and save in the buffer, N is determined by subtracting amount of bytes it already received from the total buffer size expected;
+      if ((returnValue = ::read(fd, (char *)&buffer + bytesRead, sizeof buffer - bytesRead)) < 0)
+      {
+        perror("read device");
+        exit(1);
+      }
+      // if the amount of bytes it received is equal to the amount it expected, also checks if the return value of read is 0;
+      else if ((bytesRead += returnValue) == sizeof buffer) //if ((bytesRead += returnValue) == sizeof buffer)
+      {
+        // if the received corresponds to kill signal, return false to terminate the IOthread;
+        if (buffer[0] == 0xFF && buffer[1] == 0xE0)
+        {
+          //std::cout << 'D' << std::endl;
+          return false;
+        }
+        // checks if first byte corresponds with predetermined first byte format;
+        else if ((buffer[0] & 0x80) &&
+                 ((buffer[1] & 0x80) == 0))
+        {
+          //std::cout << 'G';
+          //countera++;
+
+          // extracts sensor number;
+          sensorNumber = (buffer[0] >> 4) & 0x7;
+
+          // extracts the level from the buffers;
+          level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
+
+          // checks if there is a marker present;
+          marker = (buffer[1] >> 6) & 0x1;
+          return true;
+        }
+        else
+        {
+          //counterb++;
+
+          // if a byte is lost, drop the first byte and try again;
+          buffer[0] = buffer[1];
+
+          bytesRead = 1;
+        }
+      }
+    }
+  }
+
+  void PowerSensor::dumpCurrentWattToFile()
+  {
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
+    double totalWatt = 0;
+    double time = omp_get_wtime();
+
+    *dumpFile << "S " << time - startTime;
+
+#if 1
+    static double previousTime;
+    *dumpFile << ' ' << 1e6 * (time - previousTime);
+    previousTime = time;
+#endif
+
+    for (const Sensor &sensor : sensors)
+      if (sensor.inUse())
+      {
+        *dumpFile << ' ' << sensor.currentWatt();
+        totalWatt += sensor.currentWatt();
+      }
+
+    *dumpFile << ' ' << totalWatt << std::endl;
+  }
+
+  void PowerSensor::IOthread()
+  {
+    threadStarted.up();
+
+    unsigned sensorNumber, level, marker;
+
+    while (readLevelFromDevice(sensorNumber, level, marker))
+    {
+      std::unique_lock<std::mutex> lock(mutex);
+      sensors[sensorNumber].updateLevel(level);
+
+      if (dumpFile != nullptr)
+        dumpCurrentWattToFile();
+    }
+  }
+
+  void PowerSensor::startIOthread()
+  {
+    if (thread == nullptr)
+    {
+      thread = new std::thread(&PowerSensor::IOthread, this);
+
+      if (write(fd, "S", 1) != 1)
       {
         perror("write device");
         exit(1);
       }
+    }
 
-      std::cout << "writeSensorsToEEPROM()" << std::endl;
-      
-      struct EEPROM eeprom;
-      
-      //float nulllevels[MAX_SENSORS] = {0,0,0,0,0};
-      //float types[MAX_SENSORS] = {.185,.1,.185,0,0};
-      //float volts[MAX_SENSORS] = {12,3.3,12,0,0}; 
-      
-      for (int i = 0; i < MAX_SENSORS; i++)
+    threadStarted.down(); // wait for the IOthread to run smoothly
+  }
+
+  void PowerSensor::stopIOthread()
+  {
+    if (thread != nullptr)
+    {
+      if (write(fd, "X", 1) < 0)
       {
-        eeprom.sensors[i].type = sensors[i].type;
-        eeprom.sensors[i].volt = sensors[i].volt;
-        eeprom.sensors[i].nullLevel = sensors[i].nullLevel;
-      }
-      ssize_t retval, bytesWritten = 0;
-      do
-      {
-        if ((retval = ::write(fd, (char *) &eeprom + bytesWritten, sizeof eeprom - bytesWritten)) < 0) {
-          perror("write device");
-          exit(1);
-        }
-      } while ((bytesWritten += retval) < sizeof eeprom);
-      
-      startIOthread();
-    }
-
-    bool PowerSensor::readLevelFromDevice(unsigned &sensorNumber, unsigned &level, unsigned &marker)
-    {
-      // two 8-bit integer buffers, currently to store the whole ADC DR of 32 bits (needs to be downscaled for writing performance);
-      uint8_t buffer[2]; 
-
-      // return value storage and bytesRead counter;
-      uint8_t returnValue, bytesRead = 0;
-      //std::cout << 'S';
-      while (true) 
-      {
-        //std::cout << 'W';
-        // read N amount and save in the buffer, N is determined by subtracting amount of bytes it already received from the total buffer size expected;
-        if ((returnValue = ::read(fd, (char *) &buffer + bytesRead, sizeof buffer - bytesRead)) < 0)
-        {
-          perror("read device");
-          exit(1);
-        }
-        // if the amount of bytes it received is equal to the amount it expected, also checks if the return value of read is 0;
-        else if ((bytesRead += returnValue) == sizeof buffer) //if ((bytesRead += returnValue) == sizeof buffer)
-        {
-          // if the received corresponds to kill signal, return false to terminate the IOthread;
-          if (buffer[0] == 0xFF && buffer[1] == 0xE0)
-          {
-            //std::cout << 'D' << std::endl;
-            return false;
-          }
-          // checks if first byte corresponds with predetermined first byte format;
-          else if ((buffer[0] & 0x80) &&
-          ((buffer[1] & 0x80) == 0))                    
-          {
-            //std::cout << 'G';
-            countera++;
-
-            // extracts sensor number;
-            sensorNumber = (buffer[0] >> 4) & 0x7;
-
-            // extracts the level from the buffers;
-            level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
-
-            // checks if there is a marker present;
-            marker = (buffer[1] >> 6) & 0x1; 
-            return true;
-          }
-          else
-          {
-            counterb++;
-
-            // if a byte is lost, drop the first byte and try again;
-            buffer[0] = buffer[1];
-
-            bytesRead = 1;
-          }
-        } 
-      }
-    }
-
-    void PowerSensor::Sensor::updateLevel(int16_t level)
-    {
-      // get the current time;
-      double now = omp_get_wtime();
-
-      weight = 2.6 / 512 * 5 / .185;
-
-      float volt = (((volt = level) / 1023) * 3.3);
-      float amp = -((volt - 2.6) / .185);
-
-      wattAtlastMeasurement = amp * 5;//weight - 0;
-
-      consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
-
-      timeAtLastMeasurement = now;
-    }
-
-    // constantly reads data from the device and saves it;
-    void PowerSensor::IOthread()
-    {
-      // signal that the thread is running
-      threadStarted.up();
-
-      unsigned sensorNumber, level, marker; 
-
-      while (readLevelFromDevice(sensorNumber, level, marker))
-      {
-	std::unique_lock<std::mutex> lock(mutex);
-	sensors[sensorNumber].updateLevel(level); //.updateLevel(level);
-
-        float volt = (((volt = level) / 1023) * 3.3);
-        float amp = -((volt - 2.6) / .185);
-
-        if(dumpFile != nullptr) 
-        {
-          if (marker) 
-	  {
-	    *dumpFile << 'M' << std::endl;
-	  }
-          *dumpFile << "S: " << sensorNumber << " L: " << level << std::endl;
- 	}
-      }
-    }
-
-    // starts the IO thread;
-    void PowerSensor::startIOthread() 
-    {
-      // if no thread exists, create one;
-      if (thread == nullptr)
-      {
-        thread = new std::thread(&PowerSensor::IOthread, this);
-        std::cout << "thread made" << std::endl;
-        // write start character S to device;
-        if (write(fd, "S", 1) != 1) 
-        {
-          perror("write device");
-          exit(1);
-        }
-	std::cout << "told device to send" << std::endl;
-      }
-
-      // wait for the IOthread to run smoothly;
-      threadStarted.down();
-    }
-
-    // stops the IO thread;
-    void PowerSensor::stopIOthread()
-    {
-      // check if there is actually a thread running;
-      if (thread != nullptr)
-      {
-        // write stop command to device;
-        if (write(fd, "X", 1) < 0) 
-        {
-          perror("write");
-          exit(1);
-        }
-
-        // blocks the calling thread until the thread terminates;
-        thread->join();
-
-        // terminate and delete the thread instance;
-        delete thread;
-
-        // reset thread value for reassignment;
-        thread = 0;
-      }
-    }
-
-    // opens the device in parameter, returns a file descriptor of the device;
-    int PowerSensor::openDevice(const char *device)
-    {
-        int fileDescriptor; 
-  
-        // opens the file specified by pathname;
-        if ((fileDescriptor = open(device, O_RDWR)) < 0)
-        {
-            perror("open device");
-            exit(1);
-        }
-        // block if an incompatible lock is held by another process;
-        if (flock(fileDescriptor, LOCK_EX) < 0)
-        {
-            perror("flock");
-            exit(1);
-        }
-
-        // struct for configuring the port for communication with stm32;
-        struct termios terminalOptions;
-
-        // gets the current options for the port;
-        tcgetattr(fileDescriptor, &terminalOptions);
-
-        // sets the input baud rate;
-        cfsetispeed(&terminalOptions, B4000000);
-
-        // sets the output baud rate;
-        cfsetospeed(&terminalOptions, B4000000);
-
-        // set control mode flags;
-        terminalOptions.c_cflag |=  CLOCAL | CREAD | CS8;
-        //terminalOptions.c_cflag |= (PARENB | PARODD);
-
-        // set input mode flags;
-        terminalOptions.c_iflag = 0;
-        //terminalOptions.c_iflag |= IGNBRK;
-        //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);
-
-        // clear local mode flag
-        terminalOptions.c_lflag = 0;
-
-        // clear output mode flag;
-        terminalOptions.c_oflag = 0;
-
-        // set control characters;
-        terminalOptions.c_cc[VMIN] = 2;
-        terminalOptions.c_cc[VTIME] = 0;
-
-        // commit the options;
-        tcsetattr(fileDescriptor, TCSANOW, &terminalOptions);
-
-        // flush anything already in the serial buffer;
-        tcflush(fileDescriptor, TCIFLUSH);
-
-        return fileDescriptor;
-    }
-
-    // enables outputting in a dumpfile and set its name;
-    void PowerSensor::dump(const char *dumpFileName) 
-    {
-      dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
-    }
-
-    // sends a marker to the device to mark accurately in the output file;
-    void PowerSensor::mark() const
-    {
-      // writes M for marker;
-      if (write(fd, "M", 1) != 1) 
-      {
-        perror("write device");
+        perror("write");
         exit(1);
       }
-    }
 
-    double PowerSensor::Sensor::currentWatt() const
-    {
-      return wattAtlastMeasurement;
+      thread->join();
+      delete thread;
+      thread = 0;
     }
+  }
 
-    void PowerSensor::dumpCurrentWattToFile()
+  void PowerSensor::dump(const char *dumpFileName)
+  {
+    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
+  }
+
+  void PowerSensor::mark(const State &state, const char *name, unsigned tag) const
+  {
+    if (dumpFile != nullptr)
     {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
-      double totalWatt = 0;
-      double time      = omp_get_wtime();
-
-      *dumpFile << "S " << time - startTime;
-
-      #if 1
-        static double previousTime;
-        *dumpFile << ' ' << 1e6 * (time - previousTime);
-        previousTime = time;
-      #endif
-
-      for (const Sensor &sensor : sensors)
-      {
-        if (1) // sensor.inUse();
-        {
-          *dumpFile << ' ' << sensor.currentWatt();
-          totalWatt += sensor.currentWatt();
-        }
-      }
-      *dumpFile << ' ' << totalWatt << std::endl;
+      *dumpFile << "M " << state.timeAtRead - startTime << ' ' << tag << " \"" << (name == nullptr ? "" : name) << '"' << std::endl;
     }
+  }
 
-    // returns volt of specified sensor;
-    float PowerSensor::getVolt(unsigned sensorID) const
+  void PowerSensor::mark(const State &startState, const State &stopState, const char *name, unsigned tag) const
+  {
+    if (dumpFile != nullptr)
     {
-      return sensorID < MAX_SENSORS ? sensors[sensorID].volt : 0;
+      std::unique_lock<std::mutex> lock(dumpFileMutex);
+      *dumpFile << "M " << startState.timeAtRead - startTime << ' ' << stopState.timeAtRead << ' ' << tag << " \"" << (name == nullptr ? "" : name) << '"' << std::endl;
     }
+  }
 
-    // sets volt of specified sensor;
-    void setVolt(unsigned sensorID, float volt)
+  State PowerSensor::read() const
+  {
+    State state;
+
+    std::unique_lock<std::mutex> lock(mutex);
+    state.timeAtRead = omp_get_wtime();
+
+    for (unsigned sensorID = 0; sensorID < MAX_SENSORS; sensorID++)
+      state.consumedEnergy[sensorID] = sensors[sensorID].totalEnergy(state.timeAtRead);
+
+    return state;
+  }
+
+  double Joules(const State &firstState, const State &secondState, int sensorID)
+  {
+    if (sensorID >= (signed)MAX_SENSORS)
+      return 0;
+
+    if (sensorID >= 0)
+      return secondState.consumedEnergy[sensorID] - firstState.consumedEnergy[sensorID];
+
+    double joules = 0;
+
+    for (double consumedEnergy : secondState.consumedEnergy)
+      joules += consumedEnergy;
+
+    for (double consumedEnergy : firstState.consumedEnergy)
+      joules -= consumedEnergy;
+
+    return joules;
+  }
+
+  double seconds(const State &firstState, const State &secondState)
+  {
+    return secondState.timeAtRead - firstState.timeAtRead;
+  }
+
+  double Watt(const State &firstState, const State &secondState, int sensorID)
+  {
+    return Joules(firstState, secondState, sensorID) / seconds(firstState, secondState);
+  }
+
+  float PowerSensor::getVolt(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS ? sensors[sensorID].volt : 0;
+  }
+
+  void PowerSensor::setVolt(unsigned sensorID, float volt)
+  {
+    if (sensorID < MAX_SENSORS)
     {
-      if (sensorID < MAX_SENSORS) 
-      {
-	sensors[sensorID].volt = volt;
-	writeSensorsToEEPROM();
-      }
+      sensors[sensorID].setVolt(volt);
+      writeSensorsToEEPROM();
     }
+  }
 
-    // returns type of specified sensor;
-    float getType(unsigned sensorID) const
+  float PowerSensor::getType(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS ? sensors[sensorID].type : 0;
+  }
+
+  void PowerSensor::setType(unsigned sensorID, float type)
+  {
+    if (sensorID < MAX_SENSORS)
     {
-      return sensorID < MAX_SENSORS ? sensors[sensorID].type : 0;
+      sensors[sensorID].setType(type);
+      writeSensorsToEEPROM();
     }
+  }
 
-    // sets type of specified sensor;
-    void setType(unsigned sensorID, float type)
+  float PowerSensor::getNullLevel(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS ? sensors[sensorID].nullLevel : 0;
+  }
+
+  void PowerSensor::setNullLevel(unsigned sensorID, float nullLevel)
+  {
+    if (sensorID < MAX_SENSORS)
     {
-      if (sensorID < MAX_SENSORS) 
-      {
-	sensors[sensorID].type = type;
-	writeSensorsToEEPROM();
-      }
+      sensors[sensorID].setNullLevel(nullLevel);
+      writeSensorsToEEPROM();
     }
+  }
 
-    // returns null level of specified sensor;
-    float getNullLevel(unsigned sensorID) const
-    {
-      return sensorID < MAX_SENSORS ? sensors[sensorID].nullLevel : 0;
-    }
+  bool PowerSensor::inUse(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS && sensors[sensorID].inUse();
+  }
 
-    // sets null level of specified sensor;
-    void setNullLevel(unsigned sensorID, float nullLevel)
-    {
-      if (sensorID < MAX_SENSORS)
-      {
-        sensors[sensorID].nullLevel = nullLevel;
-	writeSensorsToEEPROM();
-      }
-    }
-
-    // returns whether specified sensor is in use;
-    bool inUse(unsigned sensorID) const
-    {
-      return sensorID < MAX_SENSORS && sensors[sensorID].inUse();
-    } 
-}
+} // namespace PowerSensor
