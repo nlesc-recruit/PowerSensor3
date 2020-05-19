@@ -91,7 +91,7 @@ namespace PowerSensor
 
   void PowerSensor::Sensor::updateDerivedValues()
   {
-    weight = volt != 0 ? 2.5 / 512 * volt / type : 0;
+    weight = volt != 0 ? 3.3 / 775 * volt / type : 0;
     consumedEnergy = 0;
     wattAtlastMeasurement = 0;
     timeAtLastMeasurement = omp_get_wtime();
@@ -289,7 +289,7 @@ namespace PowerSensor
   {
     double now = omp_get_wtime();
 
-    wattAtlastMeasurement = (level - 512) * weight - nullLevel;
+    wattAtlastMeasurement = (level - 775) * weight - nullLevel;
     consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
     timeAtLastMeasurement = now;
   }
