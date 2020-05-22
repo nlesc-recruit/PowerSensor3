@@ -1,1 +1,0 @@
-arduino-cli compile --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor

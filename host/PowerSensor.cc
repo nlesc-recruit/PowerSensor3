@@ -57,10 +57,13 @@ namespace PowerSensor
     eeprom.type = __bswap_32(eeprom.type);
     eeprom.nullLevel = __bswap_32(eeprom.nullLevel);
 #endif
-
+    std::cout << "V: " << eeprom.volt << std::endl;
     setVolt(eeprom.volt);
+    std::cout << "T: " << eeprom.type << std::endl;
     setType(eeprom.type);
+    std::cout << "N: " << eeprom.nullLevel << std::endl;
     setNullLevel(eeprom.nullLevel);
+    std::cout << " " << std::endl;
   }
 
   void PowerSensor::Sensor::writeToEEPROM(int fd) const
@@ -91,7 +94,7 @@ namespace PowerSensor
 
   void PowerSensor::Sensor::updateDerivedValues()
   {
-    weight = volt != 0 ? 3.3 / 775 * volt / type : 0;
+    weight = volt != 0 ? 2.5 / 776 * volt / type : 0;
     consumedEnergy = 0;
     wattAtlastMeasurement = 0;
     timeAtLastMeasurement = omp_get_wtime();
@@ -289,7 +292,7 @@ namespace PowerSensor
   {
     double now = omp_get_wtime();
 
-    wattAtlastMeasurement = (level - 775) * weight - nullLevel;
+    wattAtlastMeasurement = (level - 776) * weight - nullLevel;
     consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
     timeAtLastMeasurement = now;
   }
