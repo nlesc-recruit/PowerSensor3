@@ -440,12 +440,12 @@ namespace PowerSensor
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
   }
 
-  void PowerSensor::mark(const State &state, const char *name, unsigned tag) const
+  void PowerSensor::mark(const char *name) const
   {
     if (dumpFile != nullptr)
     {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
-      *dumpFile << "M " << state.timeAtRead - startTime << ' ' << tag << " \"" << (name == nullptr ? "" : name) << '"' << std::endl;
+      *dumpFile << "M " << name << std::endl;
     }
   }
 
