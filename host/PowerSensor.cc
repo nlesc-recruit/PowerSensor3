@@ -292,7 +292,7 @@ namespace PowerSensor
   {
     double now = omp_get_wtime();
 
-    wattAtlastMeasurement = (level - 776) * weight - nullLevel;
+    wattAtlastMeasurement = -(level - 776) * weight - nullLevel;
     consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
     timeAtLastMeasurement = now;
   }
