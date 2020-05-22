@@ -112,30 +112,38 @@ int main(int argc, char *argv[])
 {
   for (int opt; (opt = getopt(argc, argv, "ad:n:ops:t:v:")) >= 0;) {
     switch (opt) {
-      case 'a': checkPowerSensor();
+      case 'a': std::cout << 'a' << std::endl;
+	        checkPowerSensor();
 		autoCalibrate();
 		break;
 
-      case 'd':	powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(optarg));
+      case 'd':	std::cout << 'd' << std::endl;
+		powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(optarg));
 		break;
 
-      case 'n': checkPowerSensor()->setNullLevel(sensor, atof(optarg));
+      case 'n': std::cout << 'n' << std::endl;
+		checkPowerSensor()->setNullLevel(sensor, atof(optarg));
 		break;
 
-      case 'o':	checkPowerSensor()->setVolt(sensor, 0);
+      case 'o':	std::cout << 'o' << std::endl;
+		checkPowerSensor()->setVolt(sensor, 0);
 		break;
 
-      case 'p': checkPowerSensor();
+      case 'p': std::cout << 'p' << std::endl;
+		checkPowerSensor();
 		print();
 		break;
 
-      case 's': sensor = atoi(optarg);
+      case 's': std::cout << 's' << std::endl;
+		sensor = atoi(optarg);
 		break;
 
-      case 't': checkPowerSensor()->setType(sensor, convertType(optarg));
+      case 't': std::cout << 't' << std::endl;
+		checkPowerSensor()->setType(sensor, convertType(optarg));
 		break;
 
-      case 'v': checkPowerSensor()->setVolt(sensor, atof(optarg));
+      case 'v': std::cout << 'v' << std::endl;
+		checkPowerSensor()->setVolt(sensor, atof(optarg));
 		break;
 
       default:	usage(argv);

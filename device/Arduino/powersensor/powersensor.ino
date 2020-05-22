@@ -22,8 +22,8 @@ uint8_t activeSensorCount = 0;
 struct EEPROM {
   struct Sensor
   {
-    float type;
     float volt;
+    float type;
     float nullLevel;
   } sensors[MAX_SENSORS];
 };
