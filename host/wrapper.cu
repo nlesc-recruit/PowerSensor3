@@ -75,12 +75,13 @@ void executeKernel(void) {
     cudaDeviceSynchronize();
     vec_add_kernel<<<grid, threads>>>(d_c, d_a, d_b, n);
     cudaDeviceSynchronize();
+
+    err = cudaGetLastError();
+    if (err != cudaSuccess) fprintf(stderr, "Error during kernel launch vec_add_kernel: %s\n", cudaGetErrorString( err ));
 }    
     //powerSensor.mark("done");
 void cleanUp(void) {
     //check to see if all went well
-    err = cudaGetLastError();
-    if (err != cudaSuccess) fprintf(stderr, "Error during kernel launch vec_add_kernel: %s\n", cudaGetErrorString( err ));
 
     //copy the result back to host memory
     err = cudaMemcpy(d, d_c, n*sizeof(float), cudaMemcpyDeviceToHost);
