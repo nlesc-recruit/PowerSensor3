@@ -447,16 +447,16 @@ namespace PowerSensor
 
   void PowerSensor::mark(const char *name) const
   {
-    if (write(fd, "M", 1) < 0)
+//    if (write(fd, "M", 1) < 0)
+  //  {
+//	    perror("write");
+//	    exit(1);
+ //   }
+    if (dumpFile != nullptr)
     {
-	    perror("write");
-	    exit(1);
+    	std::unique_lock<std::mutex> lock(dumpFileMutex);
+        *dumpFile << "M " << name << std::endl;
     }
-    //if (dumpFile != nullptr)
-    //{
-    	//std::unique_lock<std::mutex> lock(dumpFileMutex);
-    //  *dumpFile << "M " << name << std::endl;
-    //}
   }
 
   void PowerSensor::mark(const State &startState, const State &stopState, const char *name, unsigned tag) const
