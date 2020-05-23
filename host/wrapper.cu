@@ -22,22 +22,18 @@ extern "C" __global__ void vec_add_kernel(float *c, float *a, float *b, int n) {
 }
 
 namespace Wrapper {
-int wrapperfunction(void) {
-    // PowerSensor init
-    //const char *device = "/dev/ttyACM1";
-    //const char *dumpFileName = "output.txt";
-    //PowerSensor::PowerSensor powerSensor(device);// PowerSensor(device);
-    //powerSensor.dump(dumpFileName);    
-    //std::cout << "kernel" << std::endl;
+int n = 5e7;
+cudaError_t err;
 
-    int n = 5e7; //problem size
-    cudaError_t err;
+float *a = (float *) malloc(n * sizeof(float));
+float *b = (float *) malloc(n * sizeof(float));
+float *c = (float *) malloc(n * sizeof(float));
+float *d = (float *) malloc(n * sizeof(float));
+float *d_a; float *d_b; float *d_c;
+
+void setup(void) {
 
     //allocate arrays and fill them
-    float *a = (float *) malloc(n * sizeof(float));
-    float *b = (float *) malloc(n * sizeof(float));
-    float *c = (float *) malloc(n * sizeof(float));
-    float *d = (float *) malloc(n * sizeof(float));
     for (int i=0; i<n; i++) {
         a[i] = 1.0 / rand();
         b[i] = 1.0 / rand();
@@ -45,25 +41,17 @@ int wrapperfunction(void) {
         d[i] = 0.0;
     }
 
-    //measure the CPU function
-    auto start = std::chrono::high_resolution_clock::now();
-    vec_add(c, a, b, n);
-    auto stop = std::chrono::high_resolution_clock::now();
-    float time = (float)std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/1000.0;
-    printf("vec_add took %.3f ms\n", time);
-
-
-    //powerSensor.mark("alloc");
     //allocate GPU memory
-    float *d_a; float *d_b; float *d_c;
     err = cudaMalloc((void **)&d_a, n*sizeof(float));
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMalloc d_a: %s\n", cudaGetErrorString( err ));
     err = cudaMalloc((void **)&d_b, n*sizeof(float));
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMalloc d_b: %s\n", cudaGetErrorString( err ));
     err = cudaMalloc((void **)&d_c, n*sizeof(float));
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMalloc d_c: %s\n", cudaGetErrorString( err ));
-
+    
+    
     //powerSensor.mark("copy");
+  
     //copy the input data to the GPU
     err = cudaMemcpy(d_a, a, n*sizeof(float), cudaMemcpyHostToDevice);
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMemcpy host to device a: %s\n", cudaGetErrorString( err ));
@@ -73,24 +61,23 @@ int wrapperfunction(void) {
     //zero the output array
     err = cudaMemset(d_c, 0, n*sizeof(float));
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMemset c: %s\n", cudaGetErrorString( err ));
+}
 
+
+void executeKernel(void) {    
     //setup the grid and thread blocks
     int block_size = 1024;                          //thread block size
     int nblocks = int(ceilf(n/(float)block_size));  //problem size divided by thread block size rounded up
     dim3 grid(nblocks, 1);
     dim3 threads(block_size, 1, 1);
-    
-   // powerSensor.mark("func");
+
     //measure the GPU function
     cudaDeviceSynchronize();
-    start = std::chrono::high_resolution_clock::now();
     vec_add_kernel<<<grid, threads>>>(d_c, d_a, d_b, n);
     cudaDeviceSynchronize();
-    stop = std::chrono::high_resolution_clock::now();
-    time = (float)std::chrono::duration_cast<std::chrono::microseconds>(stop-start).count()/1000.0;
-    printf("vec_add_kernel took %.3f ms\n", time);
-    
+}    
     //powerSensor.mark("done");
+void cleanUp(void) {
     //check to see if all went well
     err = cudaGetLastError();
     if (err != cudaSuccess) fprintf(stderr, "Error during kernel launch vec_add_kernel: %s\n", cudaGetErrorString( err ));
@@ -98,14 +85,8 @@ int wrapperfunction(void) {
     //copy the result back to host memory
     err = cudaMemcpy(d, d_c, n*sizeof(float), cudaMemcpyDeviceToHost);
     if (err != cudaSuccess) fprintf(stderr, "Error in cudaMemcpy device to host c: %s\n", cudaGetErrorString( err ));
+
     //powerSensor.dump(0);
-    //check the result
-    int errors = compare_arrays(c, d, n);
-    if (errors > 0) {
-        printf("TEST FAILED!\n");
-    } else {
-        printf("TEST PASSED!\n");
-    }
 
     //clean up
     cudaFree(d_a);
@@ -116,7 +97,6 @@ int wrapperfunction(void) {
     free(c);
     free(d);
 
-    return 0;
 }
 }
 

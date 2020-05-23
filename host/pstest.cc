@@ -53,6 +53,10 @@ int main(int argc, char *argv[])
   //powerSensor.readSensorsFromEEPROM();
   //std::cout << "++++++++++++++++++++++++++++++" << std::endl;
   //usleep(100000);
-  Wrapper::wrapperfunction();
+  Wrapper::setup();
+  powerSensor.mark("F"); // execute kernel
+  Wrapper::executeKernel();
+  powerSensor.mark("D"); // done with execution
+  Wrapper::cleanUp();
   //usleep(100000);
 }
