@@ -32,7 +32,7 @@ float *d = (float *) malloc(n * sizeof(float));
 float *d_a; float *d_b; float *d_c;
 
 void setup(void) {
-
+    //printf("%d", n);
     //allocate arrays and fill them
     for (int i=0; i<n; i++) {
         a[i] = 1.0 / rand();
