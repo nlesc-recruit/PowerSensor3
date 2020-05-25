@@ -60,5 +60,5 @@ int main(int argc, char *argv[])
   //Wrapper::cleanUp();
   //usleep(100000);
   int second = 1000000;
-  usleep(second*20);
+  usleep(second);
 }
