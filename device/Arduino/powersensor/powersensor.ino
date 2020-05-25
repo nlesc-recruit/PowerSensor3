@@ -190,21 +190,19 @@ void serialEvent()
 // "__irq_adc" is used as weak method in stm32f407 CMSIS startup file;
 void ADC_Handler(void)
 {
+  if (streamValues)
+  {  
   // for every sensor there is send value;
   for (int i = 0; i < activeSensorCount; i++)
   {
     uint16_t level = dmaBuffer[i]; //ADC1_BASE->DR;
 
-    if (streamValues) 
-    {
-      // write the level, write() only writes per byte;
-      Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
-      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
+    // write the level, write() only writes per byte;
+    Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
+    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
       
-      // reset the marker
-      sendMarkerNext = 0;
-      // reset the DMA buffer;
-      dmaBuffer[i];
+    // reset the marker
+    sendMarkerNext = 0;
     }
   }
 }
@@ -283,7 +281,7 @@ void configureADC()
   ADC1->CR1 |= 0x01000000;
 
   // highest conversion time
-  ADC1->SMPR2 |= 0x3FF;
+ // ADC1->SMPR2 |= 0x3FF;
 
   // enable scan mode to scan for next channel for conversion
   ADC1->CR1 |= ADC_CR1_SCAN;

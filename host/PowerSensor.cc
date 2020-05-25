@@ -400,11 +400,11 @@ namespace PowerSensor
 
       if (dumpFile != nullptr)
         dumpCurrentWattToFile();
-        if (marker) 
-	{
-	  std::unique_lock<std::mutex> lock(dumpFileMutex);
-	  *dumpFile << "M" << std::endl;
-	}
+        //if (marker) 
+	//{
+	//  std::unique_lock<std::mutex> lock(dumpFileMutex);
+	//  *dumpFile << "M" << std::endl;
+	//}
     }
   }
 
@@ -447,15 +447,10 @@ namespace PowerSensor
 
   void PowerSensor::mark(const char *name) const
   {
-//    if (write(fd, "M", 1) < 0)
-  //  {
-//	    perror("write");
-//	    exit(1);
- //   }
-    if (dumpFile != nullptr)
+    if (write(fd, "M", 1) < 0)
     {
-    	std::unique_lock<std::mutex> lock(dumpFileMutex);
-        *dumpFile << "M " << name << std::endl;
+      perror("write");
+      exit(1);
     }
   }
 

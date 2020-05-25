@@ -1,12 +1,12 @@
 import re
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 
 imported_data = marker_found = None
 marker_found = True
 sensordata = [[],[],[],[],[],[],[]]
 
-with open('output_m2.txt', 'r') as reader:
+with open('output.txt', 'r') as reader:
   imported_data = reader.readlines()
 
 markers = []
@@ -27,6 +27,8 @@ for datum in imported_data:
         markers.append(count)
 
 print("processed imported data\n")
+size = len(sensordata[0])
+print(size)
 
 highest_values = []
 
@@ -48,6 +50,11 @@ for datum in sensordata[0]:
  #   print(sensordata[i][10000])
 
 print(samples)
+
+with open('input.txt', 'w+') as writer:
+        for x in samples:
+            writer.write(str(x))
+            writer.write("\n")
 
 exit()
 
@@ -77,7 +84,7 @@ x_axis = x_axis[start:end]
 #for i in range (2,7):
 y_axis = sensordata[1]
 y_axis = y_axis[start:end]
-ax.plot(x_axis, y_axis, label=legendthings[i])
+#ax.plot(x_axis, y_axis, label=legendthings[i])
 
 
 #for value in highest_values:
@@ -86,12 +93,12 @@ ax.plot(x_axis, y_axis, label=legendthings[i])
     #for marker in markers:
 #    plt.axvline(marker,0,250,c='grey',linestyle='--')
 
-plt.title('Power draw on individual sensors')
-plt.xlabel('samples', fontsize=12)
-plt.ylabel('power (w)', fontsize=12)
+#plt.title('Power draw on individual sensors')
+#plt.xlabel('samples', fontsize=12)
+#plt.ylabel('power (w)', fontsize=12)
 
-plt.legend()
-plt.show()
+#plt.legend()
+#plt.show()
 
 #plt.savefig('variables.png')
 
