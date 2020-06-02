@@ -174,7 +174,8 @@ void serialEvent()
       // X: shutdown character, turns the stream off and kills the IOthread;
       case 'X':
         streamValues = false;
-        Serial.write((const uint8_t []) { 0xFF, 0xE0}, 2);
+	Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+        Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
         break;
 
       case 'M': // M: marker character, places a marker in the output file;

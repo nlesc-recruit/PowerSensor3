@@ -149,12 +149,12 @@ namespace PowerSensor
 
     // set control mode flags;
     terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
-    //terminalOptions.c_cflag |= (PARENB | PARODD);
+    terminalOptions.c_cflag |= (PARENB | PARODD);		// off
 
     // set input mode flags;
     terminalOptions.c_iflag = 0;
-    //terminalOptions.c_iflag |= IGNBRK;
-    //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);
+    terminalOptions.c_iflag |= IGNBRK;			// off
+    //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);		// off
 
     // clear local mode flag
     terminalOptions.c_lflag = 0;
@@ -328,9 +328,9 @@ namespace PowerSensor
       else if ((bytesRead += returnValue) == sizeof buffer) //if ((bytesRead += returnValue) == sizeof buffer)
       {
         // if the received corresponds to kill signal, return false to terminate the IOthread;
-        if (buffer[0] == 0xFF && buffer[1] == 0xE0)
+        if (buffer[0] == 0xFF && buffer[1] == 0x3F)
         {
-          //std::cout << 'D' << std::endl;
+          std::cout << 'D' << std::endl;
           return false;
         }
         // checks if first byte corresponds with predetermined first byte format;
@@ -353,7 +353,7 @@ namespace PowerSensor
         else
         {
           //counterb++;
-
+	  std::cout << "lost" << std::endl;
           // if a byte is lost, drop the first byte and try again;
           buffer[0] = buffer[1];
 
@@ -400,12 +400,8 @@ namespace PowerSensor
 
       if (dumpFile != nullptr)
         dumpCurrentWattToFile();
-        //if (marker) 
-	//{
-	//  std::unique_lock<std::mutex> lock(dumpFileMutex);
-	//  *dumpFile << "M" << std::endl;
-	//}
     }
+    std::cout << "stopping io tred" << std::endl;
   }
 
   void PowerSensor::startIOthread()
