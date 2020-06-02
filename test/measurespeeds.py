@@ -1,20 +1,37 @@
 import re
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
 
 imported_data = marker_found = None
 marker_found = True
 sensordata = [[],[],[],[],[],[],[]]
 
-with open('output.txt', 'r') as reader:
-  imported_data = reader.readlines()
+y_highest = []
+temp = [0,0,0,0,0,0,0,0]
+
+f = open('output3.txt', 'r')
+for line in f:
+    obj = line.split()
+    print(obj)
+    for i in range (3,8):
+        if float(obj[i]) > temp[i]:
+            temp[i] = float(obj[i])
+            
+
+print(temp)
+
+exit()
+
+
+imported_data = reader.readlines()
 
 markers = []
 count = 0
 
+
 for datum in imported_data:
-    count += 1
-    if marker_found is True:
+    if count == 1:
+        count = 0
         if re.search("S",datum):
             obj = re.search(" ",datum)
             rest = datum[obj.span()[1]:len(datum)]
@@ -23,82 +40,55 @@ for datum in imported_data:
                 sensordata[i].append(float(rest[0:obj.span()[0]]))
                 rest = rest[obj.span()[1]:len(rest)]
             sensordata[6].append(float(rest))
-    if re.search("M",datum):
-        markers.append(count)
+    count += 1
 
 print("processed imported data\n")
 size = len(sensordata[0])
 print(size)
 
-highest_values = []
+y_highest = []
+x_corr = []
+temp = 0
+tempx = 0
 
-# find highest value
-time = sensordata[0][10]
-count = 0
-stime = time + 1.0
+for j in range(size):
+    if sensordata[6][j] > temp:
+        temp = sensordata[6][j]
+        tempx = j
 
-samples = []
+y_highest.append(temp)
+x_corr.append(tempx)
+temp = 0
 
-for datum in sensordata[0]:
-    if datum > stime:
-        samples.append(count)
-        count = 0
-        stime = datum + 1.0
-    count += 1
-
-#for i in range(7):
- #   print(sensordata[i][10000])
-
-print(samples)
-
-with open('input.txt', 'w+') as writer:
-        for x in samples:
-            writer.write(str(x))
-            writer.write("\n")
+print(y_highest)
+print(x_corr)
 
 exit()
 
-
-print(highest_values)
-size = len(sensordata[0]) 
-print(size)
-
 x_axis = np.arange(size)
 
-start = 10
+start = 0
 end = size
 
-#y_axis = sensordata[6]
-
 fig, ax = plt.subplots()
-ax.set_ylim([0,30])
+ax.set_ylim([0,250])
 
 legendthings = ['','','12 V PSU', '12 V PSU', '12 V riser cable', '3.3 V riser cable', 'Sum']
 
-#for i in range(2,7):
-    #ax.plot(x_axis, y_axis, label=legendthings[i])
+for i in range(2,7):
+    ax.plot(x_axis[start:end], sensordata[i][start:end], label=legendthings[i])
 
-x_axis = x_axis[start:end]
-#y_axis = y_axis[start:end]
+for i in range(len(y_highest)):
+    ax.plot(x_corr[i], y_highest[i], 'r+')
+    plt.text(x_corr[i], y_highest[i], str(int(y_highest[i])))
 
-#for i in range (2,7):
-y_axis = sensordata[1]
-y_axis = y_axis[start:end]
-#ax.plot(x_axis, y_axis, label=legendthings[i])
+plt.title('Power draw on individual sensors')
+plt.xlabel('samples', fontsize=12)
+plt.ylabel('power (w)', fontsize=12)
+plt.grid(True)
 
-
-#for value in highest_values:
- #  plt.axhline(value, c='r',linestyle='--')
- #   plt.text(end+130,value+2,str(int(value)))
-    #for marker in markers:
-#    plt.axvline(marker,0,250,c='grey',linestyle='--')
-
-#plt.title('Power draw on individual sensors')
-#plt.xlabel('samples', fontsize=12)
-#plt.ylabel('power (w)', fontsize=12)
-
-#plt.legend()
+plt.legend()
 #plt.show()
 
-#plt.savefig('variables.png')
+plt.savefig('kerneltunerresults.png')
 

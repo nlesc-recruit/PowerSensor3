@@ -60,5 +60,6 @@ int main(int argc, char *argv[])
   //Wrapper::cleanUp();
   //usleep(100000);
   int second = 1000000;
-  usleep(second);
+  int minute = second * 60;
+  usleep(minute * 9);
 }
