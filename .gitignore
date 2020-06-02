@@ -2,9 +2,11 @@
 .vscode/
 Arduino/PowerSensor_stm32f4/.vscode/
 
-# outputs
+# arduino outputs
 
 device/Arduino/powersensor/powersensor.STM32.*
 
-#tempfiles
-temp.cc
+# library outputs
+host/bin/
+host/lib/
+host/obj/
