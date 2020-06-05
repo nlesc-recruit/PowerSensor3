@@ -41,7 +41,7 @@ bool approximates(float a, float b)
 bool conversionComplete()
 {
   // check if the DMA is done with its sequence;
-  if (DMA2->LISR & (1 << 4))
+  if (DMA1->LISR & (1 << 4))
   {
     return true;
   }
@@ -281,9 +281,6 @@ void configureADC()
   // set Resolution bits to 10 bit resolution;
   ADC1->CR1 |= 0x01000000;
 
-  // highest conversion time
- // ADC1->SMPR2 |= 0x3FF;
-
   // enable scan mode to scan for next channel for conversion
   ADC1->CR1 |= ADC_CR1_SCAN;
 
@@ -336,7 +333,7 @@ void setup()
 void loop()
 { 
   // check if the conversion has ended;
-  if (conversionComplete())
+  if (DMA2->LISR & (1 << 4))
   {
     ADC_Handler();
   }
