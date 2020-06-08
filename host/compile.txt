@@ -1,3 +1,0 @@
-g++ -c -std=c++11 -02 -g -pthread -fopenmp pstest.cc -o obj/x86_64/pstest.o
-nvcc -c wrapper.cu
-g++ -std=c++11 -O2 -g -pthread -fopenmp obj/x86_64/pstest.o -Llib/x86_64 -lPowerSensor wrapper.o -lcudart -o bin/x86_64/pstest

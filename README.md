@@ -22,8 +22,8 @@ This radio-astronomical pipeline filters, corrects, and correlates the signals f
 You are about to modify electronic circuits.  Improperly connecting wires can be dangerous and may damage computer equipment.  We are not responsible for any harm or damage that might occur.  Make sure that you understand very well how all cables should be connected.  Do not install this tool if you are not absolutely sure what you are doing.
 
 ## Getting started
-1. [Installation the PowerSensor]{docs/INSTALLATION.md}
-2. Using the PowerSensor
+1. [Installation the PowerSensor](docs/INSTALLATION.md)
+2. [Using the PowerSensor](docs/USERGUIDE.md)
 
 
 
