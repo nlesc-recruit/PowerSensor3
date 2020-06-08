@@ -1,6 +1,6 @@
 # User guide
 ## Configuring the PowerSensor
-`psconfig` configures the PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's EEPROM, so the device needs to be configured only once.
+`psconfig` configures the PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's emulated EEPROM, so the device needs to be configured only once.
 
 There is native support for the ACS712 series current sensors.  Other sensor types may work as well (see the `-t` option below).
 

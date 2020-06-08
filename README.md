@@ -25,6 +25,15 @@ You are about to modify electronic circuits.  Improperly connecting wires can be
 1. [Installation the PowerSensor](docs/INSTALLATION.md)
 2. [Using the PowerSensor](docs/USERGUIDE.md)
 
+## Further reading
+Altering the software of the device could be necessary in certain use cases. For this please refer to the following documents:
+
+* [STM32F407VG Datasheet](https://www.st.com/resource/en/user_manual/dm00039084-discovery-kit-with-stm32f407vg-mcu-stmicroelectronics.pdf)
+* [STM32F4xx Datasheet](https://www.st.com/resource/en/datasheet/dm00037051.pdf)
+* [STM32F4xx Reference manual](https://www.st.com/resource/en/reference_manual/dm00031020-stm32f405-415-stm32f407-417-stm32f427-437-and-stm32f429-439-advanced-arm-based-32-bit-mcus-stmicroelectronics.pdf)
+* [DMA programming manual](https://www.st.com/resource/en/application_note/dm00046011-using-the-stm32f2-stm32f4-and-stm32f7-series-dma-controller-stmicroelectronics.pdf)
+* [Emulating EEPROM in flash](https://www.st.com/resource/en/application_note/dm00036065.pdf)
+
 
 
 
