@@ -11,9 +11,6 @@
 bool streamValues = false;
 uint8_t sendMarkerNext = 0;
 
-// Virtual adress table for the EEPROM emulation;
-uint16_t VirtAddVarTab[MAX_SENSORS] = {0x5555, 0x6666, 0x7777};
-
 // buffer for the DMA to transfer level values to;
 uint16_t dmaBuffer[MAX_SENSORS];
 
@@ -309,7 +306,7 @@ void configureADC()
 void setup()
 {
   // baudrate 4M for development;
-  Serial.begin(4000000);
+  Serial.begin(9600);
 
   // unlock flash memory;
   HAL_FLASH_Unlock();

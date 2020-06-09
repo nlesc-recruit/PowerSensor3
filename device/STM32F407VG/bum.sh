@@ -3,7 +3,7 @@ echo "Compiling sketch: powersensor"
 arduino-cli compile --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor
 echo "Compiling complete"
 echo "Uploading sketch: powersensor, to: /dev/ttyACM1"
-arduino-cli upload -p /dev/ttyACM0 --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor
+arduino-cli upload -p /dev/ttyACM1 --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor
 echo "Uploading complete"
 echo "Waiting 25 (s) for device reset"
 sleep 5
