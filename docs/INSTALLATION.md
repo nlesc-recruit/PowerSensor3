@@ -1,4 +1,6 @@
 # Installation guide
+Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, get to know the device with the [user guide](USERGUIDE.md).
+
 ## Installing the PowerSensor
 Before starting, turn off and unplug the power of the host system.  An STM32F407VG is at the heart of the PowerSensor.  The microcontroller on this board collects the sensor values, interprets them, and communicates them to the host via USB. 
 

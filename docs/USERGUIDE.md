@@ -1,4 +1,5 @@
 # User guide
+Please make sure that the PowerSensor is installed correctly by completing the [installation guide](INSTALLATION.md).
 ## Configuring the PowerSensor
 `psconfig` configures the PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's emulated EEPROM, so the device needs to be configured only once.
 
