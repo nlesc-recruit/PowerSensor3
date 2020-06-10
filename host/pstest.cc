@@ -37,7 +37,7 @@ void usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
-  const char *device = "/dev/ttyACM0", *dumpFileName = 0;
+  const char *device = "/dev/ttyACM1", *dumpFileName = 0;
   int        sensor  = -1;
 
   for (int opt; (opt = getopt(argc, argv, "d:f:s:")) >= 0;) {

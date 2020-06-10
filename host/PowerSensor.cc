@@ -397,9 +397,14 @@ namespace PowerSensor
       sensors[sensorNumber].updateLevel(level);
 
       if (dumpFile != nullptr)
+      {
+	if (marker != 0) 
+	{
+	  writeMarker();
+	}
         dumpCurrentWattToFile();
+      }
     }
-    std::cout << "stopping io tred" << std::endl;
   }
 
   void PowerSensor::startIOthread()
@@ -439,8 +444,16 @@ namespace PowerSensor
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
   }
 
-  void PowerSensor::mark(const char *name) const
+  void PowerSensor::writeMarker()
   {
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
+    *dumpFile << "M " << markers.front() << std::endl;
+    markers.pop();
+  }
+
+  void PowerSensor::mark(char name)
+  {
+    markers.push(name);
     if (write(fd, "M", 1) < 0)
     {
       perror("write");

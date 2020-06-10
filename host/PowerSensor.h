@@ -27,6 +27,7 @@
 #include <fstream>
 #include <mutex>
 #include <thread>
+#include <queue>
 
 namespace PowerSensor
 {
@@ -48,7 +49,8 @@ namespace PowerSensor
     State read() const;
 
     void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
-    void mark(const char *name) const;
+    void writeMarker();
+    void mark(char name);
     void mark(const State &start, const State &stop, const char *name = 0, unsigned tag = 0) const;
 
     float getVolt(unsigned sensorID) const;
@@ -84,6 +86,7 @@ namespace PowerSensor
       double currentWatt() const;
     } sensors[MAX_SENSORS];
 
+    std::queue<char> markers;
     double startTime;
     int fd;
     std::unique_ptr<std::ofstream> dumpFile;
