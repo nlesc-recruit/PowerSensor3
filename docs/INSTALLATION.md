@@ -18,17 +18,50 @@ The voltage output of the current sensor should be connected to any of the ports
 
 Finally, connect the STM32F407VG's mini-USB to a USB port of the host system. Then plug in the micro-USB to the host. The mini-USB connection to the host is only required for the installing of the firmware, afterwards it only supplies the board with power. Further communication with the board is done via the micro-USB port. After making sure that everything is connected correctly, turn on the host system.
 
-## Installing the firmware TOFIX
+## Installing the firmware
+The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the [arduino-cli](https://github.com/arduino/arduino-cli) package can be installed via:
     
-    apt-get install arduino-mk
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-    apt-get install libdevice-serialport-perl
-    apt-get install libyaml-perl
 
-### Notes
-The stm32duino library does not create a .bin file in the sketch folder. Which is what the CLI's upload command looks for. This can be solved by either copying the .bin file from its temporary location and renaming it accordingly. Another approach is to convert the .hex or .elf file to a .bin file in the sketch folder and name it accordingly. These options are not very smooth.
+Next, the [stm32duino](https://github.com/stm32duino/Arduino_Core_STM32) package should be installed, this ensures that STM32 boards can be used in combination with arduino. Start by updating the arduino core:
 
-As of the 28th of March it should have been fixed, it is not (ref commit/merge?? [6aa5ee9]). The current solution is to remove, or comment, the lines:
+    arduino-cli core update-index
+
+Then, if there is not already a config file at `~/.arduino15/arduino-cli.yaml`, create a config file with:
+
+    arduino-cli config init
+
+Open the configuration file in any editor and add new board manager URL to:
+
+    board_manager:
+      additional_urls:
+        [https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/ package_stm_index.json]
+
+Update the core again:
+
+    arduino-cli core update-index
+
+If necessary, adapt `Makefile` to configure the right port.  The device typically appears as `/dev/ttyACM0` after it is connected to the host. This can be checked via either:
+
+    lsusb
+    arduino-cli board list
+
+If this does not show which port is which, remove one of the USBs, then run the command again. Or use a third party tool like [pio](https://platformio.org/install/cli):
+
+    pio device list
+
+Then, with the correct port run: 
+
+    make upload 
+
+This build and install the firmware on the STM32.  The PowerSensor will not work properly until its is configured.
+
+### Upload error
+Check whether there is a `{projectname}.STM32:stm32:Disco.bin` file in the sketch folder. If there is, it can be uploaded without trouble. Otherwise follow the solution described below.
+
+The stm32duino library does not create a `.bin` file in the sketch folder. Which is what the CLI's upload command looks for. This can be solved by either copying the `.bin` file from its temporary location and renaming it accordingly. Another approach is to convert the `.hex` or `.elf` file to a `.bin` file in the sketch folder and name it accordingly. These options are not very smooth.
+
+The current solution is to remove, or comment, the lines:
 
 	recipe.output.tmp_file={build.project_name}.hex
 	recipe.output.save_file={build.project_name}.{build.variant}.hex
@@ -37,6 +70,4 @@ These lines are found in:
 
 	$HOME/.arduino15/packages/STM32/hardware/stm32/1.8.0/platform.txt
 
-Please try to compile the sketch first. Then check whether there is a __{projectname}.STM32:stm32:Disco.bin__ file in the sketch folder. If there is, it can be uploaded with out trouble. Otherwise follow the solution described above.
-
-Make sure that the Arduino tools are installed on host system.  On Ubuntu, one needs the `arduino-core` and `arduino-mk` packages.  If necessary, adapt `Arduino/Makefile` to configure the right Arduino variant.  The device typically appears as `/dev/ttyACM0` after it is connected to the host.  Then, do `make upload` to build and install the firmware on the Arduino.  The PowerSensor will not work properly until its is configured.
+This will make sure that it compiles a `.bin` file which can be uploaded to the board. Run `make upload` again and it should compile and upload the firmware correctly
