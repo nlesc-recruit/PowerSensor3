@@ -69,7 +69,7 @@
 #define PAGE_FULL             ((uint8_t)0x80)
 
 /* Variables' number */
-#define NB_OF_VAR             ((uint8_t)0x03)
+#define NB_OF_VAR             ((uint8_t)0x1E) /* 30 variables: 3 floats * 5 sensors = 30 halfwords */
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/

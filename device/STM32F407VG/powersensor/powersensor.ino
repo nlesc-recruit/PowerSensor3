@@ -1,21 +1,23 @@
-// #include <stm32_eeprom.h>
-//#include <stm32f4xx.h>
-
 #include <Arduino.h>
 #include "eeprom_emulation.h"
 
-// defines;
-#define MAX_SENSORS 5
+// define max sensors and emulated EEPROM base address
+#define MAX_SENSORS 	5
+#define BASE_ADDRESS	0x1111
 
-// PowerSensor Serial variables
+// Bool to define whether to stream values;
 bool streamValues = false;
+
+// Int which is send to host, if 1 then it is a marked value;
 uint8_t sendMarkerNext = 0;
 
 // buffer for the DMA to transfer level values to;
 uint16_t dmaBuffer[MAX_SENSORS];
 
+// keeps the amount of sensors for ADC and DMA configs;
 uint8_t activeSensorCount = 0;
 
+// EEPROM struct to save in emulated EEPROM
 struct EEPROM {
   struct Sensor
   {
@@ -25,69 +27,46 @@ struct EEPROM {
   } sensors[MAX_SENSORS];
 };
 
+// Calculates the size of the EEPROM struct in halfwords (16b);
+const uint16_t eepromSize = sizeof(EEPROM) / 2;
+
+// Reserves appropriate amount of memory for virtual address table;
+uint16_t VirtAddVarTab[eepromSize];
+
 struct Sensor
 {
   bool inUse;
 } sensors[MAX_SENSORS];
 
-bool approximates(float a, float b)
-{
-  return a / b > .999999 && a / b < 1.000001;
-}
-
-bool conversionComplete()
-{
-  // check if the DMA is done with its sequence;
-  if (DMA1->LISR & (1 << 4))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
-}
-
+// writes configuration recv to EEPROM
 void writeConfigurationToEEPROM(EEPROM recv)
 {
-  // get the size of the received struct; should become constant
-  uint16_t recvSize = sizeof(recv) / 2;
-
-  // the virtualvariables always start at adress 0x1111 (this is arbitrary);
-  uint16_t virtualVariableAddress = 0x1111;
-
   // set a pointer of 16 bits to the start of the struct;
   uint16_t *p_recv = (uint16_t *)&recv.sensors[0];
 
   // write the data to the EEPROM;
-  for (int i = 0; i < recvSize; i++)
+  for (int i = 0; i < eepromSize; i++)
   {
-    EE_WriteVariable(virtualVariableAddress, *p_recv);
+    EE_WriteVariable(VirtAddVarTab[i], *p_recv);
     p_recv++; 
-    virtualVariableAddress++;
     delay(1); 
   }
 }
 
+// returns configuration from EEPROM;
 EEPROM readSensorConfiguration()
 {
   // create struct to put variables in;
   EEPROM copy;
 
-  uint16_t copySize = sizeof(copy) /2; // should become constant
-
-  // the virtual variables always start at address 0x1111;
-  uint16_t virtualVariableAddress = 0x1111;
-
   // set a pointer to the start of the struct; 
   uint16_t *p_copy = (uint16_t *)&copy.sensors[0];
 
   // read the data from the EEPROM;
-  for (int i = 0; i < copySize; i++)
+  for (int i = 0; i < eepromSize; i++)
   {
-    EE_ReadVariable(virtualVariableAddress, p_copy);
+    EE_ReadVariable(VirtAddVarTab[i], p_copy);
     p_copy++;
-    virtualVariableAddress++;
     delay(1);
   }
 
@@ -267,11 +246,12 @@ void configureADC()
       // set pins to analog input in the GPIO mode register;
       GPIOA->MODER |= (0x3 << (activeSensorCount * 2));
       
+      // keep track of active sensor count for the DMA;
       activeSensorCount++;
     }
   }
 
-  // set amount of conversions to 3 (0 = 1 conversion);i
+  // set amount of conversions to 3 (0 = 1 conversion);
   ADC1->SQR1 &= ~((0xF) << 20);
   ADC1->SQR1 |= ((activeSensorCount - 1) << 20);
 
@@ -303,10 +283,23 @@ void configureADC()
   ADC1->CR2 |= ADC_CR2_SWSTART;
 }
 
+void generateVirtualAddresses()
+{
+  uint16_t addr = BASE_ADDRESS;
+  for (int i = 0; i < eepromSize; i++)
+  {
+    VirtAddVarTab[i] = addr;
+    addr++;
+  }
+}
+
 void setup()
 {
-  // baudrate 4M for development;
-  Serial.begin(9600);
+  // baudrate 4M;
+  Serial.begin(40000000);
+
+  // populate VirtAddVarTab memory with addresses incremented from BASE;
+  generateVirtualAddresses();
 
   // unlock flash memory;
   HAL_FLASH_Unlock();

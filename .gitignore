@@ -4,7 +4,7 @@ Arduino/PowerSensor_stm32f4/.vscode/
 
 # arduino outputs
 
-device/Arduino/powersensor/powersensor.STM32.*
+device/STM32F407VG/powersensor/powersensor.STM32.*
 
 # library outputs
 host/bin/
