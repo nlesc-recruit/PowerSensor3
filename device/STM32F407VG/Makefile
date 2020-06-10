@@ -1,12 +1,22 @@
-.PHONY = all compile upload
+# Usage:
+# make		# compile and upload file
+# make clean	# remove ALL files
+
+.PHONY 	= all compile upload
+
+BOARD 	= DISCO_F407VG
+USB 	= CDCgen
+PORT	= /dev/ttyACM1
+FQBN 	= STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
+SKETCH 	= powersensor
 
 all: compile upload
 
 compile:
-	@echo "compile"
-	arduino-cli compile --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor
+	arduino-cli compile --fqbn ${FQBN} ${SKETCH}
 
 upload:
-	@echo "upload"
-	arduino-cli upload -p /dev/ttyACM1 --fqbn STM32:stm32:Disco:pnum=DISCO_F407VG,usb=CDCgen powersensor
+	arduino-cli upload -p ${PORT} --fqbn ${FQBN} ${SKETCH}
 
+clean:
+	rm -rvf powersensor/powersensor.STM32.stm32.Disco.*
