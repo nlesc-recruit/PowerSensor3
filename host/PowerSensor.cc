@@ -371,11 +371,9 @@ namespace PowerSensor
 
     *dumpFile << "S " << time - startTime;
 
-#if 1
     static double previousTime;
     *dumpFile << ' ' << 1e6 * (time - previousTime);
     previousTime = time;
-#endif
 
     for (const Sensor &sensor : sensors)
       if (sensor.inUse())
