@@ -57,13 +57,6 @@ namespace PowerSensor
     eeprom.type = __bswap_32(eeprom.type);
     eeprom.nullLevel = __bswap_32(eeprom.nullLevel);
 #endif
-    std::cout << "V: " << eeprom.volt << std::endl;
-    setVolt(eeprom.volt);
-    std::cout << "T: " << eeprom.type << std::endl;
-    setType(eeprom.type);
-    std::cout << "N: " << eeprom.nullLevel << std::endl;
-    setNullLevel(eeprom.nullLevel);
-    std::cout << " " << std::endl;
   }
 
   void PowerSensor::Sensor::writeToEEPROM(int fd) const
@@ -149,12 +142,11 @@ namespace PowerSensor
 
     // set control mode flags;
     terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
-    terminalOptions.c_cflag |= (PARENB | PARODD);		// off
+    terminalOptions.c_cflag |= (PARENB | PARODD);	
 
     // set input mode flags;
     terminalOptions.c_iflag = 0;
-    terminalOptions.c_iflag |= IGNBRK;			// off
-    //terminalOptions.c_iflag |=(IXON | IXOFF | IXANY);		// off
+    terminalOptions.c_iflag |= IGNBRK;			
 
     // clear local mode flag
     terminalOptions.c_lflag = 0;
