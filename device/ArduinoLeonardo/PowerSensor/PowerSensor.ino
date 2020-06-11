@@ -50,7 +50,7 @@ struct Sensor
 
 
 bool streamValues = false;
-
+uint8_t sendMarkerNext = 0;
 
 inline uint8_t nextSensor(uint8_t currentSensor)
 {
@@ -84,22 +84,20 @@ ISR(ADC_vect)
   currentSensor = nextSensor(currentSensor);
 
   setADMUX(currentSensor);
-  ADCSRA |= _BV(ADSC); // start ADC conversion ADSC == ADC Start Conversion && ADCSRA == ADC Control and Status Register A
+  ADCSRA |= _BV(ADSC); // start ADC conversion
 
   int16_t level = (high << 8) | low;
   sensors[previousSensor].total += level - 512;
   sensors[previousSensor].count ++;
 
   if (streamValues) {
-    Serial.write((previousSensor << 5) | (level >> 5));
-    Serial.write(0xE0 | (level & 0x1F));
-
+    Serial.write(((previousSensor & 0x7) << 4) | (level & 0x3C0) | (1 << 7));
+    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
+    
+    sendMarkerNext = 0;
 #if defined __AVR_ATmega32U4__
     Serial.flush();
 #endif
-
-    //for (int i = 2; i < 16; i ++)
-      //Serial.write(0
   }
 }
 
@@ -152,10 +150,10 @@ void writeConfig()
 void serialEventRun()
 {
   switch (Serial.read()) {
-    case 'r': readConfig();
+    case 'R': readConfig();
 	      break;
 
-    case 'w': writeConfig();
+    case 'W': writeConfig();
 	      break;
 
     case 'S': streamValues = true;
@@ -165,8 +163,11 @@ void serialEventRun()
 	      break;
 
     case 'X': streamValues = false;
-	      Serial.write((const uint8_t []) { 0xFF, 0xE0 }, 2);
+	      Serial.write((const uint8_t []) { 0xFF, 0x3F }, 2);
 	      break;
+
+    case 'M': sendMarkerNext = 1;
+              break;
   }
 }
 
@@ -180,7 +181,7 @@ void setup()
   lcd.setCursor(0, 1);
   lcd.print("Total:         W");
 
-  Serial.begin(2000000);
+  Serial.begin(4000000);
 
   setADMUX(0);
   ADCSRA |= _BV(ADIE); // enable ADC interrupts
@@ -206,11 +207,11 @@ void loop()
       interrupts();
 
       if ((++ count & 7) == 0)
-	      currentSensor = nextSensor(currentSensor);
+	currentSensor = nextSensor(currentSensor);
 
       if ((count & 7) == 1) {
-	      lcd.setCursor(7, 0);
-	      lcd.print((char) ('0' + currentSensor));
+	lcd.setCursor(7, 0);
+	lcd.print((char) ('0' + currentSensor));
       }
     } else { // currentLine == 1
       // print bottom line; the sum of all sensors

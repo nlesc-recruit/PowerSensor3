@@ -1,47 +1,51 @@
 ARCH=$(shell arch)
-CXX=			g++
-CXXFLAGS=		-std=c++11 -O2 -g -pthread -fopenmp
+CXX=				g++
+CXXFLAGS=			-std=c++11 -O2 -g -pthread -fopenmp
+BOARD=				DISCO_F407VG
+USB=				CDCgen
+FQBN=				STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
+PORT=				/dev/ttyACM1
 
-obj/$(ARCH)/%.o:	%.cc
-			@mkdir -p obj/$(ARCH)
-			$(CXX) -c $(CXXFLAGS) $< -o $@
+host/obj/$(ARCH)/%.o:		host/%.cc
+				@mkdir -p host/obj/$(ARCH)
+				$(CXX) -c $(CXXFLAGS) $< -o $@
 
-all::			lib/$(ARCH)/libPowerSensor.a\
-			bin/$(ARCH)/psconfig\
-			bin/$(ARCH)/psrun\
-			bin/$(ARCH)/pstest\
-			arduino
+all::				host/lib/$(ARCH)/libPowerSensor.a\
+				host/bin/$(ARCH)/psconfig\
+				host/bin/$(ARCH)/psrun\
+				host/bin/$(ARCH)/pstest\
+				arduino
 
-lib/$(ARCH)/libPowerSensor.a: obj/$(ARCH)/PowerSensor.o
-			-mkdir -p lib/$(ARCH)
-			$(AR) cr $@ $<
+host/lib/$(ARCH)/libPowerSensor.a: 	host/obj/$(ARCH)/PowerSensor.o
+					-mkdir -p host/lib/$(ARCH)
+					$(AR) cr $@ $<
 
-bin/$(ARCH)/psconfig:	obj/$(ARCH)/psconfig.o lib/$(ARCH)/libPowerSensor.a
-			-mkdir -p bin/$(ARCH)
-			$(CXX) $(CXXFLAGS) obj/$(ARCH)/psconfig.o -Llib/$(ARCH) -lPowerSensor -o $@
+host/bin/$(ARCH)/psconfig:	host/obj/$(ARCH)/psconfig.o host/lib/$(ARCH)/libPowerSensor.a
+				-mkdir -p host/bin/$(ARCH)
+				$(CXX) $(CXXFLAGS) host/obj/$(ARCH)/psconfig.o -Lhost/lib/$(ARCH) -lPowerSensor -o $@
 
-bin/$(ARCH)/psrun:	obj/$(ARCH)/psrun.o lib/$(ARCH)/libPowerSensor.a
-			-mkdir -p bin/$(ARCH)
-			$(CXX) $(CXXFLAGS) obj/$(ARCH)/psrun.o -Llib/$(ARCH) -lPowerSensor -o $@
+host/bin/$(ARCH)/psrun:		host/obj/$(ARCH)/psrun.o host/lib/$(ARCH)/libPowerSensor.a
+				-mkdir -p host/bin/$(ARCH)
+				$(CXX) $(CXXFLAGS) host/obj/$(ARCH)/psrun.o -Lhost/lib/$(ARCH) -lPowerSensor -o $@
 
-bin/$(ARCH)/pstest:	obj/$(ARCH)/pstest.o lib/$(ARCH)/libPowerSensor.a
-			-mkdir -p bin/$(ARCH)
-			$(CXX) $(CXXFLAGS) obj/$(ARCH)/pstest.o -Llib/$(ARCH) -lPowerSensor -o $@
+host/bin/$(ARCH)/pstest:	host/obj/$(ARCH)/pstest.o host/lib/$(ARCH)/libPowerSensor.a
+				-mkdir -p host/bin/$(ARCH)
+				$(CXX) $(CXXFLAGS) host/obj/$(ARCH)/pstest.o -Lhost/lib/$(ARCH) -lPowerSensor -o $@
 
-obj/$(ARCH)/psconfig.o:	psconfig.cc PowerSensor.h
+host/obj/$(ARCH)/psconfig.o:	host/psconfig.cc host/PowerSensor.h
 
-obj/$(ARCH)/psrun.o:	psrun.cc PowerSensor.h
+host/obj/$(ARCH)/psrun.o:	host/psrun.cc host/PowerSensor.h
 
-obj/$(ARCH)/pstest.o:	pstest.cc PowerSensor.h
+host/obj/$(ARCH)/pstest.o:	host/pstest.cc host/PowerSensor.h
 
-obj/$(ARCH)/PowerSensor.o: PowerSensor.cc PowerSensor.h Semaphore.h
+host/obj/$(ARCH)/PowerSensor.o: host/PowerSensor.cc host/PowerSensor.h host/Semaphore.h
 
 arduino::
-			+make -C Arduino
+				arduino-cli compile --fqbn $(FQBN) device/$(BOARD)/PowerSensor
 
-upload::		all
-			+make -C Arduino upload
+upload::			all
+				arduino-cli upload -p $(PORT) --fqbn $(FQBN) device/$(BOARD)/PowerSensor
 
-clean::
-			make -C Arduino clean
-			$(RM) -r bin/$(ARCH) lib/$(ARCH) obj/$(ARCH)
+clean:				
+				$(RM) -r device/$(BOARD)/PowerSensor/PowerSensor.STM32.stm32.Disco.*
+				$(RM) -r host/bin/$(ARCH) host/lib/$(ARCH) host/obj/$(ARCH)
