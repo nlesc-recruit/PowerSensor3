@@ -57,6 +57,10 @@ namespace PowerSensor
     eeprom.type = __bswap_32(eeprom.type);
     eeprom.nullLevel = __bswap_32(eeprom.nullLevel);
 #endif
+
+    setVolt(eeprom.volt);
+    setType(eeprom.type);
+    setNullLevel(eeprom.nullLevel);
   }
 
   void PowerSensor::Sensor::writeToEEPROM(int fd) const
@@ -142,11 +146,11 @@ namespace PowerSensor
 
     // set control mode flags;
     terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
-    terminalOptions.c_cflag |= (PARENB | PARODD);	
+    //terminalOptions.c_cflag |= (PARENB | PARODD);	
 
     // set input mode flags;
     terminalOptions.c_iflag = 0;
-    terminalOptions.c_iflag |= IGNBRK;			
+    //terminalOptions.c_iflag |= IGNBRK;			
 
     // clear local mode flag
     terminalOptions.c_lflag = 0;

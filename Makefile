@@ -4,7 +4,7 @@ CXXFLAGS=			-std=c++11 -O2 -g -pthread -fopenmp
 BOARD=				DISCO_F407VG
 USB=				CDCgen
 FQBN=				STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
-PORT=				/dev/ttyACM1
+PORT=				/dev/ttyACM0
 
 host/obj/$(ARCH)/%.o:		host/%.cc
 				@mkdir -p host/obj/$(ARCH)
