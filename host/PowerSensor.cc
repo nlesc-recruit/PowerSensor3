@@ -24,7 +24,6 @@
 #include <cstring>
 #include <iostream>
 
-#include <byteswap.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <omp.h>
@@ -34,6 +33,10 @@
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
+
+#ifdef __APPLE__
+#define B4000000 0010017 // 4 Mbit baud rate is not defined by in termios.h on OSX
+#endif
 
 namespace PowerSensor
 {
@@ -146,11 +149,11 @@ namespace PowerSensor
 
     // set control mode flags;
     terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
-    //terminalOptions.c_cflag |= (PARENB | PARODD);	
+    //terminalOptions.c_cflag |= (PARENB | PARODD);
 
     // set input mode flags;
     terminalOptions.c_iflag = 0;
-    //terminalOptions.c_iflag |= IGNBRK;			
+    //terminalOptions.c_iflag |= IGNBRK;
 
     // clear local mode flag
     terminalOptions.c_lflag = 0;
@@ -394,7 +397,7 @@ namespace PowerSensor
 
       if (dumpFile != nullptr)
       {
-	if (marker != 0) 
+	if (marker != 0)
 	{
 	  writeMarker();
 	}

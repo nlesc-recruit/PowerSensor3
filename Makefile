@@ -1,16 +1,23 @@
-ARCH=$(shell arch)
-CXX=				g++
-CXXFLAGS=			-std=c++11 -O2 -g -pthread -fopenmp
-BOARD=				DISCO_F407VG
-USB=				CDCgen
-FQBN=				STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
-PORT=				/dev/ttyACM0
+OS = $(shell uname -s)
+ARCH = $(shell uname -m)
+CXX ?=				g++
+CXXFLAGS =			-std=c++11 -O2 -g -pthread -fopenmp
+BOARD =				DISCO_F407VG
+USB =				CDCgen
+FQBN =				STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
+
+ifeq ($(OS), Darwin)
+	PORT =			/dev/cu.usbmodem141203
+else
+	PORT =			/dev/ttyACM0
+endif
+
 
 host/obj/$(ARCH)/%.o:		host/%.cc
 				@mkdir -p host/obj/$(ARCH)
 				$(CXX) -c $(CXXFLAGS) $< -o $@
 
-all::				host/lib/$(ARCH)/libPowerSensor.a\
+all::			host/lib/$(ARCH)/libPowerSensor.a\
 				host/bin/$(ARCH)/psconfig\
 				host/bin/$(ARCH)/psrun\
 				host/bin/$(ARCH)/pstest\
@@ -46,6 +53,6 @@ arduino::
 upload::			all
 				arduino-cli upload -p $(PORT) --fqbn $(FQBN) device/$(BOARD)/PowerSensor
 
-clean:				
+clean:
 				$(RM) -r device/$(BOARD)/PowerSensor/PowerSensor.STM32.stm32.Disco.*
 				$(RM) -r host/bin/$(ARCH) host/lib/$(ARCH) host/obj/$(ARCH)
