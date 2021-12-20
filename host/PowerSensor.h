@@ -83,9 +83,8 @@ namespace PowerSensor
       bool inUse() const;
       void readFromEEPROM(int fd), writeToEEPROM(int fd) const;
       void setVolt(float), setType(float), setNullLevel(float);
-      void setRawLevel(int16_t level);
       void updateDerivedValues();
-      void updateLevel();
+      void updateLevel(int16_t);
       double totalEnergy(double now) const;
       double currentWatt() const;
     } sensors[MAX_SENSORS];

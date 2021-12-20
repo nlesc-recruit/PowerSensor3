@@ -118,12 +118,6 @@ namespace PowerSensor
     updateDerivedValues();
   }
 
-  void PowerSensor::Sensor::setRawLevel(int16_t level)
-  {
-    this->level = level;
-    updateDerivedValues();
-  }
-
   int PowerSensor::openDevice(const char *device)
   {
     int fileDescriptor;
@@ -293,10 +287,11 @@ namespace PowerSensor
     return volt != 0;
   }
 
-  void PowerSensor::Sensor::updateLevel()
+  void PowerSensor::Sensor::updateLevel(int16_t level)
   {
     double now = omp_get_wtime();
 
+    this->level = level;
     wattAtlastMeasurement = -(level - 776) * weight - nullLevel;
     consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
     timeAtLastMeasurement = now;
@@ -399,8 +394,7 @@ namespace PowerSensor
     while (readLevelFromDevice(sensorNumber, level, marker))
     {
       std::unique_lock<std::mutex> lock(mutex);
-      sensors[sensorNumber].setRawLevel(level);
-      sensors[sensorNumber].updateLevel();
+      sensors[sensorNumber].updateLevel(level);
 
       if (dumpFile != nullptr)
       {
