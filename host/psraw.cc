@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   int interval = 100 * 1000;
   int sensor;
   int ADCmax = pow(2, 10);
-  float maxVoltage = 3.3;
+  float maxVoltage = 3.;
 
   bool sets = false;
 
@@ -80,6 +80,8 @@ int main(int argc, char *argv[])
   PowerSensor::PowerSensor powerSensor(device);
 
   while (true) {
+      usleep(interval);
+
       if (sensor == -1) {
         // print values for all sensors
         std::cout << std::fixed << std::setprecision(2);
@@ -94,8 +96,6 @@ int main(int argc, char *argv[])
         std::cout << std::fixed << std::setprecision(2) <<
           (powerSensor.getRawLevel(sensor) * maxVoltage) / ADCmax << std::endl;
       }
-
-      usleep(interval);
   }
 
   return 0;
