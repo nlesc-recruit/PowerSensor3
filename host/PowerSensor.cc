@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
-#define B4000000 0010017 // 4 Mbit baud rate is not defined by in termios.h on OSX
+#define B4000000 0010017 // 4 Mbit baud rate is not defined in termios.h on OSX
 #endif
 
 namespace PowerSensor
@@ -115,6 +115,12 @@ namespace PowerSensor
   void PowerSensor::Sensor::setNullLevel(float nullLevel)
   {
     this->nullLevel = nullLevel;
+    updateDerivedValues();
+  }
+
+  void PowerSensor::Sensor::setRawLevel(int16_t level)
+  {
+    this->level = level;
     updateDerivedValues();
   }
 
@@ -287,7 +293,7 @@ namespace PowerSensor
     return volt != 0;
   }
 
-  void PowerSensor::Sensor::updateLevel(int16_t level)
+  void PowerSensor::Sensor::updateLevel()
   {
     double now = omp_get_wtime();
 
@@ -393,7 +399,8 @@ namespace PowerSensor
     while (readLevelFromDevice(sensorNumber, level, marker))
     {
       std::unique_lock<std::mutex> lock(mutex);
-      sensors[sensorNumber].updateLevel(level);
+      sensors[sensorNumber].setRawLevel(level);
+      sensors[sensorNumber].updateLevel();
 
       if (dumpFile != nullptr)
       {
@@ -509,6 +516,11 @@ namespace PowerSensor
   double Watt(const State &firstState, const State &secondState, int sensorID)
   {
     return Joules(firstState, secondState, sensorID) / seconds(firstState, secondState);
+  }
+
+  float PowerSensor::getRawLevel(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS ? sensors[sensorID].level: 0;
   }
 
   float PowerSensor::getVolt(unsigned sensorID) const
