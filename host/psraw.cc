@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
   const char *device = "/dev/ttyACM1";
   int interval = 100 * 1000;
   int sensor;
-  int ADCmax = 10;
+  int ADCmax = pow(2, 10);
   float maxVoltage = 3.3;
 
   bool sets = false;
