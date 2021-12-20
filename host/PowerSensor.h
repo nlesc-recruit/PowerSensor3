@@ -60,6 +60,8 @@ namespace PowerSensor
     float getNullLevel(unsigned sensorID) const;
     void setNullLevel(unsigned sensorID, float nullLevel);
     bool inUse(unsigned sensorID) const;
+    float getRawLevel(unsigned sensorID) const;
+
 
   private:
     struct Sensor
@@ -76,12 +78,13 @@ namespace PowerSensor
       double consumedEnergy;
       double wattAtlastMeasurement;
       double timeAtLastMeasurement;
+      int16_t level;
 
       bool inUse() const;
       void readFromEEPROM(int fd), writeToEEPROM(int fd) const;
       void setVolt(float), setType(float), setNullLevel(float);
       void updateDerivedValues();
-      void updateLevel(int16_t level);
+      void updateLevel(int16_t);
       double totalEnergy(double now) const;
       double currentWatt() const;
     } sensors[MAX_SENSORS];

@@ -35,7 +35,7 @@
 #include <unistd.h>
 
 #ifdef __APPLE__
-#define B4000000 0010017 // 4 Mbit baud rate is not defined by in termios.h on OSX
+#define B4000000 0010017 // 4 Mbit baud rate is not defined in termios.h on OSX
 #endif
 
 namespace PowerSensor
@@ -291,6 +291,7 @@ namespace PowerSensor
   {
     double now = omp_get_wtime();
 
+    this->level = level;
     wattAtlastMeasurement = -(level - 776) * weight - nullLevel;
     consumedEnergy += wattAtlastMeasurement * (now - timeAtLastMeasurement);
     timeAtLastMeasurement = now;
@@ -509,6 +510,11 @@ namespace PowerSensor
   double Watt(const State &firstState, const State &secondState, int sensorID)
   {
     return Joules(firstState, secondState, sensorID) / seconds(firstState, secondState);
+  }
+
+  float PowerSensor::getRawLevel(unsigned sensorID) const
+  {
+    return sensorID < MAX_SENSORS ? sensors[sensorID].level: 0;
   }
 
   float PowerSensor::getVolt(unsigned sensorID) const

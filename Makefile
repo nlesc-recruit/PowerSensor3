@@ -17,11 +17,7 @@ host/obj/$(ARCH)/%.o:		host/%.cc
 				@mkdir -p host/obj/$(ARCH)
 				$(CXX) -c $(CXXFLAGS) $< -o $@
 
-all::			host/lib/$(ARCH)/libPowerSensor.a\
-				host/bin/$(ARCH)/psconfig\
-				host/bin/$(ARCH)/psrun\
-				host/bin/$(ARCH)/pstest\
-				arduino
+all::			host arduino
 
 host/lib/$(ARCH)/libPowerSensor.a: 	host/obj/$(ARCH)/PowerSensor.o
 					-mkdir -p host/lib/$(ARCH)
@@ -39,13 +35,25 @@ host/bin/$(ARCH)/pstest:	host/obj/$(ARCH)/pstest.o host/lib/$(ARCH)/libPowerSens
 				-mkdir -p host/bin/$(ARCH)
 				$(CXX) $(CXXFLAGS) host/obj/$(ARCH)/pstest.o -Lhost/lib/$(ARCH) -lPowerSensor -o $@
 
+host/bin/$(ARCH)/psraw:	host/obj/$(ARCH)/psraw.o host/lib/$(ARCH)/libPowerSensor.a
+				-mkdir -p host/bin/$(ARCH)
+				$(CXX) $(CXXFLAGS) host/obj/$(ARCH)/psraw.o -Lhost/lib/$(ARCH) -lPowerSensor -o $@
+
 host/obj/$(ARCH)/psconfig.o:	host/psconfig.cc host/PowerSensor.h
 
 host/obj/$(ARCH)/psrun.o:	host/psrun.cc host/PowerSensor.h
 
 host/obj/$(ARCH)/pstest.o:	host/pstest.cc host/PowerSensor.h
 
+host/obj/$(ARCH)/psraw.o:	host/psraw.cc host/PowerSensor.h
+
 host/obj/$(ARCH)/PowerSensor.o: host/PowerSensor.cc host/PowerSensor.h host/Semaphore.h
+
+host::			host/lib/$(ARCH)/libPowerSensor.a\
+				host/bin/$(ARCH)/psconfig\
+				host/bin/$(ARCH)/psrun\
+				host/bin/$(ARCH)/pstest\
+				host/bin/$(ARCH)/psraw
 
 arduino::
 				arduino-cli compile --fqbn $(FQBN) device/$(BOARD)/PowerSensor
