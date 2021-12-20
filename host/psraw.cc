@@ -80,8 +80,21 @@ int main(int argc, char *argv[])
   PowerSensor::PowerSensor powerSensor(device);
 
   while (true) {
-      std::cout << std::fixed << std::setprecision(2) <<
-        (powerSensor.getRawLevel(sensor) * maxVoltage) / ADCmax << std::endl;
+      if (sensor == -1) {
+        // print values for all sensors
+        std::cout << std::fixed << std::setprecision(2);
+        for (int s = 0; s < PowerSensor::MAX_SENSORS; s++)
+        {
+          std::cout << s << " " << (powerSensor.getRawLevel(s) * maxVoltage) / ADCmax << std::endl;
+        }
+        std::cout << std::endl;
+
+      } else {
+        // print value for single sensor
+        std::cout << std::fixed << std::setprecision(2) <<
+          (powerSensor.getRawLevel(sensor) * maxVoltage) / ADCmax << std::endl;
+      }
+
       usleep(interval);
   }
 
