@@ -7,7 +7,7 @@ A PowerSensor measures the instantaneous power use of a GPU:
 
 ![The PowerSensor hardware](https://i.imgur.com/zEu4LSS.jpg)
 
-The PowerSensor consists of an STM32F407VG board, current sensors (ACS712), a PCIe riser cable (to measure the power drawn from the motherboard) and a USB cable that connects to the host. In this scenario, we use three sensors that measure the PCIe slot power (12 V and 3.3 V) and the external PCIe cable power. The microcontroller interprets the sensor data and reports the power measurements via USB to the host. The STM32 board can also be swapped with the Arduino Leonardo.
+The PowerSensor consists of an STM32F407VG board, current sensors (ACS712), a PCIe riser cable (to measure the power drawn from the motherboard) and a USB cable that connects to the host. In this scenario, we use three sensors that measure the PCIe slot power (12 V and 3.3 V) and the external PCIe cable power. The microcontroller interprets the sensor data and reports the power measurements via USB to the host.
 
 ![The PowerSensor schematics](https://i.imgur.com/6C1UhWO.png)
 

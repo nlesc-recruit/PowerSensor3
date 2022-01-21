@@ -4,7 +4,7 @@ Start with the physical installation of the PowerSensor, then install the firmwa
 ## Installing the PowerSensor
 Before starting, turn off and unplug the power of the host system.  An STM32F407VG is at the heart of the PowerSensor.  The microcontroller on this board collects the sensor values, interprets them, and communicates them to the host via USB. 
 
-PowerSensor measures currents, using external current sensors (like those from the ACS712 series).  The current sensor, in this case a Hall-effect sensor, measures the current that flows through a wire, and converts the input current to an (analogue) voltage that is directly proportional to the current.  This voltage is sampled by the built-in ADC converter of the Arduino.  PowerSensor assumes that no current (0 Ampere) translates to a 2.5V signal.
+PowerSensor measures currents, using external current sensors (like those from the ACS712 series).  The current sensor, in this case a Hall-effect sensor, measures the current that flows through a wire, and converts the input current to an (analogue) voltage that is directly proportional to the current.  This voltage is sampled by the built-in ADC converter of the microcontroller.  PowerSensor assumes that no current (0 Ampere) translates to a 2.5V signal.
 
 ![Imgur](https://i.imgur.com/K1WXNHY.jpg)
 
