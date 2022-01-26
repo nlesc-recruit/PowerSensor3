@@ -103,14 +103,6 @@ void Blink(uint8_t amount) {
   }
 }
 
-void sendValue(auto& data) {
-  // send data per byte
-  for (uint8_t n = 0; n < sizeof(data); n++) {
-    Serial.write((data >> 8*n) & 0xFF);
-  }
-  Serial.write('\n');
-}
-
 void configureADCCommon() {
   LL_ADC_Disable(ADCCurrent);
   LL_ADC_Disable(ADCVoltage);
@@ -266,12 +258,6 @@ void sendADCValue() {
   }
 }
 
-void sendTestValue() {
-  uint16_t value = 0b1100110000110011;
-  sendValue(value);
-}
-
-
 void serialEvent() {
   if (Serial.available() > 0) {
    switch (Serial.read()) {
@@ -295,14 +281,9 @@ void serialEvent() {
       // Disable streaming of data
       streamValues = false;
       break;
-    case 'Q':
-      // Send test value
-      sendTestValue();
-      break;
    }
   }
 }
-
 
 void setup() {
   Serial.begin(40000000);
