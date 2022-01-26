@@ -1,11 +1,13 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
+#define EEPROM_BASE_ADDRESS 0x1111
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
 #include <stm32f4xx_ll_adc.h>  // ADC control
 #include <stm32f4xx_ll_gpio.h> // GPIO control
 #include <stm32f4xx_ll_dma.h>  // DMA control
+#include "eeprom.h"
 
 
 const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4,
@@ -32,6 +34,65 @@ bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = 0;
 
+struct Sensor {
+  char type[16];
+  float vref;
+  float slope;
+  uint8_t pairId;
+  bool inUse;
+} __attribute__((packed));
+
+struct EEPROM {
+  Sensor sensors[MAX_SENSORS];
+} eeprom;
+
+const uint16_t eepromSize = sizeof(eeprom) / 2;  // size of EEPROM in half-words
+uint16_t VirtAddVarTab[eepromSize];
+
+void generateVirtualAddresses() {
+  uint16_t addr = EEPROM_BASE_ADDRESS;
+  for (int i = 0; i < eepromSize; i++) {
+    VirtAddVarTab[i] = addr++;
+  }
+}
+
+void readConfig() {
+  // send config in virtual EEPROM to host
+  Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
+}
+
+void writeConfig() {
+  // read config from host and write to virtual EEPROM
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (int i=0; i < sizeof eeprom; i++) {
+    while (Serial.available() == 0) {
+    }
+    p_eeprom[i] = Serial.read();
+  }
+  // store updated EEPROM data to flash
+  writeEEPROMToFlash();
+}
+
+void readEEPROMFromFlash() {
+  // read per half-word
+  uint16_t* p_eeprom = (uint16_t*) &eeprom;
+  for (int i=0; i < eepromSize; i++) {
+    EE_ReadVariable(VirtAddVarTab[i], p_eeprom);
+    p_eeprom++;
+    delay(1);
+  }
+}
+
+void writeEEPROMToFlash() {
+  // write per half-word
+  uint16_t* p_eeprom = (uint16_t*) &eeprom;
+  for (int i=0; i < eepromSize; i++) {
+    EE_WriteVariable(VirtAddVarTab[i], *p_eeprom);
+    p_eeprom++;
+    delay(1);
+  }
+}
+
 void Blink(uint8_t amount) {
   // Blink LED
   for (uint8_t i = 0; i < amount; i++) {
@@ -40,14 +101,6 @@ void Blink(uint8_t amount) {
     digitalWrite(LED_BUILTIN, LOW);
     delay(250);
   }
-}
-
-void sendValue(auto& data) {
-  // send data per byte
-  for (uint8_t n = 0; n < sizeof(data); n++) {
-    Serial.write((data >> 8*n) & 0xFF);
-  }
-  Serial.write('\n');
 }
 
 void configureADCCommon() {
@@ -205,15 +258,17 @@ void sendADCValue() {
   }
 }
 
-void sendTestValue() {
-  uint16_t value = 0b1100110000110011;
-  sendValue(value);
-}
-
-
 void serialEvent() {
   if (Serial.available() > 0) {
    switch (Serial.read()) {
+    case 'R':
+      // read sensor configuration from EEPROM
+      readConfig();
+      break;
+    case 'W':
+      // write sensor configuration to EEPROM
+      writeConfig();
+      break;
     case 'I':
       // Send single set of sensor values. does nothing if streaming is enabled
       sendSingleValue = true;
@@ -226,18 +281,18 @@ void serialEvent() {
       // Disable streaming of data
       streamValues = false;
       break;
-    case 'Q':
-      // Send test value
-      sendTestValue();
-      break;
    }
   }
 }
 
-
 void setup() {
   Serial.begin(40000000);
   pinMode(LED_BUILTIN, OUTPUT);
+
+  generateVirtualAddresses();
+  HAL_FLASH_Unlock();
+  EE_Init();
+  readEEPROMFromFlash();
 
   // set number of active sensors
   numSensor = 8;
