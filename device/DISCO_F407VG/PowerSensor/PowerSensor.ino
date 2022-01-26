@@ -57,18 +57,41 @@ void generateVirtualAddresses() {
 }
 
 void readConfig() {
+  // send config in virtual EEPROM to host
   Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
 }
 
 void writeConfig() {
+  // read config from host and write to virtual EEPROM
   uint8_t* p_eeprom = (uint8_t*) &eeprom;
   for (int i=0; i < sizeof eeprom; i++) {
     while (Serial.available() == 0) {
     }
     p_eeprom[i] = Serial.read();
   }
+  // store updated EEPROM data to flash
+  writeEEPROMToFlash();
 }
 
+void readEEPROMFromFlash() {
+  // read per half-word
+  uint16_t* p_eeprom = (uint16_t*) &eeprom;
+  for (int i=0; i < eepromSize; i++) {
+    EE_ReadVariable(VirtAddVarTab[i], p_eeprom);
+    p_eeprom++;
+    delay(1);
+  }
+}
+
+void writeEEPROMToFlash() {
+  // write per half-word
+  uint16_t* p_eeprom = (uint16_t*) &eeprom;
+  for (int i=0; i < eepromSize; i++) {
+    EE_WriteVariable(VirtAddVarTab[i], *p_eeprom);
+    p_eeprom++;
+    delay(1);
+  }
+}
 
 void Blink(uint8_t amount) {
   // Blink LED
@@ -288,6 +311,7 @@ void setup() {
   generateVirtualAddresses();
   HAL_FLASH_Unlock();
   EE_Init();
+  readEEPROMFromFlash();
 
   // set number of active sensors
   numSensor = 8;
