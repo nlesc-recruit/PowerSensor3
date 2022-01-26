@@ -1,11 +1,13 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
+#define EEPROM_BASE_ADDRESS 0x1111
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
 #include <stm32f4xx_ll_adc.h>  // ADC control
 #include <stm32f4xx_ll_gpio.h> // GPIO control
 #include <stm32f4xx_ll_dma.h>  // DMA control
+#include "eeprom.h"
 
 
 const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4,
@@ -31,6 +33,42 @@ uint16_t serialBuffer[MAX_SENSORS];
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = 0;
+
+struct Sensor {
+  char type[16];
+  float vref;
+  float slope;
+  uint8_t pairId;
+  bool inUse;
+} __attribute__((packed));
+
+struct EEPROM {
+  Sensor sensors[MAX_SENSORS];
+} eeprom;
+
+const uint16_t eepromSize = sizeof(eeprom) / 2;  // size of EEPROM in half-words
+uint16_t VirtAddVarTab[eepromSize];
+
+void generateVirtualAddresses() {
+  uint16_t addr = EEPROM_BASE_ADDRESS;
+  for (int i = 0; i < eepromSize; i++) {
+    VirtAddVarTab[i] = addr++;
+  }
+}
+
+void readConfig() {
+  Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
+}
+
+void writeConfig() {
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (int i=0; i < sizeof eeprom; i++) {
+    while (Serial.available() == 0) {
+    }
+    p_eeprom[i] = Serial.read();
+  }
+}
+
 
 void Blink(uint8_t amount) {
   // Blink LED
@@ -214,6 +252,14 @@ void sendTestValue() {
 void serialEvent() {
   if (Serial.available() > 0) {
    switch (Serial.read()) {
+    case 'R':
+      // read sensor configuration from EEPROM
+      readConfig();
+      break;
+    case 'W':
+      // write sensor configuration to EEPROM
+      writeConfig();
+      break;
     case 'I':
       // Send single set of sensor values. does nothing if streaming is enabled
       sendSingleValue = true;
@@ -238,6 +284,10 @@ void serialEvent() {
 void setup() {
   Serial.begin(40000000);
   pinMode(LED_BUILTIN, OUTPUT);
+
+  generateVirtualAddresses();
+  HAL_FLASH_Unlock();
+  EE_Init();
 
   // set number of active sensors
   numSensor = 8;
