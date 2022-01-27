@@ -192,8 +192,10 @@ void configureGPIO() {
   LL_GPIO_StructInit(&GPIOConfig);
 
   uint32_t pins = 0;
-  for (uint8_t i = 0; i < numSensor; i ++) {
+  for (uint8_t i = 0; i < numSensor / 2; i ++) {
+    // select pin from both ADCs
     pins |= GPIO_PINS[i];
+    pins |= GPIO_PINS[i + numSensor/2];
   }
 
   GPIOConfig.Pin = pins;
