@@ -272,9 +272,8 @@ void serialEvent() {
 
 void configureDevice() {
   // ensure DMA and ADC are off
-  for (auto& adc: {ADCCurrent, ADCVoltage}) {
-    LL_ADC_Disable(adc);
-  }
+  LL_ADC_Disable(ADCCurrent);
+  LL_ADC_Disable(ADCVoltage);
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
 
   getActiveSensors();
