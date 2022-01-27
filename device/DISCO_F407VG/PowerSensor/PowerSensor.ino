@@ -9,7 +9,6 @@
 #include <stm32f4xx_ll_dma.h>  // DMA control
 #include "eeprom.h"
 
-
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
                                   LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS};
 
@@ -21,10 +20,10 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
-
 ADC_TypeDef* ADCCurrent = ADC1;  // use first ADC for current sensors
 ADC_TypeDef* ADCVoltage = ADC2; // use second ADC for voltage sensors
 uint8_t numSensor;  // number of active sensors (in total, not per ADC)
+int activeSensors[MAX_SENSORS]; // which sensors are active
 uint32_t dmaBuffer[MAX_SENSORS / 2];  // DMA reads both ADCs at the same time to one 32b value
 uint16_t serialBuffer[MAX_SENSORS];  // data sent to host is 16b per sensor
 bool streamValues = false;
@@ -68,6 +67,8 @@ void writeConfig() {
   }
   // store updated EEPROM data to flash
   writeEEPROMToFlash();
+  // reconfigure the device
+  configureDevice();
 }
 
 void readEEPROMFromFlash() {
@@ -90,6 +91,16 @@ void writeEEPROMToFlash() {
   }
 }
 
+void getActiveSensors() {
+  numSensor = 0;
+  for (int i=0; i < MAX_SENSORS; i++) {
+    if (eeprom.sensors[i].inUse) {
+      activeSensors[numSensor] = i;
+      numSensor++;
+    }
+  }
+}
+
 void Blink(uint8_t amount) {
   // Blink LED
   for (uint8_t i = 0; i < amount; i++) {
@@ -101,9 +112,6 @@ void Blink(uint8_t amount) {
 }
 
 void configureADCCommon() {
-  LL_ADC_Disable(ADCCurrent);
-  LL_ADC_Disable(ADCVoltage);
-
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
@@ -119,10 +127,7 @@ void configureADCCommon() {
   }
 }
 
-
 void configureADC(ADC_TypeDef* adc) {
-  LL_ADC_Disable(adc);
-
   LL_ADC_InitTypeDef ADCConfig;
   LL_ADC_StructInit(&ADCConfig);
 
@@ -137,9 +142,6 @@ void configureADC(ADC_TypeDef* adc) {
 }
 
 void configureADCChannels(ADC_TypeDef* adc, bool master) {
-  // Ensure the ADC is off
-  LL_ADC_Disable(adc);
-
   LL_ADC_REG_InitTypeDef ADCChannelConfig;
   LL_ADC_REG_StructInit(&ADCChannelConfig);
 
@@ -156,20 +158,18 @@ void configureADCChannels(ADC_TypeDef* adc, bool master) {
 
   // Set which channels will be converted and in which order
   for (uint8_t i = !master; i < numSensor; i+=2) {
-    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[i]);
+    uint8_t sensor_id = activeSensors[i];
+    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
   }
 
   // Set sampling time for each channel
   uint32_t channels = 0;
   for (uint8_t i = !master; i < numSensor; i+=2) {
-    channels |= ADC_CHANNELS[i];
+    uint8_t sensor_id = activeSensors[i];
+    channels |= ADC_CHANNELS[sensor_id];
   }
   LL_ADC_SetChannelSamplingTime(adc, channels, LL_ADC_SAMPLINGTIME_3CYCLES);  // fastest possible: 3 cycles
 
-}
-
-void enableADC(ADC_TypeDef* adc) {
-  LL_ADC_Enable(adc);
 }
 
 void configureGPIO() {
@@ -179,7 +179,8 @@ void configureGPIO() {
 
   uint32_t pins = 0;
   for (uint8_t i = 0; i < numSensor; i++) {
-    pins |= GPIO_PINS[i];
+    uint8_t sensor_id = activeSensors[i];
+    pins |= GPIO_PINS[sensor_id];
   }
 
   GPIOConfig.Pin = pins;
@@ -192,9 +193,6 @@ void configureGPIO() {
 }
 
 void configureDMA() {
-  // ensure the DMA is off
-  LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
-
   // Create DMA config struct and fill with defaults
   LL_DMA_InitTypeDef DMAConfig;
   LL_DMA_StructInit(&DMAConfig);
@@ -230,12 +228,13 @@ void sendADCValue() {
 
     // send all values over serial
     for (uint8_t i = 0; i < numSensor; i++) {
+      uint8_t sensor_id = activeSensors[i];
       // add metadata to remaining bits: 2 bytes available with 10b sensor value
       uint16_t level = serialBuffer[i];
       // write the level, write() only writes per byte;
       // First byte: 1 iii aaaa
       // where iii is the sensor id, a are the upper 4 bits of the level
-      Serial.write(((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
+      Serial.write(((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
       // Second byte: 0 m bbbbbb
       // where m is the marker bit, b are the lower 6 bits of the level
       Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
@@ -271,24 +270,14 @@ void serialEvent() {
   }
 }
 
-void setup() {
-  Serial.begin(40000000);
-  pinMode(LED_BUILTIN, OUTPUT);
+void configureDevice() {
+  // ensure DMA and ADC are off
+  for (auto& adc: {ADCCurrent, ADCVoltage}) {
+    LL_ADC_Disable(adc);
+  }
+  LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
 
-  generateVirtualAddresses();
-  HAL_FLASH_Unlock();
-  EE_Init();
-  readEEPROMFromFlash();
-
-  // set number of active sensors
-  numSensor = 8;
-
-  // enable clocks
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC2);
-
+  getActiveSensors();
   configureGPIO();
   configureDMA();
   configureADCCommon();
@@ -296,9 +285,29 @@ void setup() {
   configureADC(ADCVoltage);
   configureADCChannels(ADCCurrent, true);
   configureADCChannels(ADCVoltage, false);
-  enableADC(ADCCurrent);
-  enableADC(ADCVoltage);
+  LL_ADC_Enable(ADCCurrent);
+  LL_ADC_Enable(ADCVoltage);
   LL_ADC_REG_StartConversionSWStart(ADCCurrent);
+}
+
+void setup() {
+  Serial.begin(40000000);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  // Setup and read virtual EEPROM data
+  generateVirtualAddresses();
+  HAL_FLASH_Unlock();
+  EE_Init();
+  readEEPROMFromFlash();
+
+  // enable clocks
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC2);
+
+  // configure hardware (GPIO, DMA, ADC)
+  configureDevice();
 }
 
 void loop() {
