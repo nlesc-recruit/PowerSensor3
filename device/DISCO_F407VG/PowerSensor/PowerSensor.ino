@@ -10,16 +10,13 @@
 #include "eeprom.h"
 
 
-const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4,
-                              LL_ADC_REG_RANK_5, LL_ADC_REG_RANK_6, LL_ADC_REG_RANK_7, LL_ADC_REG_RANK_8};
+const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
+                                  LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS};
+
+const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4};
 
 const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHANNEL_2, LL_ADC_CHANNEL_3,
                                  LL_ADC_CHANNEL_4, LL_ADC_CHANNEL_5, LL_ADC_CHANNEL_6, LL_ADC_CHANNEL_7};
-
-const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
-                            LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
-                            LL_ADC_REG_SEQ_SCAN_ENABLE_5RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_6RANKS,
-                            LL_ADC_REG_SEQ_SCAN_ENABLE_7RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_8RANKS};
 
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
@@ -27,9 +24,9 @@ const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GP
 
 ADC_TypeDef* ADCCurrent = ADC1;  // use first ADC for current sensors
 ADC_TypeDef* ADCVoltage = ADC2; // use second ADC for voltage sensors
-uint8_t numSensor;  // number of active sensors
+uint8_t numSensor;  // number of active sensors (in total, not per ADC)
 uint32_t dmaBuffer[MAX_SENSORS / 2];  // DMA reads both ADCs at the same time to one 32b value
-uint16_t serialBuffer[MAX_SENSORS];
+uint16_t serialBuffer[MAX_SENSORS];  // data sent to host is 16b per sensor
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = 0;
@@ -131,7 +128,7 @@ void configureADC(ADC_TypeDef* adc) {
 
   ADCConfig.Resolution = LL_ADC_RESOLUTION_10B; // 10-bit ADC resolution
   ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT; // right-align data within 16b register
-  ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor-1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
+  ADCConfig.SequencersScanMode = ADC_SCANMODES[(numSensor/2) - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
   if (LL_ADC_Init(adc, &ADCConfig) != SUCCESS) {
     Blink(1);
@@ -157,26 +154,15 @@ void configureADCChannels(ADC_TypeDef* adc, bool master) {
     exit(1);
   }
 
-  // Set channels to be converted and their order
-  for (uint8_t i = 0; i < numSensor / 2; i++) {
-    // master ADC does first half of sensors
-    uint32_t channel;
-    if (master) {
-      channel = ADC_CHANNELS[i];
-    } else {
-      channel = ADC_CHANNELS[i + numSensor/2];
-    }
-    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i], channel);
+  // Set which channels will be converted and in which order
+  for (uint8_t i = !master; i < numSensor; i+=2) {
+    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[i]);
   }
 
   // Set sampling time for each channel
   uint32_t channels = 0;
-  for (uint8_t i = 0; i < numSensor / 2; i++) {
-    if (master) {
-      channels |= ADC_CHANNELS[i];
-    } else {
-      channels |= ADC_CHANNELS[i + numSensor/2];
-    }
+  for (uint8_t i = !master; i < numSensor; i+=2) {
+    channels |= ADC_CHANNELS[i];
   }
   LL_ADC_SetChannelSamplingTime(adc, channels, LL_ADC_SAMPLINGTIME_3CYCLES);  // fastest possible: 3 cycles
 
@@ -192,10 +178,8 @@ void configureGPIO() {
   LL_GPIO_StructInit(&GPIOConfig);
 
   uint32_t pins = 0;
-  for (uint8_t i = 0; i < numSensor / 2; i ++) {
-    // select pin from both ADCs
+  for (uint8_t i = 0; i < numSensor; i++) {
     pins |= GPIO_PINS[i];
-    pins |= GPIO_PINS[i + numSensor/2];
   }
 
   GPIOConfig.Pin = pins;
@@ -239,9 +223,9 @@ void configureDMA() {
 void sendADCValue() {
   if (streamValues | sendSingleValue) {
     // extract data of the two ADCs
-    for (uint8_t i = 0; i < numSensor / 2; i++) {
-      serialBuffer[i] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i]);
-      serialBuffer[i + numSensor / 2] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i]);
+    for (uint8_t i = 0; i < numSensor; i+=2) {
+      serialBuffer[i] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i/2]);
+      serialBuffer[i+1] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
     }
 
     // send all values over serial
