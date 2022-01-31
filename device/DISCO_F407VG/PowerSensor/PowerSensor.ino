@@ -163,12 +163,10 @@ void configureADCChannels(ADC_TypeDef* adc, bool master) {
   }
 
   // Set sampling time for each channel
-  uint32_t channels = 0;
   for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = activeSensors[i];
-    channels |= ADC_CHANNELS[sensor_id];
+    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);  // fastest possible: 3 cycles
   }
-  LL_ADC_SetChannelSamplingTime(adc, channels, LL_ADC_SAMPLINGTIME_3CYCLES);  // fastest possible: 3 cycles
 
 }
 
