@@ -11,9 +11,9 @@ all:: host bin/test_ps
 
 host:: lib/libPowerSensor.a
 
-lib/libPowerSensor.a: obj/PowerSensor.o
+lib/libPowerSensor.a: obj/PowerSensor.o obj/sensors.o
 	-mkdir -p lib
-	$(AR) rcs $@ $<
+	$(AR) rcs $@ $^
 
 bin/test_ps: obj/test_ps.o
 	-mkdir -p bin
