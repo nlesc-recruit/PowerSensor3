@@ -3,7 +3,7 @@ CXXFLAGS =			-std=c++11 -O2 -g -pthread -fopenmp
 INC = -Iinclude
 LIB = -Llib -lPowerSensor
 
-obj/%.o: src/%.cc
+obj/%.o: src/%.cc include/PowerSensor.h
 	-mkdir -p obj
 	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
 
