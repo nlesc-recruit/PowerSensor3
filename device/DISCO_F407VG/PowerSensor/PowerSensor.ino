@@ -115,7 +115,7 @@ void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV2;  // fastest possible mode
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;  // at default cpu/bus clock speeds and a divider of 4, the ADC runs at 21 MHz
   ADCCommonConfig.Multimode = LL_ADC_MULTI_DUAL_REG_SIMULT;  // regular simultaneous mode
   ADCCommonConfig.MultiDMATransfer = LL_ADC_MULTI_REG_DMA_UNLMT_2; // allow unlimited DMA transfers. MODE2 = half-words by ADC pairs
   ADCCommonConfig.MultiTwoSamplingDelay = LL_ADC_MULTI_TWOSMP_DELAY_5CYCLES; // fastest possible mode
@@ -156,16 +156,17 @@ void configureADCChannels(ADC_TypeDef* adc, bool master) {
     exit(1);
   }
 
-  // Set which channels will be converted and in which order
+  // Set which channels will be converted and in which order, as well as their sampling time
+  // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
+  // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 21 MHz, the data rate is
+  // 21 MHz * 32 / (10 + 56) = 10.2 Mbps
+  // With 4 sensor pairs, each pair is sampled at
+  // 21 MHz / (10+56) / 4 = 79.5 KHz
+
   for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
-  }
-
-  // Set sampling time for each channel
-  for (uint8_t i = !master; i < numSensor; i+=2) {
-    uint8_t sensor_id = activeSensors[i];
-    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);  // fastest possible: 3 cycles
+    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
   }
 
 }
