@@ -8,11 +8,6 @@
 #include <unistd.h>
 
 
-// 4M baudrate is not defined by default on Mac
-#ifdef __APPLE__
-#define B4000000 0010017
-#endif
-
 namespace PowerSensor {
 
   PowerSensor::PowerSensor(const char* device):
@@ -43,12 +38,6 @@ namespace PowerSensor {
 
     // gets the current options for the port;
     tcgetattr(fileDescriptor, &terminalOptions);
-
-    // sets the input baud rate;
-    cfsetispeed(&terminalOptions, B4000000);
-
-    // sets the output baud rate;
-    cfsetospeed(&terminalOptions, B4000000);
 
     // set control mode flags;
     terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;

@@ -289,7 +289,7 @@ void configureDevice() {
 }
 
 void setup() {
-  Serial.begin(40000000);
+  Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Setup and read virtual EEPROM data
