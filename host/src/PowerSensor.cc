@@ -1,10 +1,12 @@
 #include "PowerSensor.hpp"
 
-#include <fcntl.h>
 #include <iostream>
+#include <cstring>
+
+#include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
-#include <cstring>
+
 
 // 4M baudrate is not defined by default on Mac
 #ifdef __APPLE__
@@ -62,7 +64,7 @@ namespace PowerSensor {
 
     // set control characters;
     terminalOptions.c_cc[VMIN] = 0;
-    terminalOptions.c_cc[VTIME] = 1;
+    terminalOptions.c_cc[VTIME] = 0;
 
     // commit the options;
     tcsetattr(fileDescriptor, TCSANOW, &terminalOptions);
@@ -90,6 +92,34 @@ namespace PowerSensor {
     }
     for (const Sensor& sensor: sensors) {
       sensor.writeToEEPROM(fd);
+    }
+  }
+
+void PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level) {
+    // buffer for one set of sensor data (2 bytes)
+    uint8_t buffer[2];
+    ssize_t retVal, bytesRead = 0;
+    // loop exits when a valid value has been read from the device
+    while(true) {
+      // read full buffer
+      do {
+        if ((retVal = ::read(fd, (char*) &buffer + bytesRead, sizeof(buffer) - bytesRead)) < 0) {
+          perror("read");
+          exit(1);
+        }
+      } while ((bytesRead += retVal) < sizeof buffer);
+
+      // buffer is full, check the marker bits
+      if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
+        // marker bits are ok, extract the values
+        sensorNumber = (buffer[0] >> 4) & 0x7;
+        level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
+        return;
+      } else {
+        // marker bytes are wrong. Assume a byte was dropped: drop first byte and try again
+        buffer[0] = buffer[1];
+        bytesRead = 1;
+      }
     }
   }
 
