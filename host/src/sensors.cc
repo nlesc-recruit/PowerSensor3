@@ -1,8 +1,9 @@
 #include "PowerSensor.hpp"
 
 #include <iostream>
-#include <unistd.h>
 #include <cstring>
+
+#include <unistd.h>
 
 namespace PowerSensor {
 

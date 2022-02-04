@@ -1,7 +1,7 @@
 #ifndef __POWER_SENSOR_H
 #define __POWER_SENSOR_H
 
-#include <cstdint>
+#include <inttypes.h>
 
 namespace PowerSensor {
 
@@ -29,6 +29,7 @@ namespace PowerSensor {
       int openDevice(const char* device);
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
+      void readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
 
       struct Sensor {
         struct EEPROM {
