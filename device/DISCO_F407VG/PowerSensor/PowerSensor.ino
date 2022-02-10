@@ -213,33 +213,49 @@ void configureDMA() {
     exit(1);
   }
 
+  // enable interrupt on transfer-complete
+  LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0);
+
   // enable the DMA stream
   LL_DMA_EnableStream(DMA2, LL_DMA_STREAM_0);
 }
 
-void sendADCValue() {
-  if (streamValues | sendSingleValue) {
-    // extract data of the two ADCs
-    for (uint8_t i = 0; i < numSensor; i+=2) {
-      serialBuffer[i] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i/2]);
-      serialBuffer[i+1] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
-    }
+void configureNVIC() {
+  // set the DMA interrupt to be lower than USB to avoid breaking communication to host
+  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+}
 
-    // send all values over serial
-    for (uint8_t i = 0; i < numSensor; i++) {
-      uint8_t sensor_id = activeSensors[i];
-      // add metadata to remaining bits: 2 bytes available with 10b sensor value
-      uint16_t level = serialBuffer[i];
-      // write the level, write() only writes per byte;
-      // First byte: 1 iii aaaa
-      // where iii is the sensor id, a are the upper 4 bits of the level
-      Serial.write(((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
-      // Second byte: 0 m bbbbbb
-      // where m is the marker bit, b are the lower 6 bits of the level
-      Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
-    }
-    sendSingleValue = false;
+extern "C" void DMA2_Stream0_IRQHandler() {
+  // send ADC values to host if enabled
+  if (streamValues | sendSingleValue) {
+    sendADCValue();
   }
+  // clear DMA TC flag
+  LL_DMA_ClearFlag_TC0(DMA2);
+}
+
+void sendADCValue() {
+  // extract data of the two ADCs
+  for (uint8_t i = 0; i < numSensor; i+=2) {
+    serialBuffer[i] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i/2]);
+    serialBuffer[i+1] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
+  }
+
+  // send all values over serial
+  for (uint8_t i = 0; i < numSensor; i++) {
+    uint8_t sensor_id = activeSensors[i];
+    // add metadata to remaining bits: 2 bytes available with 10b sensor value
+    uint16_t level = serialBuffer[i];
+    // write the level, write() only writes per byte;
+    // First byte: 1 iii aaaa
+    // where iii is the sensor id, a are the upper 4 bits of the level
+    Serial.write(((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7));
+    // Second byte: 0 m bbbbbb
+    // where m is the marker bit, b are the lower 6 bits of the level
+    Serial.write(((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7));
+  }
+  sendSingleValue = false;
 }
 
 void serialEvent() {
@@ -265,6 +281,11 @@ void serialEvent() {
       // Disable streaming of data
       streamValues = false;
       break;
+    case 'X':
+      // Shutdown, shuts off IO thread on host
+      streamValues = false;
+      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
    }
   }
 }
@@ -283,6 +304,7 @@ void configureDevice() {
   configureADC(ADCVoltage);
   configureADCChannels(ADCCurrent, true);
   configureADCChannels(ADCVoltage, false);
+  configureNVIC();
   LL_ADC_Enable(ADCCurrent);
   LL_ADC_Enable(ADCVoltage);
   LL_ADC_REG_StartConversionSWStart(ADCCurrent);
@@ -309,12 +331,6 @@ void setup() {
 }
 
 void loop() {
-  // if a set of conversions has finished, transmit the values
-  if (LL_DMA_IsActiveFlag_TC0(DMA2) == 1) {
-    sendADCValue();
-    // clear the transfer-complete flag
-    LL_DMA_ClearFlag_TC0(DMA2);
-  }
-
+  // only check for serial events, sending sensor values to host is handled through interrupts
   serialEvent();
 }
