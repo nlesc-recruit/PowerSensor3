@@ -1,6 +1,9 @@
 #ifndef __POWER_SENSOR_H
 #define __POWER_SENSOR_H
 
+#include <thread>
+#include "Semaphore.hpp"
+
 #include <inttypes.h>
 
 namespace PowerSensor {
@@ -24,12 +27,20 @@ namespace PowerSensor {
       uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
 
-    private:
+    //private:
       int fd;
       int openDevice(const char* device);
+
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
-      void readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
+      bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
+
+      Semaphore threadStarted;
+      std::thread* thread;
+      mutable std::mutex mutex;
+      void IOThread();
+      void startIOThread();
+      void stopIOThread();
 
       struct Sensor {
         struct EEPROM {
@@ -45,6 +56,7 @@ namespace PowerSensor {
         float slope;
         uint8_t pairId;
         bool inUse;
+        uint16_t level;
         void setType(const char* type);
         void setVref(const float vref);
         void setSlope(const float slope);
@@ -52,6 +64,7 @@ namespace PowerSensor {
         void setInUse(const bool inUse);
         void readFromEEPROM(int fd);
         void writeToEEPROM(int fd) const;
+        void updateLevel(uint16_t level);
       } sensors[MAX_SENSORS];
   };
 

@@ -265,6 +265,11 @@ void serialEvent() {
       // Disable streaming of data
       streamValues = false;
       break;
+    case 'X':
+      // Shutdown, shuts off IO thread on host
+      streamValues = false;
+      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
    }
   }
 }

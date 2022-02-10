@@ -7,9 +7,11 @@ obj/%.o: src/%.cc
 	-mkdir -p obj
 	$(CXX) -c $(CXXFLAGS) $(INC) $< -o $@
 
-all:: host bin/test_ps
+all:: host bin
 
 host:: lib/libPowerSensor.a
+
+bin:: bin/test_ps
 
 lib/libPowerSensor.a: obj/PowerSensor.o obj/sensors.o
 	-mkdir -p lib
