@@ -11,7 +11,9 @@
 namespace PowerSensor {
 
   PowerSensor::PowerSensor(const char* device):
-    fd(openDevice(device)) {
+    fd(openDevice(device)),
+    thread(nullptr)
+    {
       readSensorsFromEEPROM();
       startIOThread();
     };
@@ -132,7 +134,6 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
   }
 
   void PowerSensor::startIOThread() {
-    std::cout << "START" << std::endl;
     if (thread == nullptr) {
       thread = new std::thread(&PowerSensor::IOThread, this);
     }
@@ -143,11 +144,9 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
     }
 
     threadStarted.down();  // wait for the IOthread to run smoothly
-    std::cout << "DONE" << std::endl;
   }
 
   void PowerSensor::stopIOThread() {
-    std::cout << "STOP" << std::endl;
     if (thread != nullptr) {
       if (write(fd, "X", 1) != 1) {
         perror("write device");
