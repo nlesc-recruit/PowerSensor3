@@ -4,7 +4,7 @@ CXX ?=				g++
 CXXFLAGS =			-std=c++11 -O2 -g -pthread -fopenmp
 BOARD =				DISCO_F407VG
 USB =				CDCgen
-FQBN =				STM32:stm32:Disco:pnum=$(BOARD),usb=$(USB)
+FQBN =				STMicroelectronics:stm32:Disco:pnum=$(BOARD),usb=$(USB)
 
 ifeq ($(OS), Darwin)
 	PORT =			/dev/cu.usbmodem141203
@@ -56,7 +56,7 @@ host::			host/lib/$(ARCH)/libPowerSensor.a\
 				host/bin/$(ARCH)/psraw
 
 arduino::
-				arduino-cli compile --fqbn $(FQBN) device/$(BOARD)/PowerSensor
+				arduino-cli compile -e --fqbn $(FQBN) device/$(BOARD)/PowerSensor
 
 upload::			all
 				arduino-cli upload -p $(PORT) --fqbn $(FQBN) device/$(BOARD)/PowerSensor

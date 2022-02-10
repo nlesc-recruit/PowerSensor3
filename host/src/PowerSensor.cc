@@ -11,11 +11,20 @@
 namespace PowerSensor {
 
   PowerSensor::PowerSensor(const char* device):
-    fd(openDevice(device)) {
+    fd(openDevice(device)),
+    thread(nullptr)
+    {
       readSensorsFromEEPROM();
+      startIOThread();
     };
 
-  PowerSensor::~PowerSensor() {close(fd);};
+  PowerSensor::~PowerSensor() {
+    stopIOThread();
+
+    if (close(fd)) {
+      perror("close device");
+    }
+  }
 
   int PowerSensor::openDevice(const char* device) {
     int fileDescriptor;
@@ -84,7 +93,7 @@ namespace PowerSensor {
     }
   }
 
-void PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level) {
+bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level) {
     // buffer for one set of sensor data (2 bytes)
     uint8_t buffer[2];
     ssize_t retVal, bytesRead = 0;
@@ -98,17 +107,54 @@ void PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
         }
       } while ((bytesRead += retVal) < sizeof buffer);
 
-      // buffer is full, check the marker bits
-      if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
+      // buffer is full, check if stop was received
+      if (buffer[0] == 0xFF && buffer[1] == 0x3F) {
+        return false;
+      } else if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
         // marker bits are ok, extract the values
         sensorNumber = (buffer[0] >> 4) & 0x7;
         level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
-        return;
+        return true;
       } else {
-        // marker bytes are wrong. Assume a byte was dropped: drop first byte and try again
+        // marker bits are wrong. Assume a byte was dropped: drop first byte and try again
         buffer[0] = buffer[1];
         bytesRead = 1;
       }
+    }
+  }
+
+  void PowerSensor::IOThread() {
+    threadStarted.up();
+    unsigned int sensorNumber;
+    uint16_t level;
+    while (readLevelFromDevice(sensorNumber, level)) {
+      std::unique_lock<std::mutex> lock(mutex);
+      sensors[sensorNumber].updateLevel(level);
+    }
+  }
+
+  void PowerSensor::startIOThread() {
+    if (thread == nullptr) {
+      thread = new std::thread(&PowerSensor::IOThread, this);
+    }
+
+    if (write(fd, "S", 1) != 1) {
+      perror("write device");
+      exit(1);
+    }
+
+    threadStarted.down();  // wait for the IOthread to run smoothly
+  }
+
+  void PowerSensor::stopIOThread() {
+    if (thread != nullptr) {
+      if (write(fd, "X", 1) != 1) {
+        perror("write device");
+        exit(1);
+      }
+      thread->join();
+      delete thread;
+      thread = nullptr;
     }
   }
 

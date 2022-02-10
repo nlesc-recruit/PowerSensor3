@@ -42,6 +42,10 @@ namespace PowerSensor {
     } while ((bytesWritten += retVal) < sizeof eeprom);
   }
 
+  void PowerSensor::Sensor::updateLevel(uint16_t level) {
+    this->level = level;
+  }
+
   void PowerSensor::Sensor::setType(const char* type) {
     strncpy(this->type, type, sizeof type);
   }
