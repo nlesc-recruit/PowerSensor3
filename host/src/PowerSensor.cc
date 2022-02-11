@@ -152,7 +152,7 @@ namespace PowerSensor {
       sensors[sensorNumber].updateLevel(level);
 
       if (dumpFile != nullptr) {
-        dumpCurrentPowerToFile();
+        dumpCurrentWattToFile();
       }
     }
   }
@@ -186,10 +186,9 @@ namespace PowerSensor {
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
   }
 
-  void PowerSensor::dumpCurrentPowerToFile() {
-    // TODO: power calculation of each sensor pair
+  void PowerSensor::dumpCurrentWattToFile() {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
-    double totalPower = 0;
+    double totalWatt = 0;
     double time = omp_get_wtime();
     static double previousTime = startTime;
 
@@ -199,14 +198,14 @@ namespace PowerSensor {
 
     for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
       if (pairsInUse[pairID]) {
-        totalPower += getPower(pairID);
-        *dumpFile << ' ' << getPower(pairID);
+        totalWatt += getWatt(pairID);
+        *dumpFile << ' ' << getWatt(pairID);
       }
     }
-    *dumpFile << ' ' << totalPower << std::endl;
+    *dumpFile << ' ' << totalWatt << std::endl;
   }
 
-  double PowerSensor::getPower(unsigned int pairID) const {
+  double PowerSensor::getWatt(unsigned int pairID) const {
     if (!pairsInUse[pairID]) {
       return -1;
     }

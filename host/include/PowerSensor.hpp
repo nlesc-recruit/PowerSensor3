@@ -14,6 +14,15 @@ namespace PowerSensor {
   const static float VOLTAGE = 3.3;
   const static unsigned MAX_LEVEL = 1023;
 
+  struct State {
+    double consumedEnergy[MAX_SENSORS/2];
+    double timeAtRead;
+  };
+
+  double Joules(const State &firstState, const State &secondState, int sensorID = -1 /* default: all sensors */);
+  double seconds(const State &firstState, const State &secondState);
+  double Watt(const State &firstState, const State &secondState, int sensorID = -1 /* default: all sensors */);
+
   class PowerSensor {
     public:
       PowerSensor(const char* device);
@@ -33,7 +42,7 @@ namespace PowerSensor {
       uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
 
-      double getPower(unsigned int pairID) const;
+      double getWatt(unsigned int pairID) const;
 
     private:
       int fd;
@@ -47,7 +56,7 @@ namespace PowerSensor {
       bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
 
       std::unique_ptr<std::ofstream> dumpFile;
-      void dumpCurrentPowerToFile();
+      void dumpCurrentWattToFile();
 
       Semaphore threadStarted;
       std::thread* thread;
