@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <fcntl.h>
+#include <omp.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -12,9 +13,11 @@ namespace PowerSensor {
 
   PowerSensor::PowerSensor(const char* device):
     fd(openDevice(device)),
-    thread(nullptr)
+    thread(nullptr),
+    startTime(omp_get_wtime())
     {
       readSensorsFromEEPROM();
+      getActivePairs();
       startIOThread();
     };
 
@@ -93,35 +96,52 @@ namespace PowerSensor {
     }
   }
 
-bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level) {
-    // buffer for one set of sensor data (2 bytes)
-    uint8_t buffer[2];
-    ssize_t retVal, bytesRead = 0;
-    // loop exits when a valid value has been read from the device
-    while(true) {
-      // read full buffer
-      do {
-        if ((retVal = ::read(fd, (char*) &buffer + bytesRead, sizeof(buffer) - bytesRead)) < 0) {
-          perror("read");
-          exit(1);
-        }
-      } while ((bytesRead += retVal) < sizeof buffer);
-
-      // buffer is full, check if stop was received
-      if (buffer[0] == 0xFF && buffer[1] == 0x3F) {
-        return false;
-      } else if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
-        // marker bits are ok, extract the values
-        sensorNumber = (buffer[0] >> 4) & 0x7;
-        level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
-        return true;
+  void PowerSensor::getActivePairs() {
+    for (uint8_t pairID = 0; pairID < MAX_SENSORS / 2; pairID++) {
+      bool currentSensorActive = sensors[2*pairID].inUse;
+      bool voltageSensorActive = sensors[2*pairID+1].inUse;
+      if (currentSensorActive && voltageSensorActive) {
+        pairsInUse[pairID] = true;
+      } else if (currentSensorActive ^ voltageSensorActive) {
+        std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
+        std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
+        std::cerr << "Please check sensor configuration." << std::endl;
+        exit(1);
       } else {
-        // marker bits are wrong. Assume a byte was dropped: drop first byte and try again
-        buffer[0] = buffer[1];
-        bytesRead = 1;
+        pairsInUse[pairID] = false;
       }
     }
   }
+
+  bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level) {
+      // buffer for one set of sensor data (2 bytes)
+      uint8_t buffer[2];
+      ssize_t retVal, bytesRead = 0;
+      // loop exits when a valid value has been read from the device
+      while(true) {
+        // read full buffer
+        do {
+          if ((retVal = ::read(fd, (char*) &buffer + bytesRead, sizeof(buffer) - bytesRead)) < 0) {
+            perror("read");
+            exit(1);
+          }
+        } while ((bytesRead += retVal) < sizeof buffer);
+
+        // buffer is full, check if stop was received
+        if (buffer[0] == 0xFF && buffer[1] == 0x3F) {
+          return false;
+        } else if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
+          // marker bits are ok, extract the values
+          sensorNumber = (buffer[0] >> 4) & 0x7;
+          level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
+          return true;
+        } else {
+          // marker bits are wrong. Assume a byte was dropped: drop first byte and try again
+          buffer[0] = buffer[1];
+          bytesRead = 1;
+        }
+      }
+    }
 
   void PowerSensor::IOThread() {
     threadStarted.up();
@@ -130,6 +150,10 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
     while (readLevelFromDevice(sensorNumber, level)) {
       std::unique_lock<std::mutex> lock(mutex);
       sensors[sensorNumber].updateLevel(level);
+
+      if (dumpFile != nullptr) {
+        dumpCurrentPowerToFile();
+      }
     }
   }
 
@@ -156,6 +180,39 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
       delete thread;
       thread = nullptr;
     }
+  }
+
+  void PowerSensor::dump(const char* dumpFileName) {
+    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
+  }
+
+  void PowerSensor::dumpCurrentPowerToFile() {
+    // TODO: power calculation of each sensor pair
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
+    double totalPower = 0;
+    double time = omp_get_wtime();
+    static double previousTime = startTime;
+
+    *dumpFile << "S " << time - startTime;
+    *dumpFile << ' ' << 1e6 * (time - previousTime);
+    previousTime = time;
+
+    for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
+      if (pairsInUse[pairID]) {
+        totalPower += getPower(pairID);
+        *dumpFile << ' ' << getPower(pairID);
+      }
+    }
+    *dumpFile << ' ' << totalPower << std::endl;
+  }
+
+  double PowerSensor::getPower(unsigned int pairID) const {
+    if (!pairsInUse[pairID]) {
+      return -1;
+    }
+    Sensor currentSensor = sensors[2*pairID];
+    Sensor voltageSensor = sensors[2*pairID+1];
+    return currentSensor.getValue() * voltageSensor.getValue();
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {

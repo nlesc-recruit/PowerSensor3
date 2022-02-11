@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 
+#include <omp.h>
 #include <unistd.h>
 
 namespace PowerSensor {
@@ -22,6 +23,8 @@ namespace PowerSensor {
     setSlope(eeprom.slope);
     setPairId(eeprom.pairId);
     setInUse(eeprom.inUse);
+
+    reset();
   }
 
   void PowerSensor::Sensor::writeToEEPROM(int fd) const {
@@ -42,8 +45,21 @@ namespace PowerSensor {
     } while ((bytesWritten += retVal) < sizeof eeprom);
   }
 
+  void PowerSensor::Sensor::reset() {
+    valueAtLastMeasurement = 0;
+    timeAtLastMeasurement = omp_get_wtime();
+  }
+
   void PowerSensor::Sensor::updateLevel(uint16_t level) {
+    double now = omp_get_wtime();
+
     this->level = level;
+    valueAtLastMeasurement = slope * (VOLTAGE * level / MAX_LEVEL - vref);
+    timeAtLastMeasurement = now;
+  }
+
+  double PowerSensor::Sensor::getValue() const {
+    return valueAtLastMeasurement;
   }
 
   void PowerSensor::Sensor::setType(const char* type) {

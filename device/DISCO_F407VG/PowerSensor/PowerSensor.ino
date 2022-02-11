@@ -248,7 +248,7 @@ void sendADCValue() {
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     uint16_t level = serialBuffer[i];
     uint8_t data[2];
-    // write the level, write() only writes per byte;
+    // write the level
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
     data[0] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
