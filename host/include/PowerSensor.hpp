@@ -39,6 +39,9 @@ namespace PowerSensor {
       int fd;
       int openDevice(const char* device);
 
+      void getActivePairs();
+      bool pairsInUse[MAX_SENSORS/2];
+
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
       bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
