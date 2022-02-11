@@ -33,6 +33,8 @@ namespace PowerSensor {
       uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
 
+      double getPower(unsigned int pairID) const;
+
     private:
       int fd;
       int openDevice(const char* device);

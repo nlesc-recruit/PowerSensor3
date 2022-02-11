@@ -189,6 +189,17 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
 
   }
 
+  double PowerSensor::getPower(unsigned int pairID) const {
+    double power = 1;
+    for (uint8_t sensorID = 0; sensorID < MAX_SENSORS; sensorID++) {
+      if ((getPairId(sensorID) == pairID) && sensors[sensorID].inUse()) {
+          power *= sensors[sensorID].getValue();
+        }
+      }
+    }
+    return power;
+  }
+
   void PowerSensor::getType(unsigned int sensorID, char* type) const {
     strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
   }
