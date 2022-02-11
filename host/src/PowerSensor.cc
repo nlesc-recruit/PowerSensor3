@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include <fcntl.h>
+#include <omp.h>
 #include <termios.h>
 #include <unistd.h>
 
@@ -12,7 +13,8 @@ namespace PowerSensor {
 
   PowerSensor::PowerSensor(const char* device):
     fd(openDevice(device)),
-    thread(nullptr)
+    thread(nullptr),
+    startTime(omp_get_wtime())
     {
       readSensorsFromEEPROM();
       startIOThread();
@@ -130,6 +132,10 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
     while (readLevelFromDevice(sensorNumber, level)) {
       std::unique_lock<std::mutex> lock(mutex);
       sensors[sensorNumber].updateLevel(level);
+
+      if (dumpFile != nullptr) {
+        dumpCurrentPowerToFile();
+      }
     }
   }
 
@@ -156,6 +162,30 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
       delete thread;
       thread = nullptr;
     }
+  }
+
+  void PowerSensor::dump(const char* dumpFileName) {
+    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
+  }
+
+  void PowerSensor::dumpCurrentPowerToFile() {
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
+    double totalPower = 0;
+    double time = omp_get_wtime();
+    static double previousTime = startTime;
+
+    *dumpFile << "S " << time - startTime;
+    *dumpFile << ' ' << 1e6 * (time - previousTime);
+    previousTime = time;
+
+    for (const Sensor &sensor: sensors) {
+      if (sensor.inUse) {
+        totalPower += sensor.getPower();
+        *dumpFile << ' ' << sensor.getPower();
+      }
+    }
+    *dumpFile << ' ' << totalPower << std::endl;
+
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {
