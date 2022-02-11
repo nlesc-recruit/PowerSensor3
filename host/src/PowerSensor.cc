@@ -103,8 +103,9 @@ namespace PowerSensor {
       if (currentSensorActive && voltageSensorActive) {
         pairsInUse[pairID] = true;
       } else if (currentSensorActive ^ voltageSensorActive) {
-        std::cerr << "Found active current sensor (ID " << 2*pairID << ") ";
-        std::cerr << "paired with inactive voltage sensor. (ID" << 2*pairID+1 << ")" << std::endl;
+        std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
+        std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
+        std::cerr << "Please check sensor configuration." << std::endl;
         exit(1);
       } else {
         pairsInUse[pairID] = false;
