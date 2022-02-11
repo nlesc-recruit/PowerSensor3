@@ -46,8 +46,7 @@ namespace PowerSensor {
   }
 
   void PowerSensor::Sensor::reset() {
-    consumedEnergy = 0;
-    powerAtLastMeasurement = 0;
+    valueAtLastMeasurement = 0;
     timeAtLastMeasurement = omp_get_wtime();
   }
 
@@ -55,13 +54,12 @@ namespace PowerSensor {
     double now = omp_get_wtime();
 
     this->level = level;
-    powerAtLastMeasurement = slope * (VOLTAGE * level / MAX_LEVEL - vref);
-    consumedEnergy += powerAtLastMeasurement * (now - timeAtLastMeasurement);
+    valueAtLastMeasurement = slope * (VOLTAGE * level / MAX_LEVEL - vref);
     timeAtLastMeasurement = now;
   }
 
-  double PowerSensor::Sensor::getPower() const {
-    return powerAtLastMeasurement;
+  double PowerSensor::Sensor::getValue() const {
+    return valueAtLastMeasurement;
   }
 
   void PowerSensor::Sensor::setType(const char* type) {

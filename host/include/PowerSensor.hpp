@@ -67,15 +67,14 @@ namespace PowerSensor {
         uint8_t pairId;
         bool inUse;
         uint16_t level;
-        double consumedEnergy;
-        double powerAtLastMeasurement;
+        double valueAtLastMeasurement;
         double timeAtLastMeasurement;
         void setType(const char* type);
         void setVref(const float vref);
         void setSlope(const float slope);
         void setPairId(const uint8_t PairId);
         void setInUse(const bool inUse);
-        double getPower() const;
+        double getValue() const;
         void readFromEEPROM(int fd);
         void writeToEEPROM(int fd) const;
         void updateLevel(uint16_t level);

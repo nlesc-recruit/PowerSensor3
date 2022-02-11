@@ -169,8 +169,9 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
   }
 
   void PowerSensor::dumpCurrentPowerToFile() {
+    // TODO: power calculation of each sensor pair
     std::unique_lock<std::mutex> lock(dumpFileMutex);
-    double totalPower = 0;
+    // double totalPower = 0;
     double time = omp_get_wtime();
     static double previousTime = startTime;
 
@@ -180,11 +181,11 @@ bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &leve
 
     for (const Sensor &sensor: sensors) {
       if (sensor.inUse) {
-        totalPower += sensor.getPower();
-        *dumpFile << ' ' << sensor.getPower();
+        *dumpFile << ' ' << sensor.getValue();
       }
     }
-    *dumpFile << ' ' << totalPower << std::endl;
+    *dumpFile << std::endl;
+    // *dumpFile << ' ' << totalPower << std::endl;
 
   }
 
