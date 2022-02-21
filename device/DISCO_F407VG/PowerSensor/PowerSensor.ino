@@ -28,7 +28,7 @@ uint32_t dmaBuffer[MAX_SENSORS / 2];  // DMA reads both ADCs at the same time to
 uint16_t serialBuffer[MAX_SENSORS];  // data sent to host is 16b per sensor
 bool streamValues = false;
 bool sendSingleValue = false;
-bool sendMarkerNext = 0;
+bool sendMarkerNext = false;
 
 struct Sensor {
   char type[16];
@@ -256,6 +256,7 @@ void sendADCValue() {
     // where m is the marker bit, b are the lower 6 bits of the level
     data[1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     Serial.write(data, sizeof data);
+    sendMarkerNext = false;
   }
   sendSingleValue = false;
 }
@@ -271,6 +272,9 @@ void serialEvent() {
       // write sensor configuration to EEPROM
       writeConfig();
       break;
+    case 'M':
+      // marker character, places a marker in the output file
+      sendMarkerNext = true;
     case 'I':
       // Send single set of sensor values. does nothing if streaming is enabled
       sendSingleValue = true;
