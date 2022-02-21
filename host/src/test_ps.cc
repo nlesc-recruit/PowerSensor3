@@ -9,7 +9,7 @@ int main() {
   PowerSensor::PowerSensor ps(device);
 
   PowerSensor::State firstState = ps.read();
-  usleep(1000);
+  usleep(1000 * 10);  // 10 ms
   PowerSensor::State secondState = ps.read();
 
   double joules = PowerSensor::Joules(firstState, secondState);
