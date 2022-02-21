@@ -11,11 +11,15 @@
 
 namespace PowerSensor {
 
-  double Joules(const State &firstState, const State &secondState, int pairID) {
+  void checkPairID(int pairID) {
     if (pairID >= (signed)MAX_PAIRS) {
-      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_PAIRS << std::endl;
+      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_PAIRS - 1 << std::endl;
       exit(1);
     }
+  }
+
+  double Joules(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
 
     if (pairID >= 0) {
       return secondState.consumedEnergy[pairID] - firstState.consumedEnergy[pairID];
@@ -36,7 +40,17 @@ namespace PowerSensor {
   }
 
   double Watt(const State &firstState, const State &secondState, int pairID) {
-    return Joules(firstState, secondState) / seconds(firstState, secondState);
+    return Joules(firstState, secondState, pairID) / seconds(firstState, secondState);
+  }
+
+  double Volt(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
+    return .5 * (firstState.voltage[pairID] + secondState.voltage[pairID]);
+  }
+
+  double Ampere(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
+    return .5 * (firstState.current[pairID] + secondState.current[pairID]);
   }
 
   PowerSensor::PowerSensor(const char* device):
@@ -65,6 +79,8 @@ namespace PowerSensor {
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
+      state.current[pairID] = sensorPairs[pairID].currentAtLastMeasurement;
+      state.voltage[pairID] = sensorPairs[pairID].voltageAtLastMeasurement;
     }
     return state;
   }
@@ -142,6 +158,9 @@ namespace PowerSensor {
       sensorPairs[pairID].timeAtLastMeasurement = startTime;
       sensorPairs[pairID].wattAtLastMeasurement = 0;
       sensorPairs[pairID].consumedEnergy = 0;
+      sensorPairs[pairID].currentAtLastMeasurement = 0;
+      sensorPairs[pairID].voltageAtLastMeasurement = 0;
+
 
       bool currentSensorActive = sensors[2*pairID].inUse;
       bool voltageSensorActive = sensors[2*pairID+1].inUse;
@@ -268,6 +287,8 @@ namespace PowerSensor {
         SensorPair& sensorPair = sensorPairs[pairID];
         double now = omp_get_wtime();
 
+        sensorPair.currentAtLastMeasurement = currentSensor.valueAtLastMeasurement;
+        sensorPair.voltageAtLastMeasurement = voltageSensor.valueAtLastMeasurement;
         sensorPair.wattAtLastMeasurement = currentSensor.valueAtLastMeasurement * voltageSensor.valueAtLastMeasurement;
         sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement * (now - sensorPair.timeAtLastMeasurement);
         sensorPair.timeAtLastMeasurement = now;

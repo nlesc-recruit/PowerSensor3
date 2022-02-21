@@ -17,12 +17,16 @@ namespace PowerSensor {
 
   struct State {
     double consumedEnergy[MAX_PAIRS];
+    double current[MAX_PAIRS];
+    double voltage[MAX_PAIRS];
     double timeAtRead;
   };
 
   double Joules(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
   double seconds(const State &firstState, const State &secondState);
   double Watt(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
+  double Volt(const State &firstState, const State &secondState, int pairID);
+  double Ampere(const State &firstState, const State &secondState, int pairID);
 
   class PowerSensor {
     public:
@@ -99,6 +103,8 @@ namespace PowerSensor {
       } sensors[MAX_SENSORS];
 
       struct SensorPair {
+        double currentAtLastMeasurement;
+        double voltageAtLastMeasurement;
         double wattAtLastMeasurement;
         double timeAtLastMeasurement;
         double consumedEnergy;
