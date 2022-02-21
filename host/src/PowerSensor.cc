@@ -58,6 +58,7 @@ namespace PowerSensor {
     thread(nullptr),
     startTime(omp_get_wtime())
     {
+      startCleanupProcess();
       readSensorsFromEEPROM();
       initializeSensorPairs();
       startIOThread();
@@ -293,7 +294,7 @@ namespace PowerSensor {
     static double previousTime = startTime;
 
     *dumpFile << "S " << time - startTime;
-    *dumpFile << ' ' << 1e6 * (time - previousTime);
+    *dumpFile << ' ' << (int)(1e6 * (time - previousTime));
     previousTime = time;
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
@@ -319,6 +320,50 @@ namespace PowerSensor {
         sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement * (now - sensorPair.timeAtLastMeasurement);
         sensorPair.timeAtLastMeasurement = now;
       }
+    }
+  }
+
+  void PowerSensor::startCleanupProcess() {
+    // spawn child process to make sure that the device receives a 'T' to stop sending data, no matter how the application terminates
+
+    int pipe_fds[2];
+
+    if (pipe(pipe_fds) < 0) {
+      perror("pipe");
+      exit(1);
+    }
+
+    switch(fork()) {
+      case -1:
+        perror("fork");
+        exit(1);
+
+      case 0:
+        // detach from the parent process, so signals to the parent are not caught by the child
+        setsid();
+
+        // close all file descriptors, except pipe read end and device fd
+        for (int i = 3, last = getdtablesize(); i < last; i++) {
+          if (i != fd && i != pipe_fds[0]) {
+            close(i);
+          }
+        }
+
+      // wait until parent closes pipe_fds[1] so that read fails
+      char byte;
+      ::read(pipe_fds[0], &byte, sizeof byte);
+
+      // tell device to stop sending data
+      write(fd, "T", 1);
+
+      // drain garbage
+      usleep(100000);
+      tcflush(fd, TCIFLUSH);
+
+      exit(0);
+
+    default:
+      close(pipe_fds[0]);
     }
   }
 

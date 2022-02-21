@@ -76,6 +76,7 @@ namespace PowerSensor {
       void IOThread();
       void startIOThread();
       void stopIOThread();
+      void startCleanupProcess();
 
       double totalEnergy(unsigned int pairID) const;
 
