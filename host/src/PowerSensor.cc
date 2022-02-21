@@ -293,7 +293,7 @@ namespace PowerSensor {
     static double previousTime = startTime;
 
     *dumpFile << "S " << time - startTime;
-    *dumpFile << ' ' << 1e6 * (time - previousTime);
+    *dumpFile << ' ' << (int)(1e6 * (time - previousTime));
     previousTime = time;
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
