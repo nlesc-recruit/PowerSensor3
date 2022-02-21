@@ -11,6 +11,34 @@
 
 namespace PowerSensor {
 
+  double Joules(const State &firstState, const State &secondState, int pairID) {
+    if (pairID >= MAX_SENSORS/2) {
+      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_SENSORS/2 << std::endl;
+      exit(1);
+    }
+
+    if (pairID >= 0) {
+      return secondState.consumedEnergy[pairID] - firstState.consumedEnergy[pairID];
+    }
+
+    double joules = 0;
+    for (double consumedEnergy : secondState.consumedEnergy) {
+      joules += consumedEnergy;
+    }
+    for (double consumedEnergy : firstState.consumedEnergy) {
+      joules -= consumedEnergy;
+    }
+    return joules;
+  }
+
+  double seconds(const State &firstState, const State &secondState) {
+    return secondState.timeAtRead - firstState.timeAtRead;
+  }
+
+  double Watt(const State &firstState, const State &secondState, int pairID) {
+    return Joules(firstState, secondState) / seconds(firstState, secondState);
+  }
+
   PowerSensor::PowerSensor(const char* device):
     fd(openDevice(device)),
     thread(nullptr),
@@ -27,6 +55,18 @@ namespace PowerSensor {
     if (close(fd)) {
       perror("close device");
     }
+  }
+
+  State PowerSensor::read() const {
+    State state;
+
+    std::unique_lock<std::mutex> lock(mutex);
+    state.timeAtRead = omp_get_wtime();
+
+    for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
+      state.consumedEnergy[pairID] = totalEnergy(pairID);
+    }
+    return state;
   }
 
   int PowerSensor::openDevice(const char* device) {
@@ -212,6 +252,20 @@ namespace PowerSensor {
     Sensor currentSensor = sensors[2*pairID];
     Sensor voltageSensor = sensors[2*pairID+1];
     return currentSensor.getValue() * voltageSensor.getValue();
+  }
+
+  double PowerSensor::totalEnergy(unsigned int pairID) const {
+    if (!pairsInUse[pairID]) {
+      return -1;
+    }
+    double power = getWatt(pairID);
+
+    double currentTimeAtLastMeasurement = sensors[2*pairID].timeAtLastMeasurement;
+    double voltageTimeAtLastMeasurement = sensors[2*pairID+1].timeAtLastMeasurement;
+    // need to keep track of energy usage per pair, this only returns
+    // energy usage since last measurement
+    double seconds = omp_get_wtime() - .5 * (currentTimeAtLastMeasurement + voltageTimeAtLastMeasurement);
+    return power * seconds;
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {

@@ -19,14 +19,16 @@ namespace PowerSensor {
     double timeAtRead;
   };
 
-  double Joules(const State &firstState, const State &secondState, int sensorID = -1 /* default: all sensors */);
+  double Joules(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
   double seconds(const State &firstState, const State &secondState);
-  double Watt(const State &firstState, const State &secondState, int sensorID = -1 /* default: all sensors */);
+  double Watt(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
 
   class PowerSensor {
     public:
       PowerSensor(const char* device);
       ~PowerSensor();
+
+      State read() const;
 
       void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
 
@@ -41,8 +43,6 @@ namespace PowerSensor {
       float getSlope(unsigned int sensorID) const;
       uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
-
-      double getWatt(unsigned int pairID) const;
 
     private:
       int fd;
@@ -65,6 +65,9 @@ namespace PowerSensor {
       void IOThread();
       void startIOThread();
       void stopIOThread();
+
+      double getWatt(unsigned int pairID) const;
+      double totalEnergy(unsigned int pairID) const;
 
       struct Sensor {
         struct EEPROM {
