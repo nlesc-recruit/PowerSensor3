@@ -19,4 +19,7 @@ int main() {
   std::cout << "seconds: " << seconds << std::endl;
   std::cout << "Watt: " << watt << std::endl;
   std::cout << "Joule: " << joules << std::endl;
+
+  ps.dump("dumpfile.txt");
+  usleep(1000 * 10);  // 10 ms
 }

@@ -12,7 +12,7 @@
 namespace PowerSensor {
 
   double Joules(const State &firstState, const State &secondState, int pairID) {
-    if (pairID >= MAX_SENSORS/2) {
+    if (pairID >= (signed)MAX_SENSORS/2) {
       std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_SENSORS/2 << std::endl;
       exit(1);
     }
@@ -137,18 +137,20 @@ namespace PowerSensor {
   }
 
   void PowerSensor::getActivePairs() {
+    numActiveSensors = 0;
     for (uint8_t pairID = 0; pairID < MAX_SENSORS / 2; pairID++) {
       bool currentSensorActive = sensors[2*pairID].inUse;
       bool voltageSensorActive = sensors[2*pairID+1].inUse;
       if (currentSensorActive && voltageSensorActive) {
-        pairsInUse[pairID] = true;
+        sensorPairs[pairID].inUse = true;
+        numActiveSensors += 2;
       } else if (currentSensorActive ^ voltageSensorActive) {
         std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
         std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
         std::cerr << "Please check sensor configuration." << std::endl;
         exit(1);
       } else {
-        pairsInUse[pairID] = false;
+        sensorPairs[pairID].inUse = false;
       }
     }
   }
@@ -187,11 +189,15 @@ namespace PowerSensor {
     threadStarted.up();
     unsigned int sensorNumber;
     uint16_t level;
+    unsigned int sensorsRead = 0;
+
     while (readLevelFromDevice(sensorNumber, level)) {
       std::unique_lock<std::mutex> lock(mutex);
       sensors[sensorNumber].updateLevel(level);
+      sensorsRead++;
 
-      if (dumpFile != nullptr) {
+      if ((dumpFile != nullptr) & (sensorsRead >= numActiveSensors)) {
+        sensorsRead = 0;
         dumpCurrentWattToFile();
       }
     }
@@ -237,7 +243,7 @@ namespace PowerSensor {
     previousTime = time;
 
     for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
-      if (pairsInUse[pairID]) {
+      if (sensorPairs[pairID].inUse) {
         totalWatt += getWatt(pairID);
         *dumpFile << ' ' << getWatt(pairID);
       }
@@ -246,7 +252,7 @@ namespace PowerSensor {
   }
 
   double PowerSensor::getWatt(unsigned int pairID) const {
-    if (!pairsInUse[pairID]) {
+    if (!sensorPairs[pairID].inUse) {
       return -1;
     }
     Sensor currentSensor = sensors[2*pairID];
@@ -255,7 +261,7 @@ namespace PowerSensor {
   }
 
   double PowerSensor::totalEnergy(unsigned int pairID) const {
-    if (!pairsInUse[pairID]) {
+    if (!sensorPairs[pairID].inUse) {
       return -1;
     }
     double power = getWatt(pairID);

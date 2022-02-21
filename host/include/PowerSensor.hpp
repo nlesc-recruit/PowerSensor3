@@ -48,8 +48,8 @@ namespace PowerSensor {
       int fd;
       int openDevice(const char* device);
 
+      unsigned int numActiveSensors;
       void getActivePairs();
-      bool pairsInUse[MAX_SENSORS/2];
 
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
@@ -97,6 +97,12 @@ namespace PowerSensor {
         void updateLevel(uint16_t level);
         void reset();
       } sensors[MAX_SENSORS];
+
+      struct SensorPair {
+        float WattAtLastMeasurement;
+        float timeAtLastMeasurement;
+        bool inUse;
+      } sensorPairs[MAX_SENSORS / 2];
   };
 
 
