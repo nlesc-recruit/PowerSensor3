@@ -12,8 +12,8 @@
 namespace PowerSensor {
 
   double Joules(const State &firstState, const State &secondState, int pairID) {
-    if (pairID >= (signed)MAX_SENSORS/2) {
-      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_SENSORS/2 << std::endl;
+    if (pairID >= (signed)MAX_PAIRS) {
+      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_PAIRS << std::endl;
       exit(1);
     }
 
@@ -63,7 +63,7 @@ namespace PowerSensor {
     std::unique_lock<std::mutex> lock(mutex);
     state.timeAtRead = omp_get_wtime();
 
-    for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
+    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
     }
     return state;
@@ -138,7 +138,7 @@ namespace PowerSensor {
 
   void PowerSensor::initializeSensorPairs() {
     numActiveSensors = 0;
-    for (uint8_t pairID = 0; pairID < MAX_SENSORS / 2; pairID++) {
+    for (uint8_t pairID = 0; pairID < MAX_PAIRS; pairID++) {
       sensorPairs[pairID].timeAtLastMeasurement = startTime;
       sensorPairs[pairID].wattAtLastMeasurement = 0;
       sensorPairs[pairID].consumedEnergy = 0;
@@ -251,7 +251,7 @@ namespace PowerSensor {
     *dumpFile << ' ' << 1e6 * (time - previousTime);
     previousTime = time;
 
-    for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
+    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse) {
         totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
         *dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
@@ -261,7 +261,7 @@ namespace PowerSensor {
   }
 
   void PowerSensor::updateSensorPairs() {
-    for (unsigned int pairID=0; pairID < MAX_SENSORS/2; pairID++) {
+    for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse) {
         Sensor currentSensor = sensors[2*pairID];
         Sensor voltageSensor = sensors[2*pairID+1];
