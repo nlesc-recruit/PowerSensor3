@@ -5,6 +5,7 @@
 
 #include <thread>
 #include <fstream>
+#include <queue>
 
 #include <inttypes.h>
 
@@ -36,6 +37,8 @@ namespace PowerSensor {
       State read() const;
 
       void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
+      void mark(char name);
+      void mark(const State &startState, const State &stopState, const char *name = 0, unsigned int tag = 0) const;
 
       void setType(unsigned int sensorID, const char* type);
       void setVref(unsigned int sensorID, const float vref);
@@ -52,6 +55,8 @@ namespace PowerSensor {
     private:
       int fd;
       int openDevice(const char* device);
+      std::queue<char> markers;
+      void writeMarker();
 
       unsigned int numActiveSensors;
       void initializeSensorPairs();
@@ -59,7 +64,7 @@ namespace PowerSensor {
 
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
-      bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
+      bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level, unsigned int &marker);
 
       std::unique_ptr<std::ofstream> dumpFile;
       void dumpCurrentWattToFile();
