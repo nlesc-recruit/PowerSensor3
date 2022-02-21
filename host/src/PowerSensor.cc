@@ -11,13 +11,55 @@
 
 namespace PowerSensor {
 
+  void checkPairID(int pairID) {
+    if (pairID >= (signed)MAX_PAIRS) {
+      std::cerr << "Invalid pairID: " << pairID << ", maximum value is " << MAX_PAIRS - 1 << std::endl;
+      exit(1);
+    }
+  }
+
+  double Joules(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
+
+    if (pairID >= 0) {
+      return secondState.consumedEnergy[pairID] - firstState.consumedEnergy[pairID];
+    }
+
+    double joules = 0;
+    for (double consumedEnergy : secondState.consumedEnergy) {
+      joules += consumedEnergy;
+    }
+    for (double consumedEnergy : firstState.consumedEnergy) {
+      joules -= consumedEnergy;
+    }
+    return joules;
+  }
+
+  double seconds(const State &firstState, const State &secondState) {
+    return secondState.timeAtRead - firstState.timeAtRead;
+  }
+
+  double Watt(const State &firstState, const State &secondState, int pairID) {
+    return Joules(firstState, secondState, pairID) / seconds(firstState, secondState);
+  }
+
+  double Volt(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
+    return .5 * (firstState.voltage[pairID] + secondState.voltage[pairID]);
+  }
+
+  double Ampere(const State &firstState, const State &secondState, int pairID) {
+    checkPairID(pairID);
+    return .5 * (firstState.current[pairID] + secondState.current[pairID]);
+  }
+
   PowerSensor::PowerSensor(const char* device):
     fd(openDevice(device)),
     thread(nullptr),
     startTime(omp_get_wtime())
     {
       readSensorsFromEEPROM();
-      getActivePairs();
+      initializeSensorPairs();
       startIOThread();
     };
 
@@ -27,6 +69,20 @@ namespace PowerSensor {
     if (close(fd)) {
       perror("close device");
     }
+  }
+
+  State PowerSensor::read() const {
+    State state;
+
+    std::unique_lock<std::mutex> lock(mutex);
+    state.timeAtRead = omp_get_wtime();
+
+    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
+      state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
+      state.current[pairID] = sensorPairs[pairID].currentAtLastMeasurement;
+      state.voltage[pairID] = sensorPairs[pairID].voltageAtLastMeasurement;
+    }
+    return state;
   }
 
   int PowerSensor::openDevice(const char* device) {
@@ -96,19 +152,29 @@ namespace PowerSensor {
     }
   }
 
-  void PowerSensor::getActivePairs() {
-    for (uint8_t pairID = 0; pairID < MAX_SENSORS / 2; pairID++) {
+  void PowerSensor::initializeSensorPairs() {
+    numActiveSensors = 0;
+    for (uint8_t pairID = 0; pairID < MAX_PAIRS; pairID++) {
+      sensorPairs[pairID].timeAtLastMeasurement = startTime;
+      sensorPairs[pairID].wattAtLastMeasurement = 0;
+      sensorPairs[pairID].consumedEnergy = 0;
+      sensorPairs[pairID].currentAtLastMeasurement = 0;
+      sensorPairs[pairID].voltageAtLastMeasurement = 0;
+
+
       bool currentSensorActive = sensors[2*pairID].inUse;
       bool voltageSensorActive = sensors[2*pairID+1].inUse;
+
       if (currentSensorActive && voltageSensorActive) {
-        pairsInUse[pairID] = true;
+        sensorPairs[pairID].inUse = true;
+        numActiveSensors += 2;
       } else if (currentSensorActive ^ voltageSensorActive) {
         std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
         std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
         std::cerr << "Please check sensor configuration." << std::endl;
         exit(1);
       } else {
-        pairsInUse[pairID] = false;
+        sensorPairs[pairID].inUse = false;
       }
     }
   }
@@ -147,12 +213,20 @@ namespace PowerSensor {
     threadStarted.up();
     unsigned int sensorNumber;
     uint16_t level;
+    unsigned int sensorsRead = 0;
+
     while (readLevelFromDevice(sensorNumber, level)) {
       std::unique_lock<std::mutex> lock(mutex);
       sensors[sensorNumber].updateLevel(level);
+      sensorsRead++;
 
-      if (dumpFile != nullptr) {
-        dumpCurrentPowerToFile();
+      if (sensorsRead >= numActiveSensors) {
+        sensorsRead = 0;
+        updateSensorPairs();
+
+        if (dumpFile != nullptr) {
+          dumpCurrentWattToFile();
+        }
       }
     }
   }
@@ -186,10 +260,9 @@ namespace PowerSensor {
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
   }
 
-  void PowerSensor::dumpCurrentPowerToFile() {
-    // TODO: power calculation of each sensor pair
+  void PowerSensor::dumpCurrentWattToFile() {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
-    double totalPower = 0;
+    double totalWatt = 0;
     double time = omp_get_wtime();
     static double previousTime = startTime;
 
@@ -197,22 +270,36 @@ namespace PowerSensor {
     *dumpFile << ' ' << 1e6 * (time - previousTime);
     previousTime = time;
 
-    for (uint8_t pairID=0; pairID < MAX_SENSORS/2; pairID++) {
-      if (pairsInUse[pairID]) {
-        totalPower += getPower(pairID);
-        *dumpFile << ' ' << getPower(pairID);
+    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
+      if (sensorPairs[pairID].inUse) {
+        totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
+        *dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
       }
     }
-    *dumpFile << ' ' << totalPower << std::endl;
+    *dumpFile << ' ' << totalWatt << std::endl;
   }
 
-  double PowerSensor::getPower(unsigned int pairID) const {
-    if (!pairsInUse[pairID]) {
-      return -1;
+  void PowerSensor::updateSensorPairs() {
+    for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
+      if (sensorPairs[pairID].inUse) {
+        Sensor currentSensor = sensors[2*pairID];
+        Sensor voltageSensor = sensors[2*pairID+1];
+        SensorPair& sensorPair = sensorPairs[pairID];
+        double now = omp_get_wtime();
+
+        sensorPair.currentAtLastMeasurement = currentSensor.valueAtLastMeasurement;
+        sensorPair.voltageAtLastMeasurement = voltageSensor.valueAtLastMeasurement;
+        sensorPair.wattAtLastMeasurement = currentSensor.valueAtLastMeasurement * voltageSensor.valueAtLastMeasurement;
+        sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement * (now - sensorPair.timeAtLastMeasurement);
+        sensorPair.timeAtLastMeasurement = now;
+      }
     }
-    Sensor currentSensor = sensors[2*pairID];
-    Sensor voltageSensor = sensors[2*pairID+1];
-    return currentSensor.getValue() * voltageSensor.getValue();
+  }
+
+  double PowerSensor::totalEnergy(unsigned int pairID) const {
+    double energy = sensorPairs[pairID].wattAtLastMeasurement * (omp_get_wtime() - sensorPairs[pairID].timeAtLastMeasurement);
+
+    return sensorPairs[pairID].consumedEnergy + energy;
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {

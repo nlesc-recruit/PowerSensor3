@@ -11,13 +11,29 @@
 namespace PowerSensor {
 
   const static unsigned MAX_SENSORS = 8;
+  const static unsigned MAX_PAIRS = MAX_SENSORS / 2;
   const static float VOLTAGE = 3.3;
   const static unsigned MAX_LEVEL = 1023;
+
+  struct State {
+    double consumedEnergy[MAX_PAIRS];
+    double current[MAX_PAIRS];
+    double voltage[MAX_PAIRS];
+    double timeAtRead;
+  };
+
+  double Joules(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
+  double seconds(const State &firstState, const State &secondState);
+  double Watt(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
+  double Volt(const State &firstState, const State &secondState, int pairID);
+  double Ampere(const State &firstState, const State &secondState, int pairID);
 
   class PowerSensor {
     public:
       PowerSensor(const char* device);
       ~PowerSensor();
+
+      State read() const;
 
       void dump(const char *dumpFileName); // dumpFileName == 0 --> stop dumping
 
@@ -33,21 +49,20 @@ namespace PowerSensor {
       uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
 
-      double getPower(unsigned int pairID) const;
-
     private:
       int fd;
       int openDevice(const char* device);
 
-      void getActivePairs();
-      bool pairsInUse[MAX_SENSORS/2];
+      unsigned int numActiveSensors;
+      void initializeSensorPairs();
+      void updateSensorPairs();
 
       void readSensorsFromEEPROM();
       void writeSensorsToEEPROM();
       bool readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level);
 
       std::unique_ptr<std::ofstream> dumpFile;
-      void dumpCurrentPowerToFile();
+      void dumpCurrentWattToFile();
 
       Semaphore threadStarted;
       std::thread* thread;
@@ -56,6 +71,8 @@ namespace PowerSensor {
       void IOThread();
       void startIOThread();
       void stopIOThread();
+
+      double totalEnergy(unsigned int pairID) const;
 
       struct Sensor {
         struct EEPROM {
@@ -73,7 +90,6 @@ namespace PowerSensor {
         bool inUse;
         uint16_t level;
         double valueAtLastMeasurement;
-        double timeAtLastMeasurement;
         void setType(const char* type);
         void setVref(const float vref);
         void setSlope(const float slope);
@@ -85,6 +101,15 @@ namespace PowerSensor {
         void updateLevel(uint16_t level);
         void reset();
       } sensors[MAX_SENSORS];
+
+      struct SensorPair {
+        double currentAtLastMeasurement;
+        double voltageAtLastMeasurement;
+        double wattAtLastMeasurement;
+        double timeAtLastMeasurement;
+        double consumedEnergy;
+        bool inUse;
+      } sensorPairs[MAX_PAIRS];
   };
 
 

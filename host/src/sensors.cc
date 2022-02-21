@@ -47,15 +47,11 @@ namespace PowerSensor {
 
   void PowerSensor::Sensor::reset() {
     valueAtLastMeasurement = 0;
-    timeAtLastMeasurement = omp_get_wtime();
   }
 
   void PowerSensor::Sensor::updateLevel(uint16_t level) {
-    double now = omp_get_wtime();
-
     this->level = level;
     valueAtLastMeasurement = slope * (VOLTAGE * level / MAX_LEVEL - vref);
-    timeAtLastMeasurement = now;
   }
 
   double PowerSensor::Sensor::getValue() const {
