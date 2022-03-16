@@ -20,7 +20,7 @@ host/obj/%.o: host/src/%.cc
 
 all:: lib bin device
 
-bin:: host/bin/test_ps
+bin:: lib host/bin/test_ps host/bin/psconfig
 
 lib: host/obj/PowerSensor.o host/obj/sensors.o
 	-mkdir -p host/lib
