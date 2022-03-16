@@ -3,9 +3,14 @@ CXXFLAGS =			-std=c++11 -O2 -g -pthread -fopenmp -fPIC
 INC = -Ihost/include
 LIB = -Lhost/lib -lPowerSensor
 
-BOARD =				DISCO_F407VG
+# For Discovery F407
+#BOARD =				DISCO_F407VG
+#DEVICE =            STMicroelectronics:stm32:Disco
+# For F401CCU6
+BOARD =				GENERIC_F401CCUX
+DEVICE =            STMicroelectronics:stm32:GenF4
+
 USB =				CDCgen
-DEVICE =            STMicroelectronics:stm32:Disco
 FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
 
 ifeq ($(OS), Darwin)
