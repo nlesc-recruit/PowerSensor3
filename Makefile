@@ -6,12 +6,14 @@ LIB = -Lhost/lib -lPowerSensor
 # For Discovery F407
 #BOARD =				DISCO_F407VG
 #DEVICE =            STMicroelectronics:stm32:Disco
-# For F401CCU6
-BOARD =				GENERIC_F401CCUX
+#FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
+
+# For Black Pill F401CCU6
+BOARD =				BLACKPILL_F401CC
 DEVICE =            STMicroelectronics:stm32:GenF4
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod
 
 USB =				CDCgen
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
 
 ifeq ($(OS), Darwin)
 	PORT =			/dev/cu.usbmodem144103
