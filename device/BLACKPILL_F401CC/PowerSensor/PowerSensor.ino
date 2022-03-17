@@ -10,9 +10,12 @@
 #include "eeprom.h"
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
-                                  LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS};
+                                  LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
+                                  LL_ADC_REG_SEQ_SCAN_ENABLE_5RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_6RANKS,
+                                  LL_ADC_REG_SEQ_SCAN_ENABLE_7RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_8RANKS};
 
-const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4};
+const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4,
+                              LL_ADC_REG_RANK_5, LL_ADC_REG_RANK_6, LL_ADC_REG_RANK_7, LL_ADC_REG_RANK_8};
 
 const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHANNEL_2, LL_ADC_CHANNEL_3,
                                  LL_ADC_CHANNEL_4, LL_ADC_CHANNEL_5, LL_ADC_CHANNEL_6, LL_ADC_CHANNEL_7};
@@ -20,11 +23,9 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
-ADC_TypeDef* ADCCurrent = ADC1;  // use first ADC for current sensors
-ADC_TypeDef* ADCVoltage = ADC2; // use second ADC for voltage sensors
-uint8_t numSensor;  // number of active sensors (in total, not per ADC)
+uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
-uint32_t dmaBuffer[MAX_SENSORS / 2];  // DMA reads both ADCs at the same time to one 32b value
+uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
 uint16_t serialBuffer[MAX_SENSORS];  // data sent to host is 16b per sensor
 bool streamValues = false;
 bool sendSingleValue = false;
@@ -102,11 +103,11 @@ void getActiveSensors() {
 }
 
 void Blink(uint8_t amount) {
-  // Blink LED
+  // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
   for (uint8_t i = 0; i < amount; i++) {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(250);
     digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+    digitalWrite(LED_BUILTIN, HIGH);
     delay(250);
   }
 }
@@ -116,57 +117,54 @@ void configureADCCommon() {
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
   ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;  // at default cpu/bus clock speeds and a divider of 4, the ADC runs at 21 MHz
-  ADCCommonConfig.Multimode = LL_ADC_MULTI_DUAL_REG_SIMULT;  // regular simultaneous mode
-  ADCCommonConfig.MultiDMATransfer = LL_ADC_MULTI_REG_DMA_UNLMT_2; // allow unlimited DMA transfers. MODE2 = half-words by ADC pairs
-  ADCCommonConfig.MultiTwoSamplingDelay = LL_ADC_MULTI_TWOSMP_DELAY_5CYCLES; // fastest possible mode
 
   // Apply settings
-  if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADCCurrent), &ADCCommonConfig) != SUCCESS) {
+  if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
     Blink(1);
     exit(1);
   }
 }
 
-void configureADC(ADC_TypeDef* adc) {
+void configureADC() {
   LL_ADC_InitTypeDef ADCConfig;
   LL_ADC_StructInit(&ADCConfig);
 
   ADCConfig.Resolution = LL_ADC_RESOLUTION_10B; // 10-bit ADC resolution
   ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT; // right-align data within 16b register
-  ADCConfig.SequencersScanMode = ADC_SCANMODES[(numSensor/2) - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
+  ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
-  if (LL_ADC_Init(adc, &ADCConfig) != SUCCESS) {
+  if (LL_ADC_Init(ADC1, &ADCConfig) != SUCCESS) {
     Blink(1);
     exit(1);
   }
 }
 
-void configureADCChannels(ADC_TypeDef* adc, bool master) {
+void configureADCChannels() {
   LL_ADC_REG_InitTypeDef ADCChannelConfig;
   LL_ADC_REG_StructInit(&ADCChannelConfig);
 
   ADCChannelConfig.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;   // trigger conversion from software
-  ADCChannelConfig.SequencerLength = ADC_SCANMODES[(numSensor/2) - 1];  // number of ranks to convert
+  ADCChannelConfig.SequencerLength = ADC_SCANMODES[numSensor - 1];  // number of ranks to convert
   ADCChannelConfig.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE; // not using discontinous mode
   ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS; // enable continuous conversion mode
   ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED; // Allow unlimited transfers to DMA
 
-  if (LL_ADC_REG_Init(adc, &ADCChannelConfig) != SUCCESS) {
+  if (LL_ADC_REG_Init(ADC1, &ADCChannelConfig) != SUCCESS) {
     Blink(3);
     exit(1);
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
   // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
-  // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 21 MHz, the data rate is
-  // 21 MHz * 32 / (10 + 56) = 10.2 Mbps
-  // With 4 sensor pairs, each pair is sampled at
-  // 21 MHz / (10+56) / 4 = 79.5 KHz
+  // At 56 cycles, 10b resolution, 16 bits per sensor, and an ADC clock of 21 MHz, the data rate is
+  // 21 MHz * 16 / (10 + 56) = 5.1 Mbps
+  // With 8 sensors, each sensor is sampled at
+  // 21 MHz / (10+56) / 8 = 39.75 KHz
 
-  for (uint8_t i = !master; i < numSensor; i+=2) {
+  for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
-    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
+    LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
   }
 
 }
@@ -196,15 +194,15 @@ void configureDMA() {
   LL_DMA_InitTypeDef DMAConfig;
   LL_DMA_StructInit(&DMAConfig);
 
-  DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADCCurrent, LL_ADC_DMA_REG_REGULAR_DATA_MULTI);  // macro handles obtaining common data register for multi-ADC mode
+  DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA);
   DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer; // target is the buffer in RAM
   DMAConfig.Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
   DMAConfig.Mode = LL_DMA_MODE_CIRCULAR;
   DMAConfig.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
   DMAConfig.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
-  DMAConfig.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD;
-  DMAConfig.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_WORD;
-  DMAConfig.NbData = numSensor / 2;
+  DMAConfig.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_HALFWORD;
+  DMAConfig.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD;
+  DMAConfig.NbData = numSensor;
   DMAConfig.Channel = LL_DMA_CHANNEL_0;
 
   // write config
@@ -237,9 +235,8 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 
 void sendADCValue() {
   // extract data of the two ADCs
-  for (uint8_t i = 0; i < numSensor; i+=2) {
-    serialBuffer[i] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i/2]);
-    serialBuffer[i+1] = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
+  for (uint8_t i = 0; i < numSensor; i++) {
+    serialBuffer[i] = dmaBuffer[i]; // TODO, can do away with serial Buffer
   }
 
   // send all values over serial
@@ -298,27 +295,24 @@ void serialEvent() {
 
 void configureDevice() {
   // ensure DMA and ADC are off
-  LL_ADC_Disable(ADCCurrent);
-  LL_ADC_Disable(ADCVoltage);
+  LL_ADC_Disable(ADC1);
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
 
   getActiveSensors();
   configureGPIO();
   configureDMA();
   configureADCCommon();
-  configureADC(ADCCurrent);
-  configureADC(ADCVoltage);
-  configureADCChannels(ADCCurrent, true);
-  configureADCChannels(ADCVoltage, false);
+  configureADC();
+  configureADCChannels();
   configureNVIC();
-  LL_ADC_Enable(ADCCurrent);
-  LL_ADC_Enable(ADCVoltage);
-  LL_ADC_REG_StartConversionSWStart(ADCCurrent);
+  LL_ADC_Enable(ADC1);
+  LL_ADC_REG_StartConversionSWStart(ADC1);
 }
 
 void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, HIGH); // HIGH is off
 
   // Setup and read virtual EEPROM data
   generateVirtualAddresses();
@@ -330,7 +324,6 @@ void setup() {
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
-  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC2);
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
