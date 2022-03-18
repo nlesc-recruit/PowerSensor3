@@ -8,6 +8,7 @@
 #include <stm32f4xx_ll_gpio.h> // GPIO control
 #include <stm32f4xx_ll_dma.h>  // DMA control
 #include "eeprom.h"
+uint32_t counter;
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
                                   LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
@@ -116,7 +117,7 @@ void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;  // at default cpu/bus clock speeds and a divider of 4, the ADC runs at 21 MHz
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;
 
   // Apply settings
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
@@ -155,16 +156,10 @@ void configureADCChannels() {
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
-  // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
-  // At 56 cycles, 10b resolution, 16 bits per sensor, and an ADC clock of 21 MHz, the data rate is
-  // 21 MHz * 16 / (10 + 56) = 5.1 Mbps
-  // With 8 sensors, each sensor is sampled at
-  // 21 MHz / (10+56) / 8 = 39.75 KHz
-
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
   }
 
 }
@@ -253,6 +248,7 @@ void sendADCValue() {
     // where m is the marker bit, b are the lower 6 bits of the level
     data[1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     Serial.write(data, sizeof data);
+    counter++;
     sendMarkerNext = false;
   }
   sendSingleValue = false;
@@ -278,6 +274,7 @@ void serialEvent() {
       break;
     case 'S':
       // Enable streaming of data
+      counter = 0;
       streamValues = true;
       break;
     case 'T':
@@ -289,6 +286,9 @@ void serialEvent() {
       streamValues = false;
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+    case 'Q':
+      Serial.write((const uint8_t*) &counter, sizeof counter);
+      break;
    }
   }
 }
