@@ -27,7 +27,6 @@ const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GP
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
-uint16_t serialBuffer[MAX_SENSORS];  // data sent to host is 16b per sensor
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
@@ -229,24 +228,19 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 }
 
 void sendADCValue() {
-  // extract data of the two ADCs
-  for (uint8_t i = 0; i < numSensor; i++) {
-    serialBuffer[i] = dmaBuffer[i]; // TODO, can do away with serial Buffer
-  }
-
   // send all values over serial
   uint8_t data[numSensor*2];  // 2 bytes per sensor
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
+    // pointer to level of current sensor
+    uint16_t* level = dmaBuffer + i;
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
-    uint16_t level = serialBuffer[i];
-    // write the level
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
-    data[2*i] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+    data[2*i] = ((sensor_id & 0x7) << 4) | ((*level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    data[2*i+1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
+    data[2*i+1] = ((sendMarkerNext << 6) | (*level & 0x3F)) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }
@@ -287,6 +281,7 @@ void serialEvent() {
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
     case 'Q':
+      // Send value of internal counter of number of completed conversions. Used for testing and debugging
       Serial.write((const uint8_t*) &counter, sizeof counter);
       break;
    }
