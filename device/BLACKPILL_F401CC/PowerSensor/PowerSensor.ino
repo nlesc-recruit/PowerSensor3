@@ -116,7 +116,7 @@ void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV2;
 
   // Apply settings
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
@@ -158,7 +158,7 @@ void configureADCChannels() {
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);
   }
 
 }
