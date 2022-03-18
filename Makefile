@@ -3,10 +3,17 @@ CXXFLAGS =			-std=c++11 -O2 -g -pthread -fopenmp -fPIC
 INC = -Ihost/include
 LIB = -Lhost/lib -lPowerSensor
 
-BOARD =				DISCO_F407VG
+# For Discovery F407
+#BOARD =				DISCO_F407VG
+#DEVICE =            STMicroelectronics:stm32:Disco
+#FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
+
+# For Black Pill F401CCU6
+BOARD =				BLACKPILL_F401CC
+DEVICE =            STMicroelectronics:stm32:GenF4
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod
+
 USB =				CDCgen
-DEVICE =            STMicroelectronics:stm32:Disco
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
 
 ifeq ($(OS), Darwin)
 	PORT =			/dev/cu.usbmodem144103

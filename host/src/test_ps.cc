@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 int main() {
-  const char* device = "/dev/cu.usbmodem207338A658481";
+  const char* device = "/dev/cu.usbmodem386A367F32371";
 
   PowerSensor::PowerSensor ps(device);
   usleep(1000*10);  // 10 ms
