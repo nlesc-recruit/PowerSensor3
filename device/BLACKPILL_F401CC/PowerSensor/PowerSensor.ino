@@ -235,22 +235,22 @@ void sendADCValue() {
   }
 
   // send all values over serial
+  uint8_t data[numSensor*2];  // 2 bytes per sensor
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     uint16_t level = serialBuffer[i];
-    uint8_t data[2];
     // write the level
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
-    data[0] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+    data[2*i] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    data[1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
-    Serial.write(data, sizeof data);
+    data[2*i+1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }
+  Serial.write(data, sizeof data); // send data of all active sensors to host
   sendSingleValue = false;
 }
 
