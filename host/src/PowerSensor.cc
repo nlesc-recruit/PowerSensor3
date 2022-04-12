@@ -173,7 +173,6 @@ namespace PowerSensor {
         std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
         std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
         std::cerr << "Please check sensor configuration." << std::endl;
-        exit(1);
       } else {
         sensorPairs[pairID].inUse = false;
       }
@@ -395,22 +394,27 @@ namespace PowerSensor {
 
   void PowerSensor::setType(unsigned int sensorID, const char* type) {
     sensors[sensorID].setType(type);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setVref(unsigned int sensorID, const float vref) {
     sensors[sensorID].setVref(vref);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setSlope(unsigned int sensorID, const float slope) {
     sensors[sensorID].setSlope(slope);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setPairId(unsigned int sensorID, const uint8_t pairId) {
     sensors[sensorID].setPairId(pairId);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
+    writeSensorsToEEPROM();
   }
 
 } // namespace PowerSensor
