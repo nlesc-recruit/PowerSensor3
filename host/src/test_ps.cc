@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <chrono>
 #include <iostream>
 #include <iomanip>
 
@@ -9,13 +10,13 @@ int main() {
   const char* device = "/dev/cu.usbmodem386A367F32371";
 
   PowerSensor::PowerSensor ps(device);
-  usleep(1000*10);  // 10 ms
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
   PowerSensor::State firstState = ps.read();
   ps.dump("dumpfile.txt");
-  usleep(1000 * 5);
+  std::this_thread::sleep_for(std::chrono::milliseconds(5));
   ps.mark('A');
-  usleep(1000 * 10);
+  std::this_thread::sleep_for(std::chrono::milliseconds(10));
   PowerSensor::State secondState = ps.read();
 
   ps.mark(firstState, secondState, "some name", 1);
