@@ -29,7 +29,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
-  strncpy(eeprom.type, type, sizeof type);
+  strlcpy(eeprom.type, type, sizeof type);
   eeprom.vref = vref;
   eeprom.slope = slope;
   eeprom.inUse = inUse;
@@ -57,7 +57,7 @@ double PowerSensor::Sensor::getValue() const {
 }
 
 void PowerSensor::Sensor::setType(const char* type) {
-  strncpy(this->type, type, sizeof type);
+  strlcpy(this->type, type, sizeof type);
 }
 
 void PowerSensor::Sensor::setVref(const float vref) {

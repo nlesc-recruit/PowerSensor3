@@ -62,9 +62,9 @@ void print() {
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
-  double usage, totalUsage;
+  double totalUsage = 0;
   for (unsigned int pair = 0; pair < PowerSensor::MAX_PAIRS; pair++) {
-      usage = Watt(startState, stopState, pair);
+      double usage = Watt(startState, stopState, pair);
       totalUsage += usage;
       std::cout << "Current usage pair " << pair << ": " << usage << " W" << std::endl;
   }

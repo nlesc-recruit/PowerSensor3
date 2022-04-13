@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <unistd.h>
 
+#include <chrono>
 #include <iostream>
 #include <cstring>
 
@@ -147,8 +148,9 @@ namespace PowerSensor {
     }
     for (const Sensor& sensor : sensors) {
       sensor.writeToEEPROM(fd);
-      usleep(10000);
     }
+    // sleep for 10ms to allow the device to process the new settings
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
   }
 
   void PowerSensor::initializeSensorPairs() {
@@ -358,7 +360,7 @@ namespace PowerSensor {
       write(fd, "T", 1);
 
       // drain garbage
-      usleep(100000);
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       tcflush(fd, TCIFLUSH);
 
       exit(0);
@@ -376,7 +378,7 @@ namespace PowerSensor {
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {
-    strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
+    strlcpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
   }
 
   float PowerSensor::getVref(unsigned int sensorID) const {
