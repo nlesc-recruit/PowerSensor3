@@ -180,7 +180,7 @@ namespace PowerSensor {
     }
   }
 
-  bool PowerSensor::readLevelFromDevice(unsigned int &sensorNumber, uint16_t &level, unsigned int &marker) {
+  bool PowerSensor::readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker) {
       // buffer for one set of sensor data (2 bytes)
       uint8_t buffer[2];
       ssize_t retVal, bytesRead = 0;
@@ -199,9 +199,9 @@ namespace PowerSensor {
           return false;
         } else if (((buffer[0] >> 7) == 1) & ((buffer[1] >> 7) == 0)) {
           // marker bits are ok, extract the values
-          sensorNumber = (buffer[0] >> 4) & 0x7;
-          level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
-          marker |= (buffer[1] >> 6) & 0x1;
+          *sensorNumber = (buffer[0] >> 4) & 0x7;
+          *level = ((buffer[0] & 0xF) << 6) | (buffer[1] & 0x3F);
+          *marker |= (buffer[1] >> 6) & 0x1;
           return true;
         } else {
           // marker bits are wrong. Assume a byte was dropped: drop first byte and try again
@@ -238,7 +238,7 @@ namespace PowerSensor {
     unsigned int sensorNumber, marker = 0, sensorsRead = 0;
     uint16_t level;
 
-    while (readLevelFromDevice(sensorNumber, level, marker)) {
+    while (readLevelFromDevice(&sensorNumber, &level, &marker)) {
       std::unique_lock<std::mutex> lock(mutex);
       sensors[sensorNumber].updateLevel(level);
       sensorsRead++;
