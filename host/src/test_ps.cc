@@ -1,8 +1,9 @@
+#include <unistd.h>
+
 #include <iostream>
 #include <iomanip>
-#include "PowerSensor.hpp"
 
-#include <unistd.h>
+#include "PowerSensor.hpp"
 
 int main() {
   const char* device = "/dev/cu.usbmodem386A367F32371";
@@ -39,5 +40,4 @@ int main() {
     watt = PowerSensor::Watt(firstState, secondState, id);
     std::cout << volt << '\t' << ampere << '\t' << watt << std::endl;
   }
-
 }

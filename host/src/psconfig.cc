@@ -1,10 +1,10 @@
-#include "PowerSensor.hpp"
-
 #include <unistd.h>
 
 #include <cstring>
 #include <iostream>
 #include <memory>
+
+#include "PowerSensor.hpp"
 
 
 std::unique_ptr<PowerSensor::PowerSensor> powerSensor;
@@ -19,8 +19,7 @@ unsigned int selectSensor(unsigned int sensor) {
 }
 
 
-PowerSensor::PowerSensor *getPowerSensor(std::string device)
-{
+PowerSensor::PowerSensor *getPowerSensor(std::string device) {
   if (device.empty())
     device = "/dev/ttyACM0";
   if (powerSensor.get() == nullptr)
@@ -30,19 +29,17 @@ PowerSensor::PowerSensor *getPowerSensor(std::string device)
 }
 
 
-void measureSensors(PowerSensor::State &startState, PowerSensor::State &stopState)
-{
-  startState = powerSensor->read();
+void measureSensors(PowerSensor::State* startState, PowerSensor::State* stopState) {
+  *startState = powerSensor->read();
   sleep(2);
-  stopState = powerSensor->read();
+  *stopState = powerSensor->read();
 }
 
 
-void print()
-{
+void print() {
   PowerSensor::State startState, stopState;
 
-  measureSensors(startState, stopState);
+  measureSensors(&startState, &stopState);
 
   char type[16];
   std::string sensorType;
@@ -75,9 +72,9 @@ void print()
 }
 
 
-void usage(char *argv[])
-{
-  std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] [-v volt] [-a | -n nullLevel] [-o] [-p]" << std::endl;
+void usage(char *argv[]) {
+  std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] "
+    "[-v volt] [-a | -n nullLevel] [-o] [-p]" << std::endl;
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
   std::cerr << "-s selects the sensor (0-" << PowerSensor::MAX_SENSORS << ")" << std::endl;
@@ -86,20 +83,20 @@ void usage(char *argv[])
   std::cerr << "-n set the slope" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
-  std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t ACS712-20 -v 1.65 -n 1.0 -o 1 -s 1 -tACS712-5 -v1.7 -p" << std::endl;
+  std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t ACS712-20 -v 1.65 "
+    "-n 1.0 -o 1 -s 1 -tACS712-5 -v1.7 -p" << std::endl;
   exit(1);
 }
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   std::string device;
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
         device = optarg;
-    		break;
+        break;
 
       // sensor select
       case 's':
@@ -123,7 +120,7 @@ int main(int argc, char *argv[])
 
       // sensor on/off
       case 'o':
-        getPowerSensor(device)->setInUse(sensor, bool(optarg));
+        getPowerSensor(device)->setInUse(sensor, static_cast<bool>(optarg));
         break;
 
       // print
