@@ -32,10 +32,12 @@ float convertType(const char *arg)
 }
 
 
-PowerSensor::PowerSensor *checkPowerSensor()
+PowerSensor::PowerSensor *getPowerSensor(std::string device)
 {
+  if (device.empty())
+    device = "/dev/ttyACM0";
   if (powerSensor.get() == nullptr)
-    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor("/dev/ttyACM0"));
+    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device.c_str()));
 
   return powerSensor.get();
 }
@@ -68,20 +70,34 @@ void print()
   measureSensors(startState, stopState);
 
   char type[16];
+  std::string sensorType;
+  char unit;
   for (unsigned sensor = 0; sensor < PowerSensor::MAX_SENSORS; sensor++) {
     powerSensor->getType(sensor, type);
-    std::cout << "sensor: " << sensor << ", "
+
+    if (sensor % 2 == 0) {
+      sensorType = "current";
+      unit = 'A';
+    } else {
+      sensorType = "voltage";
+      unit = 'V';
+    }
+
+    std::cout << "sensor " << sensor << " (" << sensorType << "): "
       "Pair ID: " << (int) powerSensor->getPairId(sensor) << ", "
       "type: " << type << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
-      "Slope: " << powerSensor->getSlope(sensor) << " V/A, " // TODO: is V/A the correct unit?
+      "Slope: " << powerSensor->getSlope(sensor) << " " << unit << " / V, "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
-
-    if (sensor % 2 == 1) {
-      unsigned int pair = sensor / 2;
-      std::cout << "Current usage pair " << pair << ": " << Watt(startState, stopState, pair) << " W" << std::endl;
-    }
   }
+
+  double usage, totalUsage;
+  for (unsigned int pair = 0; pair < PowerSensor::MAX_PAIRS; pair++) {
+      usage = Watt(startState, stopState, pair);
+      totalUsage += usage;
+      std::cout << "Current usage pair " << pair << ": " << usage << " W" << std::endl;
+  }
+  std::cout << "Total usage: " << totalUsage << " W" << std::endl;
 }
 
 
@@ -105,11 +121,12 @@ void usage(char *argv[])
 
 int main(int argc, char *argv[])
 {
+  std::string device;
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
-        powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(optarg));
+        device = optarg;
     		break;
 
       // sensor select
@@ -119,31 +136,32 @@ int main(int argc, char *argv[])
 
       // sensor pair
       case 'i':
-        checkPowerSensor()->setPairId(sensor, atoi(optarg));
+        getPowerSensor(device)->setPairId(sensor, atoi(optarg));
         break;
 
       // sensor type
       case 't':
-        checkPowerSensor()->setType(sensor, optarg);
+        getPowerSensor(device)->setType(sensor, optarg);
         break;
 
       // sensor reference voltage
       case 'v':
-        checkPowerSensor()->setVref(sensor, atof(optarg));
+        getPowerSensor(device)->setVref(sensor, atof(optarg));
         break;
 
       // sensor slope
       case 'n':
-        checkPowerSensor()->setSlope(sensor, atof(optarg));
+        getPowerSensor(device)->setSlope(sensor, atof(optarg));
         break;
 
       // sensor on/off
       case 'o':
-        checkPowerSensor()->setInUse(sensor, bool(optarg));
+        getPowerSensor(device)->setInUse(sensor, bool(optarg));
         break;
 
       // print
       case 'p':
+        getPowerSensor(device);
         print();
         break;
 

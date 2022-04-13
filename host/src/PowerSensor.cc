@@ -92,7 +92,7 @@ namespace PowerSensor {
     // opens the file specified by pathname;
     if ((fileDescriptor = open(device, O_RDWR)) < 0)
     {
-      perror("open device");
+      perror(device);
       exit(1);
     }
     // block if an incompatible lock is held by another process;
@@ -145,11 +145,12 @@ namespace PowerSensor {
 
   void PowerSensor::writeSensorsToEEPROM() {
     if (write(fd, "W", 1) != 1) {
-      perror("Write device");
+      perror("write device");
       exit(1);
     }
     for (const Sensor& sensor: sensors) {
       sensor.writeToEEPROM(fd);
+      usleep(10000);
     }
   }
 
