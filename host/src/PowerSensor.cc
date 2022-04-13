@@ -376,7 +376,7 @@ namespace PowerSensor {
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {
-    strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
+    strlcpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
   }
 
   float PowerSensor::getVref(unsigned int sensorID) const {
