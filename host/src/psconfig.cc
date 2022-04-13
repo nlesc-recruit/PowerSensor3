@@ -38,18 +38,6 @@ void measureSensors(PowerSensor::State &startState, PowerSensor::State &stopStat
 }
 
 
-// void autoCalibrate()
-// {
-//   if (powerSensor->inUse(sensor)) {
-//     PowerSensor::State startState, stopState;
-
-//     powerSensor->setNullLevel(sensor, 0);
-//     measureSensors(startState, stopState);
-//     powerSensor->setNullLevel(sensor, PowerSensor::Watt(startState, stopState, sensor));
-//   }
-// }
-
-
 void print()
 {
   PowerSensor::State startState, stopState;
@@ -96,11 +84,10 @@ void usage(char *argv[])
   std::cerr << "-t sets the sensor type, (valid types TBD)" << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
   std::cerr << "-n set the slope" << std::endl;
-  // std::cerr << "-a auto-calibrates the null level" << std::endl;  // disabled while psconfig is still WIP
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
-  // std::cerr << "example: " << argv[0] << " -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -a -s1 -tACS712-5 -v3.3 -a -s2 -tACS712-20 -v12 -a -s3 -o -s4 -o -p" << std::endl;
-  // exit(1);
+  std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t ACS712-20 -v 1.65 -n 1.0 -o 1 -s 1 -tACS712-5 -v1.7 -p" << std::endl;
+  exit(1);
 }
 
 
