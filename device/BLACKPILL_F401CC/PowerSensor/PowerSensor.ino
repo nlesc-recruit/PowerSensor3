@@ -35,7 +35,6 @@ struct Sensor {
   char type[16];
   float vref;
   float slope;
-  uint8_t pairId;
   bool inUse;
 } __attribute__((packed));
 

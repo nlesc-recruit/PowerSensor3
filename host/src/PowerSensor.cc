@@ -92,7 +92,7 @@ namespace PowerSensor {
     // opens the file specified by pathname;
     if ((fileDescriptor = open(device, O_RDWR)) < 0)
     {
-      perror("open device");
+      perror(device);
       exit(1);
     }
     // block if an incompatible lock is held by another process;
@@ -145,11 +145,12 @@ namespace PowerSensor {
 
   void PowerSensor::writeSensorsToEEPROM() {
     if (write(fd, "W", 1) != 1) {
-      perror("Write device");
+      perror("write device");
       exit(1);
     }
     for (const Sensor& sensor: sensors) {
       sensor.writeToEEPROM(fd);
+      usleep(10000);
     }
   }
 
@@ -173,7 +174,6 @@ namespace PowerSensor {
         std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") is " << (currentSensorActive ? "" : "not ") << "active, while ";
         std::cerr << "voltage sensor (ID " << 2*pairID+1 << ") is " << (voltageSensorActive ? "" : "not ") << "active. ";
         std::cerr << "Please check sensor configuration." << std::endl;
-        exit(1);
       } else {
         sensorPairs[pairID].inUse = false;
       }
@@ -385,32 +385,28 @@ namespace PowerSensor {
     return sensors[sensorID].slope;
   }
 
-  uint8_t PowerSensor::getPairId(unsigned int sensorID) const {
-    return sensors[sensorID].pairId;
-  }
-
   bool PowerSensor::getInUse(unsigned int sensorID) const {
     return sensors[sensorID].inUse;
   }
 
   void PowerSensor::setType(unsigned int sensorID, const char* type) {
     sensors[sensorID].setType(type);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setVref(unsigned int sensorID, const float vref) {
     sensors[sensorID].setVref(vref);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setSlope(unsigned int sensorID, const float slope) {
     sensors[sensorID].setSlope(slope);
-  }
-
-  void PowerSensor::setPairId(unsigned int sensorID, const uint8_t pairId) {
-    sensors[sensorID].setPairId(pairId);
+    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
+    writeSensorsToEEPROM();
   }
 
 } // namespace PowerSensor
