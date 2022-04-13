@@ -1,5 +1,4 @@
-#ifndef __POWER_SENSOR_H
-#define __POWER_SENSOR_H
+#pragma once
 
 #include "Semaphore.hpp"
 
@@ -117,4 +116,3 @@ namespace PowerSensor {
 
 }  // namespace PowerSensor
 
-#endif  // __POWER_SENSOR_H

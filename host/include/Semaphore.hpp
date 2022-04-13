@@ -1,5 +1,4 @@
-#ifndef SEMAPHORE_H
-#define SEMAPHORE_H
+#pragma once
 
 #include <condition_variable>
 #include <mutex>
@@ -36,4 +35,3 @@ class Semaphore {
 
 }
 
-#endif
