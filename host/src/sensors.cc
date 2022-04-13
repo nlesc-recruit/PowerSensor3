@@ -21,7 +21,6 @@ namespace PowerSensor {
     setType(eeprom.type);
     setVref(eeprom.vref);
     setSlope(eeprom.slope);
-    setPairId(eeprom.pairId);
     setInUse(eeprom.inUse);
 
     reset();
@@ -33,7 +32,6 @@ namespace PowerSensor {
     strncpy(eeprom.type, type, sizeof type);
     eeprom.vref = vref;
     eeprom.slope = slope;
-    eeprom.pairId = pairId;
     eeprom.inUse = inUse;
 
     ssize_t retVal, bytesWritten = 0;
@@ -68,10 +66,6 @@ namespace PowerSensor {
 
   void PowerSensor::Sensor::setSlope(const float slope) {
     this->slope = slope;
-  }
-
-  void PowerSensor::Sensor::setPairId(const uint8_t pairId) {
-    this->pairId = pairId;
   }
 
   void PowerSensor::Sensor::setInUse(const bool inUse) {

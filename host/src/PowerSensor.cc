@@ -385,10 +385,6 @@ namespace PowerSensor {
     return sensors[sensorID].slope;
   }
 
-  uint8_t PowerSensor::getPairId(unsigned int sensorID) const {
-    return sensors[sensorID].pairId;
-  }
-
   bool PowerSensor::getInUse(unsigned int sensorID) const {
     return sensors[sensorID].inUse;
   }
@@ -405,11 +401,6 @@ namespace PowerSensor {
 
   void PowerSensor::setSlope(unsigned int sensorID, const float slope) {
     sensors[sensorID].setSlope(slope);
-    writeSensorsToEEPROM();
-  }
-
-  void PowerSensor::setPairId(unsigned int sensorID, const uint8_t pairId) {
-    sensors[sensorID].setPairId(pairId);
     writeSensorsToEEPROM();
   }
 

@@ -43,13 +43,11 @@ namespace PowerSensor {
       void setType(unsigned int sensorID, const char* type);
       void setVref(unsigned int sensorID, const float vref);
       void setSlope(unsigned int sensorID, const float slope);
-      void setPairId(unsigned int sensorID, const uint8_t pairId);
       void setInUse(unsigned int sensorID, const bool inUse);
 
       void getType(unsigned int sensorID, char* type) const;
       float getVref(unsigned int sensorID) const;
       float getSlope(unsigned int sensorID) const;
-      uint8_t getPairId(unsigned int sensorID) const;
       bool getInUse(unsigned int sensorID) const;
 
     private:
@@ -85,14 +83,12 @@ namespace PowerSensor {
           char type[16];
           float vref;
           float slope;
-          uint8_t pairId;
           bool inUse;
         } __attribute__((packed));
 
         char type[16];
         float vref;
         float slope;
-        uint8_t pairId;
         bool inUse;
         uint16_t level;
         double valueAtLastMeasurement;

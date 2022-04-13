@@ -19,19 +19,6 @@ unsigned int selectSensor(unsigned int sensor) {
 }
 
 
-float convertType(const char *arg)
-{
-  if (strcmp(arg, "ACS712-5") == 0 || strcmp(arg, "acs712-5") == 0)
-    return 0.185;
-  else if (strcmp(arg, "ACS712-20") == 0 || strcmp(arg, "acs712-20") == 0)
-    return 0.1;
-  else if (strcmp(arg, "ACS712-30") == 0 || strcmp(arg, "acs712-30") == 0)
-    return 0.66;
-  else
-    return atof(arg);
-}
-
-
 PowerSensor::PowerSensor *getPowerSensor(std::string device)
 {
   if (device.empty())
@@ -84,7 +71,6 @@ void print()
     }
 
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
-      "Pair ID: " << (int) powerSensor->getPairId(sensor) << ", "
       "type: " << type << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
       "Slope: " << powerSensor->getSlope(sensor) << " " << unit << " / V, "
@@ -107,7 +93,6 @@ void usage(char *argv[])
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
   std::cerr << "-s selects the sensor (0-" << PowerSensor::MAX_SENSORS << ")" << std::endl;
-  std::cerr << "-i sets the sensor pair (0-" << PowerSensor::MAX_PAIRS << ")" << std::endl;
   std::cerr << "-t sets the sensor type, (valid types TBD)" << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
   std::cerr << "-n set the slope" << std::endl;
@@ -132,11 +117,6 @@ int main(int argc, char *argv[])
       // sensor select
       case 's':
         sensor = selectSensor((unsigned) atoi(optarg));
-        break;
-
-      // sensor pair
-      case 'i':
-        getPowerSensor(device)->setPairId(sensor, atoi(optarg));
         break;
 
       // sensor type
