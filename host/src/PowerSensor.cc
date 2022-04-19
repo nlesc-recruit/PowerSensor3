@@ -385,8 +385,8 @@ namespace PowerSensor {
     return sensors[sensorID].vref;
   }
 
-  float PowerSensor::getSlope(unsigned int sensorID) const {
-    return sensors[sensorID].slope;
+  float PowerSensor::getSensitivity(unsigned int sensorID) const {
+    return sensors[sensorID].sensitivity;
   }
 
   bool PowerSensor::getInUse(unsigned int sensorID) const {
@@ -403,8 +403,8 @@ namespace PowerSensor {
     writeSensorsToEEPROM();
   }
 
-  void PowerSensor::setSlope(unsigned int sensorID, const float slope) {
-    sensors[sensorID].setSlope(slope);
+  void PowerSensor::setSensitivity(unsigned int sensorID, const float sensitivity) {
+    sensors[sensorID].setSensitivity(sensitivity);
     writeSensorsToEEPROM();
   }
 

@@ -58,7 +58,7 @@ void print() {
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
       "type: " << type << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
-      "Slope: " << powerSensor->getSlope(sensor) << " " << unit << " / V, "
+      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " " << unit << " / V, "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
@@ -80,7 +80,7 @@ void usage(char *argv[]) {
   std::cerr << "-s selects the sensor (0-" << PowerSensor::MAX_SENSORS << ")" << std::endl;
   std::cerr << "-t sets the sensor type, (valid types TBD)" << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
-  std::cerr << "-n set the slope" << std::endl;
+  std::cerr << "-n set the sensitivity" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t ACS712-20 -v 1.65 "
@@ -113,9 +113,9 @@ int main(int argc, char *argv[]) {
         getPowerSensor(device)->setVref(sensor, atof(optarg));
         break;
 
-      // sensor slope
+      // sensor sensitivity
       case 'n':
-        getPowerSensor(device)->setSlope(sensor, atof(optarg));
+        getPowerSensor(device)->setSensitivity(sensor, atof(optarg));
         break;
 
       // sensor on/off

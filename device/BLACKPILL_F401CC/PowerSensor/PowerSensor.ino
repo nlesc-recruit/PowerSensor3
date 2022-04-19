@@ -34,7 +34,7 @@ bool sendMarkerNext = false;
 struct Sensor {
   char type[16];
   float vref;
-  float slope;
+  float sensitivity;
   bool inUse;
 } __attribute__((packed));
 
