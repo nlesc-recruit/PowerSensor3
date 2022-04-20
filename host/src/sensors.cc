@@ -20,7 +20,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 
   setType(eeprom.type);
   setVref(eeprom.vref);
-  setSlope(eeprom.slope);
+  setSensitivity(eeprom.sensitivity);
   setInUse(eeprom.inUse);
 
   reset();
@@ -31,7 +31,7 @@ void PowerSensor::Sensor::writeToEEPROM(int fd) const {
 
   strlcpy(eeprom.type, type, sizeof type);
   eeprom.vref = vref;
-  eeprom.slope = slope;
+  eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
 
   ssize_t retVal, bytesWritten = 0;
@@ -49,7 +49,7 @@ void PowerSensor::Sensor::reset() {
 
 void PowerSensor::Sensor::updateLevel(uint16_t level) {
   this->level = level;
-  valueAtLastMeasurement = slope * (VOLTAGE * level / MAX_LEVEL - vref);
+  valueAtLastMeasurement = sensitivity * (VOLTAGE * level / MAX_LEVEL - vref);
 }
 
 double PowerSensor::Sensor::getValue() const {
@@ -64,8 +64,8 @@ void PowerSensor::Sensor::setVref(const float vref) {
   this->vref = vref;
 }
 
-void PowerSensor::Sensor::setSlope(const float slope) {
-  this->slope = slope;
+void PowerSensor::Sensor::setSensitivity(const float sensitivity) {
+  this->sensitivity = sensitivity;
 }
 
 void PowerSensor::Sensor::setInUse(const bool inUse) {

@@ -42,12 +42,12 @@ class PowerSensor {
 
     void setType(unsigned int sensorID, const char* type);
     void setVref(unsigned int sensorID, const float vref);
-    void setSlope(unsigned int sensorID, const float slope);
+    void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
 
     void getType(unsigned int sensorID, char* type) const;
     float getVref(unsigned int sensorID) const;
-    float getSlope(unsigned int sensorID) const;
+    float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
 
  private:
@@ -82,19 +82,19 @@ class PowerSensor {
       struct EEPROM {
         char type[16];
         float vref;
-        float slope;
+        float sensitivity;
         bool inUse;
       } __attribute__((packed));
 
       char type[16];
       float vref;
-      float slope;
+      float sensitivity;
       bool inUse;
       uint16_t level;
       double valueAtLastMeasurement;
       void setType(const char* type);
       void setVref(const float vref);
-      void setSlope(const float slope);
+      void setSensitivity(const float slope);
       void setPairId(const uint8_t PairId);
       void setInUse(const bool inUse);
       double getValue() const;
