@@ -10,7 +10,7 @@ namespace PowerSensor {
 
 void PowerSensor::Sensor::readFromEEPROM(int fd) {
   EEPROM eeprom;
-  ssize_t retVal, bytesRead = 0;
+  unsigned int retVal, bytesRead = 0;
   do {
       if ((retVal = ::read(fd, reinterpret_cast<char *>(&eeprom) + bytesRead, sizeof eeprom - bytesRead)) < 0) {
         perror("read device");
@@ -34,7 +34,7 @@ void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
 
-  ssize_t retVal, bytesWritten = 0;
+  unsigned int retVal, bytesWritten = 0;
   do {
       if ((retVal = ::write(fd, reinterpret_cast<char *>(&eeprom) + bytesWritten, sizeof eeprom - bytesWritten)) < 0) {
         perror("write device");
