@@ -131,9 +131,8 @@ int main(int argc, char *argv[]) {
         getPowerSensor(device)->setType(sensor, optarg);
         // set default sensitivity (zero for unknown sensor)
         float sensitivity = getDefaultSensitivity(optarg);
-        std::cerr << "Would set sensitivity to " << sensitivity << std::endl;
-        // if (sensitivity > 0)
-          // getPowerSensor(device)->setSensitivity(sensor, sensitivity);
+        if (sensitivity > 0)
+          getPowerSensor(device)->setSensitivity(sensor, sensitivity);
         break;
       }
 
@@ -149,7 +148,7 @@ int main(int argc, char *argv[]) {
 
       // sensor on/off
       case 'o':
-        getPowerSensor(device)->setInUse(sensor, static_cast<bool>(optarg));
+        getPowerSensor(device)->setInUse(sensor, static_cast<bool>(atoi(optarg)));
         break;
 
       // print
