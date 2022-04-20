@@ -142,15 +142,36 @@ namespace PowerSensor {
   }
 
   void PowerSensor::writeSensorsToEEPROM() {
+    // ensure no data is streaming to host
+    stopIOThread();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // drain any remaining incoming data
+    tcflush(fd, TCIFLUSH);
+    // signal device to receive EEPROM data
     if (write(fd, "W", 1) != 1) {
       perror("write device");
       exit(1);
     }
+    // send EEPROM data
     for (const Sensor& sensor : sensors) {
       sensor.writeToEEPROM(fd);
     }
-    // sleep for 10ms to allow the device to process the new settings
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // wait for device to finish processing the new EEPROM data
+    char buffer;
+    ssize_t bytesRead;
+    do {
+      if ((bytesRead = ::read(fd, &buffer, 1)) < 0) {
+        perror("read");
+        exit(1);
+      }
+    } while ((bytesRead) < 1);
+
+    if (buffer != 'D') {
+      std::cerr << "Expected to receive 'D' from device after writing configuration, but got " << buffer << std::endl;
+      exit(1);
+    }
+    // restart IO thread
+    startIOThread();
   }
 
   void PowerSensor::initializeSensorPairs() {

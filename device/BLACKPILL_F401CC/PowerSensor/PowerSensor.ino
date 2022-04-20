@@ -61,14 +61,14 @@ void writeConfig() {
   // read config from host and write to virtual EEPROM
   uint8_t* p_eeprom = (uint8_t*) &eeprom;
   for (int i=0; i < sizeof eeprom; i++) {
-    while (Serial.available() == 0) {
-    }
     p_eeprom[i] = Serial.read();
   }
   // store updated EEPROM data to flash
   writeEEPROMToFlash();
   // reconfigure the device
   configureDevice();
+  // signal to host that device is ready
+  Serial.write('D');
 }
 
 void readEEPROMFromFlash() {
