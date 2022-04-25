@@ -1,5 +1,6 @@
 #include <omp.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <iostream>
 #include <cstring>
@@ -29,7 +30,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
-  strlcpy(eeprom.type, type, sizeof type);
+  strncpy(eeprom.type, type, sizeof type);
   eeprom.vref = vref;
   eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
@@ -57,7 +58,7 @@ double PowerSensor::Sensor::getValue() const {
 }
 
 void PowerSensor::Sensor::setType(const char* type) {
-  strlcpy(this->type, type, sizeof type);
+  strncpy(this->type, type, sizeof type);
 }
 
 void PowerSensor::Sensor::setVref(const float vref) {
