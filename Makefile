@@ -42,6 +42,10 @@ upload: device
 python:
 	$(MAKE) -C $@
 
+emulator: emulator/src/emulator.cc emulator/src/device.cc
+	-mkdir -p emulator/bin
+	$(CXX) $(CXXFLAGS) $(INC) -Iemulator/include -o emulator/bin/emulator $^
+
 clean:
 	$(RM) -r host/bin host/lib host/obj device/$(BOARD)/PowerSensor/build
 	$(MAKE) -C python clean
