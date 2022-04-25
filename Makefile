@@ -39,5 +39,9 @@ device::
 upload:: device
 	arduino-cli upload $(OPT) --fqbn $(FQBN) -i device/$(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
 
+emulator: emulator/src/emulator.cc emulator/src/device.cc
+	-mkdir -p emulator/bin
+	$(CXX) $(CXXFLAGS) $(INC) -Iemulator/include -o emulator/bin/emulator $^
+
 clean:
 	$(RM) -r host/bin host/lib host/obj device/$(BOARD)/PowerSensor/build
