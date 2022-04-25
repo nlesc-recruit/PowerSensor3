@@ -21,7 +21,7 @@ unsigned int counter = 0;
 void initEEPROM() {
   for (ssize_t i = 0; i < PowerSensor::MAX_SENSORS; i++) {
     const char* type = "Type";
-    strlcpy(eeprom.sensors[i].type, type, sizeof type);
+    strncpy(eeprom.sensors[i].type, type, sizeof type);
     eeprom.sensors[i].vref = 1.65;
     eeprom.sensors[i].sensitivity = 1.0;
     eeprom.sensors[i].inUse = true;

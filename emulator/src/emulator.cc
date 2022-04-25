@@ -8,6 +8,7 @@
 #include <termios.h>
 #include <limits.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <thread>
 #include <iostream>
