@@ -2,6 +2,7 @@
 #include <omp.h>
 #include <termios.h>
 #include <unistd.h>
+#include <sys/file.h>
 
 #include <chrono>
 #include <iostream>
@@ -399,7 +400,7 @@ namespace PowerSensor {
   }
 
   void PowerSensor::getType(unsigned int sensorID, char* type) const {
-    strlcpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
+    strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
   }
 
   float PowerSensor::getVref(unsigned int sensorID) const {
