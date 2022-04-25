@@ -17,9 +17,9 @@ static const float VOLTAGE = 3.3;
 static const unsigned MAX_LEVEL = 1023;
 
 struct State {
-  double consumedEnergy[MAX_PAIRS];
-  double current[MAX_PAIRS];
-  double voltage[MAX_PAIRS];
+  std::array<double, MAX_PAIRS> consumedEnergy;
+  std::array<double, MAX_PAIRS> current;
+  std::array<double, MAX_PAIRS> voltage;
   double timeAtRead;
 };
 
