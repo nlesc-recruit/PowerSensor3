@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-import powersensor
+import sys
 from time import sleep
-import IPython
+
+import powersensor
 
 if __name__ == '__main__':
-    ps = powersensor.PowerSensor("/dev/cu.usbmodem386A367F32371")
+    try:
+        device = sys.argv[1]
+    except IndexError:
+        device = "/dev/cu.usbmodem386A367F32371"
+    print(f"Using device at {device}")
+
+    ps = powersensor.PowerSensor(device)
     ps.dump("output.txt")
     sleep(1)
     state1 = ps.read()
@@ -32,4 +39,3 @@ if __name__ == '__main__':
             value = getattr(powersensor, func)(state1, state2, 0)  # first sensor
         print(f'{value:.2f} {func}')
 
-    #IPython.embed()
