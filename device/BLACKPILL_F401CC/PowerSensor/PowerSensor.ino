@@ -24,9 +24,13 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
+const int numSampleToAverage = 6; // number of samples to average
+
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
+uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
+uint16_t currentSample = 0;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
@@ -115,7 +119,7 @@ void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;
 
   // Apply settings
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
@@ -157,7 +161,7 @@ void configureADCChannels() {
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);
   }
 
 }
@@ -220,26 +224,43 @@ void configureNVIC() {
 extern "C" void DMA2_Stream0_IRQHandler() {
   // send ADC values to host if enabled
   if (streamValues | sendSingleValue) {
-    sendADCValue();
+    storeADCValues();
   }
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void sendADCValue() {
+void storeADCValues() {
+  // loop over sensors and store each value at current location in averaging buffer
+  for (uint8_t i = 0; i < numSensor; i++) {
+    avgBuffer[i][currentSample] = dmaBuffer[i];
+  }
+  currentSample++;
+  // if the buffer is full, send the values and reset
+  if (currentSample >= numSampleToAverage) {
+    sendADCValues();
+    currentSample = 0;
+  }
+}
+
+void sendADCValues() {
   // send all values over serial
   uint8_t data[numSensor*2];  // 2 bytes per sensor
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
-    // pointer to level of current sensor
-    uint16_t* level = dmaBuffer + i;
+    // calculate average level of current sensor
+    uint16_t level = 0.;
+    for (uint8_t j = 0; j < numSampleToAverage; j++) {
+      level += avgBuffer[i][j];
+    }
+    level /= numSampleToAverage;
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
-    data[2*i] = ((sensor_id & 0x7) << 4) | ((*level & 0x3C0) >> 6) | (1 << 7);
+    data[2*i] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    data[2*i+1] = ((sendMarkerNext << 6) | (*level & 0x3F)) & ~(1 << 7);
+    data[2*i+1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }
