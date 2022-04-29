@@ -22,13 +22,14 @@ PYBIND11_MODULE(powersensor, m) {
   py::class_<PowerSensor::PowerSensor>(m, "PowerSensor")
     .def(py::init<const char*>())
     .def("read", &PowerSensor::PowerSensor::read, "Read current sensor values")
-    .def("dump", &PowerSensor::PowerSensor::dump, "Dump sensor values to file. Set filename to empty string to stop dumping",
-      py::arg("filename"))
+    .def("dump", &PowerSensor::PowerSensor::dump,
+      "Dump sensor values to file. Set filename to empty string to stop dumping", py::arg("filename"))
     .def("mark", static_cast<void (PowerSensor::PowerSensor::*)(char)>(&PowerSensor::PowerSensor::mark),
       "Add given marker character to dump file", py::arg("Marker character"));
 
   py::class_<PowerSensor::State>(m, "State")
-    .def_readonly("consumed_energy", &PowerSensor::State::consumedEnergy , "Total energy consumption (J), counted from initialization of PowerSensor device")
+    .def_readonly("consumed_energy", &PowerSensor::State::consumedEnergy,
+      "Total energy consumption (J), counted from initialization of PowerSensor device")
     .def_readonly("current", &PowerSensor::State::current, "Current current (A)")
     .def_readonly("voltage", &PowerSensor::State::voltage, "Current voltage (V)")
     .def_readonly("time_at_read", &PowerSensor::State::timeAtRead, "Current time (s)");
