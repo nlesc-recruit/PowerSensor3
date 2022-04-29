@@ -19,9 +19,9 @@ if __name__ == '__main__':
     sleep(2)
     state2 = ps.read()
 
-    keys = ["consumed_energy", "current", "voltage", "time_at_read"]
-    units = dict(zip(keys, ["J", "A", "V", "s"]))
-    print("State values:")
+    keys = ["consumed_energy", "voltage", "current", "time_at_read"]
+    units = dict(zip(keys, ["J", "V", "A", "s"]))
+    print("\nSingle state values:")
     for key in keys:
         value = getattr(state1, key)
         if isinstance(value, list):
@@ -30,12 +30,14 @@ if __name__ == '__main__':
             formatted_value = f"{value:.2f}"
         print(f'{key}: {formatted_value} {units[key]}')
 
-    print("Comparing two states:")
-    funcs = ["Joules", "seconds", "Watt", "Volt", "Ampere"]
+    print("\nComparing two states:")
+    print(f"Passed time: {powersensor.seconds(state1, state2):.2f} s")
+    print(f"Total energy: {powersensor.Joules(state1, state2, -1):.2f} J")
+    print("\nTotals/averages per sensor pair:")
+    funcs = ["Joules", "Watt", "Volt", "Ampere"]
+    units = dict(zip(funcs, ["J (total)", "W (avg)", "V (avg)", "A (avg)"]))
     for func in funcs:
-        if func == 'seconds':
-            value = getattr(powersensor, func)(state1, state2)
-        else:
-            value = getattr(powersensor, func)(state1, state2, 0)  # first sensor
-        print(f'{value:.2f} {func}')
+        values = [getattr(powersensor, func)(state1, state2, i) for i in range(4)]
+        formatted_value = ' '.join([f'{item:.2f}' for item in values])
+        print(f'{formatted_value} {units[func]}')
 
