@@ -6,6 +6,8 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(powersensor, m) {
+  m.attr("MAX_PAIRS") = py::int_(PowerSensor::MAX_PAIRS);
+
   m.def("Joules", &PowerSensor::Joules, "Compute total energy usage between two states",
     py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
   m.def("seconds", &PowerSensor::seconds, "Compute time difference between two states",
