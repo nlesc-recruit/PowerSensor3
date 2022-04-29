@@ -11,10 +11,10 @@
 
 namespace PowerSensor {
 
-static const unsigned MAX_SENSORS = 8;
-static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
-static const float VOLTAGE = 3.3;
-static const unsigned MAX_LEVEL = 1023;
+const unsigned MAX_SENSORS = 8;
+const unsigned MAX_PAIRS = MAX_SENSORS / 2;
+const float VOLTAGE = 3.3;
+const unsigned MAX_LEVEL = 1023;
 
 struct State {
   double consumedEnergy[MAX_PAIRS];
