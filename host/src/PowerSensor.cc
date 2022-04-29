@@ -205,7 +205,7 @@ namespace PowerSensor {
   bool PowerSensor::readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker) {
       // buffer for one set of sensor data (2 bytes)
       uint8_t buffer[2];
-      ssize_t retVal, bytesRead = 0;
+      unsigned int retVal, bytesRead = 0;
       // loop exits when a valid value has been read from the device
       while (true) {
         // read full buffer
