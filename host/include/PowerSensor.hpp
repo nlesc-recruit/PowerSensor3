@@ -36,16 +36,16 @@ class PowerSensor {
 
     State read() const;
 
-    void dump(const char *dumpFileName);  // dumpFileName == 0 --> stop dumping
+    void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
-    void mark(const State &startState, const State &stopState, const char *name = 0, unsigned int tag = 0) const;
+    void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
 
-    void setType(unsigned int sensorID, const char* type);
+    void setType(unsigned int sensorID, const std::string type);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
 
-    void getType(unsigned int sensorID, char* type) const;
+    std::string getType(unsigned int sensorID) const;
     float getVref(unsigned int sensorID) const;
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
@@ -86,13 +86,13 @@ class PowerSensor {
         bool inUse;
       } __attribute__((packed));
 
-      char type[16];
+      std::string type;
       float vref;
       float sensitivity;
       bool inUse;
       uint16_t level;
       double valueAtLastMeasurement;
-      void setType(const char* type);
+      void setType(const std::string type);
       void setVref(const float vref);
       void setSensitivity(const float slope);
       void setPairId(const uint8_t PairId);

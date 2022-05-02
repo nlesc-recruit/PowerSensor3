@@ -62,12 +62,9 @@ void print() {
 
   measureSensors(&startState, &stopState);
 
-  char type[16];
   std::string sensorType;
   char unit;
   for (unsigned sensor = 0; sensor < PowerSensor::MAX_SENSORS; sensor++) {
-    powerSensor->getType(sensor, type);
-
     if (sensor % 2 == 0) {
       sensorType = "current";
       unit = 'A';
@@ -77,7 +74,7 @@ void print() {
     }
 
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
-      "type: " << type << ", "
+      "type: " << powerSensor->getType(sensor) << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
       "Sensitivity: " << powerSensor->getSensitivity(sensor) << " " << unit << " / V, "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;

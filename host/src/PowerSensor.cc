@@ -247,11 +247,11 @@ namespace PowerSensor {
     markers.pop();
   }
 
-  void PowerSensor::mark(const State &startState, const State &stopState, const char* name, unsigned int tag) const {
+  void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
     if (dumpFile != nullptr) {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
       *dumpFile << "M " << startState.timeAtRead - startTime << ' ' << stopState.timeAtRead - startTime << ' ' \
-        << tag << " \"" << (name == nullptr ? "" : name) << '"' << std::endl;
+        << tag << " \"" << name << '"' << std::endl;
     }
   }
 
@@ -305,8 +305,8 @@ namespace PowerSensor {
     }
   }
 
-  void PowerSensor::dump(const char* dumpFileName) {
-    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
+  void PowerSensor::dump(std::string dumpFileName) {
+    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
   }
 
   void PowerSensor::dumpCurrentWattToFile() {
@@ -399,8 +399,8 @@ namespace PowerSensor {
     return sensorPairs[pairID].consumedEnergy + energy;
   }
 
-  void PowerSensor::getType(unsigned int sensorID, char* type) const {
-    strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
+  std::string PowerSensor::getType(unsigned int sensorID) const {
+    return sensors[sensorID].type;
   }
 
   float PowerSensor::getVref(unsigned int sensorID) const {
@@ -415,7 +415,7 @@ namespace PowerSensor {
     return sensors[sensorID].inUse;
   }
 
-  void PowerSensor::setType(unsigned int sensorID, const char* type) {
+  void PowerSensor::setType(unsigned int sensorID, const std::string type) {
     sensors[sensorID].setType(type);
     writeSensorsToEEPROM();
   }
