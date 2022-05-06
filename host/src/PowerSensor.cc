@@ -322,6 +322,8 @@ namespace PowerSensor {
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse) {
         totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
+        *dumpFile << ' ' << sensorPairs[pairID].currentAtLastMeasurement;
+        *dumpFile << ' ' << sensorPairs[pairID].voltageAtLastMeasurement;
         *dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
       }
     }
