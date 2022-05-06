@@ -35,13 +35,13 @@ float getDefaultSensitivity(std::string type) {
   // Current sensors. These are of type MLX91221KDF-ABF-0NN-RE, where NN is the number after
   // MLX in the shortened name
   if (type.compare("MLX10") == 0) {
-    sensitivity = .120;
+    sensitivity = 8.3333;
   } else if (type.compare("MLX20") == 0) {
-    sensitivity = .0625;
+    sensitivity = 16.0;
   } else if (type.compare("MLX50") == 0) {
-    sensitivity = .025;
+    sensitivity = 40.0;
   } else if (type.compare("MLX75") == 0) {
-    sensitivity = .01667;
+    sensitivity = 60.0;
   } else {
     std::cerr << "No sensitivity known for sensor of type " << type << "."
                  " Please make sure to set sensitivity manually with the -n option." << std::endl;
