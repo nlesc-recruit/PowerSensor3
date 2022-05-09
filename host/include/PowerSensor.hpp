@@ -32,7 +32,7 @@ double Ampere(const State &firstState, const State &secondState, int pairID);
 
 class PowerSensor {
  public:
-    explicit PowerSensor(const char* device);
+    explicit PowerSensor(std::string device);
     ~PowerSensor();
 
     State read() const;
@@ -41,6 +41,7 @@ class PowerSensor {
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
 
+    void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
@@ -55,7 +56,7 @@ class PowerSensor {
     static const unsigned MAX_TYPE_LENGTH = 16;
 
     int fd;
-    int openDevice(const char* device);
+    int openDevice(std::string device);
     std::queue<char> markers;
     void writeMarker();
 
@@ -64,7 +65,6 @@ class PowerSensor {
     void updateSensorPairs();
 
     void readSensorsFromEEPROM();
-    void writeSensorsToEEPROM();
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
     std::unique_ptr<std::ofstream> dumpFile;

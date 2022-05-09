@@ -3,11 +3,12 @@
 #include <chrono>
 #include <iostream>
 #include <iomanip>
+#include <string>
 
 #include "PowerSensor.hpp"
 
 int main() {
-  const char* device = "/dev/cu.usbmodem386A367F32371";
+  std::string device = "/dev/cu.usbmodem386A367F32371";
 
   PowerSensor::PowerSensor ps(device);
   std::this_thread::sleep_for(std::chrono::milliseconds(10));

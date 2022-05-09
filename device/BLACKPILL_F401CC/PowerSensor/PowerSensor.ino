@@ -1,14 +1,12 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
-#define EEPROM_BASE_ADDRESS 0x1111
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
 #include <stm32f4xx_ll_adc.h>  // ADC control
 #include <stm32f4xx_ll_gpio.h> // GPIO control
 #include <stm32f4xx_ll_dma.h>  // DMA control
-#include "eeprom.h"
-uint32_t counter;
+#include <EEPROM.h>
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
                                   LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
@@ -25,7 +23,7 @@ const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GP
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
 const int numSampleToAverage = 6; // number of samples to average
-
+uint32_t counter;
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
@@ -42,19 +40,9 @@ struct Sensor {
   bool inUse;
 } __attribute__((packed));
 
-struct EEPROM {
+struct Config {
   Sensor sensors[MAX_SENSORS];
 } eeprom;
-
-const uint16_t eepromSize = sizeof(eeprom) / 2;  // size of EEPROM in half-words
-uint16_t VirtAddVarTab[eepromSize];
-
-void generateVirtualAddresses() {
-  uint16_t addr = EEPROM_BASE_ADDRESS;
-  for (int i = 0; i < eepromSize; i++) {
-    VirtAddVarTab[i] = addr++;
-  }
-}
 
 void readConfig() {
   // send config in virtual EEPROM to host
@@ -78,23 +66,23 @@ void writeConfig() {
 }
 
 void readEEPROMFromFlash() {
-  // read per half-word
-  uint16_t* p_eeprom = (uint16_t*) &eeprom;
-  for (int i=0; i < eepromSize; i++) {
-    EE_ReadVariable(VirtAddVarTab[i], p_eeprom);
-    p_eeprom++;
-    delay(1);
+  // copy from flash to buffer
+  eeprom_buffer_fill();
+  // read buffer per byte
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (uint16_t i=0; i < sizeof eeprom; i++) {
+    *p_eeprom++ = eeprom_buffered_read_byte(i);
   }
 }
 
 void writeEEPROMToFlash() {
-  // write per half-word
-  uint16_t* p_eeprom = (uint16_t*) &eeprom;
-  for (int i=0; i < eepromSize; i++) {
-    EE_WriteVariable(VirtAddVarTab[i], *p_eeprom);
-    p_eeprom++;
-    delay(1);
+  // write buffer per byte
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (uint16_t i=0; i < sizeof eeprom; i++) {
+    eeprom_buffered_write_byte(i, *p_eeprom++);
   }
+  // copy from buffer to flash
+  eeprom_buffer_flush();
 }
 
 void getActiveSensors() {
@@ -331,10 +319,7 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH); // HIGH is off
 
-  // Setup and read virtual EEPROM data
-  generateVirtualAddresses();
-  HAL_FLASH_Unlock();
-  EE_Init();
+  // read virtual EEPROM data
   readEEPROMFromFlash();
 
   // enable clocks

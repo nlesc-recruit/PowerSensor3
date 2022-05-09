@@ -55,7 +55,7 @@ namespace PowerSensor {
     return .5 * (firstState.current[pairID] + secondState.current[pairID]);
   }
 
-  PowerSensor::PowerSensor(const char* device):
+  PowerSensor::PowerSensor(std::string device):
     fd(openDevice(device)),
     thread(nullptr),
     startTime(omp_get_wtime()) {
@@ -87,12 +87,12 @@ namespace PowerSensor {
     return state;
   }
 
-  int PowerSensor::openDevice(const char* device) {
+  int PowerSensor::openDevice(std::string device) {
     int fileDescriptor;
 
     // opens the file specified by pathname;
-    if ((fileDescriptor = open(device, O_RDWR)) < 0) {
-      perror(device);
+    if ((fileDescriptor = open(device.c_str(), O_RDWR)) < 0) {
+      perror(device.c_str());
       exit(1);
     }
     // block if an incompatible lock is held by another process;
@@ -417,22 +417,18 @@ namespace PowerSensor {
 
   void PowerSensor::setType(unsigned int sensorID, const std::string type) {
     sensors[sensorID].setType(type);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setVref(unsigned int sensorID, const float vref) {
     sensors[sensorID].setVref(vref);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setSensitivity(unsigned int sensorID, const float sensitivity) {
     sensors[sensorID].setSensitivity(sensitivity);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
-    writeSensorsToEEPROM();
   }
 
 }  // namespace PowerSensor

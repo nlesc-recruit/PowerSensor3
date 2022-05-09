@@ -19,7 +19,14 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
       }
   } while ((bytesRead += retVal) < sizeof eeprom);
 
-  setType(std::string(eeprom.type));
+  // If EEPROM is corrupted, type name may be too long. Avoid unrecoverable situation by changing type if that happens
+  std::string type = eeprom.type;
+  if (type.length() >= MAX_TYPE_LENGTH) {
+    std::cerr << "Read invalid type from device, EEPROM data may be corrupt" << std::endl;
+    type = "INVALID";
+  }
+
+  setType(type);
   setVref(eeprom.vref);
   setSensitivity(eeprom.sensitivity);
   setInUse(eeprom.inUse);
