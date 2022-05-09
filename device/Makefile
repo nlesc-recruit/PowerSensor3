@@ -16,9 +16,9 @@ USB =				CDCgen
 all: device
 
 device:
-	arduino-cli compile -e --fqbn $(FQBN) device/$(BOARD)/PowerSensor
+	arduino-cli compile -e --fqbn $(FQBN) $(BOARD)/PowerSensor
 
 upload: device
-	arduino-cli upload $(OPT) --fqbn $(FQBN) -i device/$(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
+	arduino-cli upload $(OPT) --fqbn $(FQBN) -i $(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
 
 .PHONY: all
