@@ -76,7 +76,7 @@ void print() {
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
       "type: " << powerSensor->getType(sensor) << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
-      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " " << unit << " / V, "
+      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " mV/" << unit << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
