@@ -112,6 +112,8 @@ void usage(char *argv[]) {
 int main(int argc, char *argv[]) {
   std::string device;
   bool doWriteConfig = false;
+  bool doPrint = false;
+
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
@@ -155,8 +157,7 @@ int main(int argc, char *argv[]) {
 
       // print
       case 'p':
-        getPowerSensor(device);
-        print();
+        doPrint = true;
         break;
 
       // help
@@ -173,8 +174,14 @@ int main(int argc, char *argv[]) {
   if ((optind < argc) || (argc < 2))
     usage(argv);
 
-  if (doWriteConfig)
+  if (doWriteConfig) {
     getPowerSensor(device)->writeSensorsToEEPROM();
+  }
+
+  if (doPrint) {
+    getPowerSensor(device);
+    print();
+  }
 
   return 0;
 }
