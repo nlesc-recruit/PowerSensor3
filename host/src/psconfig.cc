@@ -111,6 +111,7 @@ void usage(char *argv[]) {
 
 int main(int argc, char *argv[]) {
   std::string device;
+  bool doWriteConfig = false;
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
@@ -130,22 +131,26 @@ int main(int argc, char *argv[]) {
         float sensitivity = getDefaultSensitivity(optarg);
         if (sensitivity > 0)
           getPowerSensor(device)->setSensitivity(sensor, sensitivity);
+        doWriteConfig = true;
         break;
       }
 
       // sensor reference voltage
       case 'v':
         getPowerSensor(device)->setVref(sensor, atof(optarg));
+        doWriteConfig = true;
         break;
 
       // sensor sensitivity
       case 'n':
         getPowerSensor(device)->setSensitivity(sensor, atof(optarg));
+        doWriteConfig = true;
         break;
 
       // sensor on/off
       case 'o':
         getPowerSensor(device)->setInUse(sensor, static_cast<bool>(atoi(optarg)));
+        doWriteConfig = true;
         break;
 
       // print
@@ -167,6 +172,9 @@ int main(int argc, char *argv[]) {
 
   if ((optind < argc) || (argc < 2))
     usage(argv);
+
+  if (doWriteConfig)
+    getPowerSensor(device)->writeSensorsToEEPROM();
 
   return 0;
 }

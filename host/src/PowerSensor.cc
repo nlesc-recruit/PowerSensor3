@@ -417,22 +417,18 @@ namespace PowerSensor {
 
   void PowerSensor::setType(unsigned int sensorID, const std::string type) {
     sensors[sensorID].setType(type);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setVref(unsigned int sensorID, const float vref) {
     sensors[sensorID].setVref(vref);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setSensitivity(unsigned int sensorID, const float sensitivity) {
     sensors[sensorID].setSensitivity(sensitivity);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
-    writeSensorsToEEPROM();
   }
 
 }  // namespace PowerSensor

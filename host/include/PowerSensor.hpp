@@ -41,6 +41,7 @@ class PowerSensor {
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
 
+    void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
@@ -64,7 +65,6 @@ class PowerSensor {
     void updateSensorPairs();
 
     void readSensorsFromEEPROM();
-    void writeSensorsToEEPROM();
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
     std::unique_ptr<std::ofstream> dumpFile;
