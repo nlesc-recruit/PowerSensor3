@@ -52,6 +52,8 @@ class PowerSensor {
     bool getInUse(unsigned int sensorID) const;
 
  private:
+    static const unsigned MAX_TYPE_LENGTH = 16;
+
     int fd;
     int openDevice(const char* device);
     std::queue<char> markers;
@@ -81,7 +83,7 @@ class PowerSensor {
 
     struct Sensor {
       struct EEPROM {
-        char type[16];
+        char type[MAX_TYPE_LENGTH];
         float vref;
         float sensitivity;
         bool inUse;

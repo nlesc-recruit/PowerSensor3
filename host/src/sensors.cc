@@ -30,7 +30,6 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
-
   strncpy(eeprom.type, type.c_str(), type.length() + 1);  // plus one for null termination character
   eeprom.vref = vref;
   eeprom.sensitivity = sensitivity;
@@ -60,8 +59,9 @@ double PowerSensor::Sensor::getValue() const {
 }
 
 void PowerSensor::Sensor::setType(const std::string type) {
-  if (type.length() > 15) {
-    std::cerr << "Sensor type name can be at most 15 characters" << std::endl;
+  if (type.length() >= MAX_TYPE_LENGTH) {
+    // MAX_TYPE_LENGTH includes null termination character
+    std::cerr << "Sensor type name can be at most " << MAX_TYPE_LENGTH - 1 << " characters" << std::endl;
     exit(1);
   } else {
     this->type = type;
