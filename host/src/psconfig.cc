@@ -23,7 +23,7 @@ PowerSensor::PowerSensor *getPowerSensor(std::string device) {
   if (device.empty())
     device = "/dev/ttyACM0";
   if (powerSensor.get() == nullptr)
-    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device.c_str()));
+    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device));
 
   return powerSensor.get();
 }

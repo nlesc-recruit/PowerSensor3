@@ -32,7 +32,7 @@ double Ampere(const State &firstState, const State &secondState, int pairID);
 
 class PowerSensor {
  public:
-    explicit PowerSensor(const char* device);
+    explicit PowerSensor(std::string device);
     ~PowerSensor();
 
     State read() const;
@@ -55,7 +55,7 @@ class PowerSensor {
     static const unsigned MAX_TYPE_LENGTH = 16;
 
     int fd;
-    int openDevice(const char* device);
+    int openDevice(std::string device);
     std::queue<char> markers;
     void writeMarker();
 
