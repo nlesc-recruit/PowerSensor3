@@ -99,7 +99,7 @@ void usage(char *argv[]) {
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
-  std::cerr << "-n set the sensitivity (in V/A for current sensors, or V/V for voltage sensors)" << std::endl;
+  std::cerr << "-n set the sensitivity (in mV/A for current sensors, or mV/V for voltage sensors)" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 "
