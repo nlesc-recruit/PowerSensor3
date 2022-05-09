@@ -6,6 +6,7 @@
 #include <fstream>
 #include <queue>
 #include <memory>
+#include <string>
 
 #include "Semaphore.hpp"
 
@@ -36,21 +37,23 @@ class PowerSensor {
 
     State read() const;
 
-    void dump(const char *dumpFileName);  // dumpFileName == 0 --> stop dumping
+    void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
-    void mark(const State &startState, const State &stopState, const char *name = 0, unsigned int tag = 0) const;
+    void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
 
-    void setType(unsigned int sensorID, const char* type);
+    void setType(unsigned int sensorID, const std::string type);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
 
-    void getType(unsigned int sensorID, char* type) const;
+    std::string getType(unsigned int sensorID) const;
     float getVref(unsigned int sensorID) const;
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
 
  private:
+    static const unsigned MAX_TYPE_LENGTH = 16;
+
     int fd;
     int openDevice(const char* device);
     std::queue<char> markers;
@@ -80,19 +83,19 @@ class PowerSensor {
 
     struct Sensor {
       struct EEPROM {
-        char type[16];
+        char type[MAX_TYPE_LENGTH];
         float vref;
         float sensitivity;
         bool inUse;
       } __attribute__((packed));
 
-      char type[16];
+      std::string type;
       float vref;
       float sensitivity;
       bool inUse;
       uint16_t level;
       double valueAtLastMeasurement;
-      void setType(const char* type);
+      void setType(const std::string type);
       void setVref(const float vref);
       void setSensitivity(const float slope);
       void setPairId(const uint8_t PairId);

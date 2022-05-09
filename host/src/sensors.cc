@@ -19,7 +19,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
       }
   } while ((bytesRead += retVal) < sizeof eeprom);
 
-  setType(eeprom.type);
+  setType(std::string(eeprom.type));
   setVref(eeprom.vref);
   setSensitivity(eeprom.sensitivity);
   setInUse(eeprom.inUse);
@@ -30,7 +30,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
-  strncpy(eeprom.type, type, sizeof type);
+  strncpy(eeprom.type, type.c_str(), type.length() + 1);  // plus one for null termination character
   eeprom.vref = vref;
   eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
@@ -58,8 +58,14 @@ double PowerSensor::Sensor::getValue() const {
   return valueAtLastMeasurement;
 }
 
-void PowerSensor::Sensor::setType(const char* type) {
-  strncpy(this->type, type, sizeof type);
+void PowerSensor::Sensor::setType(const std::string type) {
+  if (type.length() >= MAX_TYPE_LENGTH) {
+    // MAX_TYPE_LENGTH includes null termination character
+    std::cerr << "Sensor type name can be at most " << MAX_TYPE_LENGTH - 1 << " characters" << std::endl;
+    exit(1);
+  } else {
+    this->type = type;
+  }
 }
 
 void PowerSensor::Sensor::setVref(const float vref) {
