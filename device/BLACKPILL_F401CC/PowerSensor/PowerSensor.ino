@@ -44,7 +44,6 @@ struct Config {
   Sensor sensors[MAX_SENSORS];
 } eeprom;
 
-
 void readConfig() {
   // send config in virtual EEPROM to host
   Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
@@ -59,11 +58,31 @@ void writeConfig() {
     p_eeprom[i] = Serial.read();
   }
   // store updated EEPROM data to flash
-  EEPROM.put(0, eeprom);
+  writeEEPROMToFlash();
   // reconfigure the device
   configureDevice();
   // signal to host that device is ready
   Serial.write('D');
+}
+
+void readEEPROMFromFlash() {
+  // copy from flash to buffer
+  eeprom_buffer_fill();
+  // read buffer per byte
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (uint16_t i=0; i < sizeof eeprom; i++) {
+    *p_eeprom++ = eeprom_buffered_read_byte(i);
+  }
+}
+
+void writeEEPROMToFlash() {
+  // write buffer per byte
+  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  for (uint16_t i=0; i < sizeof eeprom; i++) {
+    eeprom_buffered_write_byte(i, *p_eeprom++);
+  }
+  // copy from buffer to flash
+  eeprom_buffer_flush();
 }
 
 void getActiveSensors() {
@@ -301,7 +320,7 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH); // HIGH is off
 
   // read virtual EEPROM data
-  EEPROM.get(0, eeprom);
+  readEEPROMFromFlash();
 
   // enable clocks
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
