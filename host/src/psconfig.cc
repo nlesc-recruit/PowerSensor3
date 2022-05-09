@@ -29,19 +29,19 @@ PowerSensor::PowerSensor *getPowerSensor(std::string device) {
 }
 
 float getDefaultSensitivity(std::string type) {
-  // Sensitivity is given in V/A for current sensors, or V/V for voltage sensors
+  // Sensitivity is given in mV/A for current sensors, or mV/V for voltage sensors
   float sensitivity = 0;
 
   // Current sensors. These are of type MLX91221KDF-ABF-0NN-RE, where NN is the number after
   // MLX in the shortened name
   if (type.compare("MLX10") == 0) {
-    sensitivity = .120;
+    sensitivity = 120.;
   } else if (type.compare("MLX20") == 0) {
-    sensitivity = .0625;
+    sensitivity = 62.5;
   } else if (type.compare("MLX50") == 0) {
-    sensitivity = .025;
+    sensitivity = 25.0;
   } else if (type.compare("MLX75") == 0) {
-    sensitivity = .01667;
+    sensitivity = 16.67;
   } else {
     std::cerr << "No sensitivity known for sensor of type " << type << "."
                  " Please make sure to set sensitivity manually with the -n option." << std::endl;
