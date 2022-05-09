@@ -63,8 +63,9 @@ void PowerSensor::Sensor::setType(const std::string type) {
   if (type.length() > 15) {
     std::cerr << "Sensor type name can be at most 15 characters" << std::endl;
     exit(1);
-  } else
-  this->type = type;
+  } else {
+    this->type = type;
+  }
 }
 
 void PowerSensor::Sensor::setVref(const float vref) {

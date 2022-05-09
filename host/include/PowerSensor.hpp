@@ -6,6 +6,7 @@
 #include <fstream>
 #include <queue>
 #include <memory>
+#include <string>
 
 #include "Semaphore.hpp"
 
