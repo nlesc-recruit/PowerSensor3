@@ -55,7 +55,7 @@ namespace PowerSensor {
     return .5 * (firstState.current[pairID] + secondState.current[pairID]);
   }
 
-  PowerSensor::PowerSensor(const char* device):
+  PowerSensor::PowerSensor(std::string device):
     fd(openDevice(device)),
     thread(nullptr),
     startTime(omp_get_wtime()) {
@@ -87,12 +87,12 @@ namespace PowerSensor {
     return state;
   }
 
-  int PowerSensor::openDevice(const char* device) {
+  int PowerSensor::openDevice(std::string device) {
     int fileDescriptor;
 
     // opens the file specified by pathname;
-    if ((fileDescriptor = open(device, O_RDWR)) < 0) {
-      perror(device);
+    if ((fileDescriptor = open(device.c_str(), O_RDWR)) < 0) {
+      perror(device.c_str());
       exit(1);
     }
     // block if an incompatible lock is held by another process;
@@ -247,11 +247,11 @@ namespace PowerSensor {
     markers.pop();
   }
 
-  void PowerSensor::mark(const State &startState, const State &stopState, const char* name, unsigned int tag) const {
+  void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
     if (dumpFile != nullptr) {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
       *dumpFile << "M " << startState.timeAtRead - startTime << ' ' << stopState.timeAtRead - startTime << ' ' \
-        << tag << " \"" << (name == nullptr ? "" : name) << '"' << std::endl;
+        << tag << " \"" << name << '"' << std::endl;
     }
   }
 
@@ -305,8 +305,8 @@ namespace PowerSensor {
     }
   }
 
-  void PowerSensor::dump(const char* dumpFileName) {
-    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName != nullptr ? new std::ofstream(dumpFileName) : nullptr);
+  void PowerSensor::dump(std::string dumpFileName) {
+    dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
   }
 
   void PowerSensor::dumpCurrentWattToFile() {
@@ -401,8 +401,8 @@ namespace PowerSensor {
     return sensorPairs[pairID].consumedEnergy + energy;
   }
 
-  void PowerSensor::getType(unsigned int sensorID, char* type) const {
-    strncpy(type, sensors[sensorID].type, sizeof sensors[sensorID].type);
+  std::string PowerSensor::getType(unsigned int sensorID) const {
+    return sensors[sensorID].type;
   }
 
   float PowerSensor::getVref(unsigned int sensorID) const {
@@ -417,24 +417,20 @@ namespace PowerSensor {
     return sensors[sensorID].inUse;
   }
 
-  void PowerSensor::setType(unsigned int sensorID, const char* type) {
+  void PowerSensor::setType(unsigned int sensorID, const std::string type) {
     sensors[sensorID].setType(type);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setVref(unsigned int sensorID, const float vref) {
     sensors[sensorID].setVref(vref);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setSensitivity(unsigned int sensorID, const float sensitivity) {
     sensors[sensorID].setSensitivity(sensitivity);
-    writeSensorsToEEPROM();
   }
 
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
-    writeSensorsToEEPROM();
   }
 
 }  // namespace PowerSensor

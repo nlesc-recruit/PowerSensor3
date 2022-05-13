@@ -23,25 +23,25 @@ PowerSensor::PowerSensor *getPowerSensor(std::string device) {
   if (device.empty())
     device = "/dev/ttyACM0";
   if (powerSensor.get() == nullptr)
-    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device.c_str()));
+    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device));
 
   return powerSensor.get();
 }
 
 float getDefaultSensitivity(std::string type) {
-  // Sensitivity is given in V/A for current sensors, or V/V for voltage sensors
+  // Sensitivity is given in mV/A for current sensors, or mV/V for voltage sensors
   float sensitivity = 0;
 
   // Current sensors. These are of type MLX91221KDF-ABF-0NN-RE, where NN is the number after
   // MLX in the shortened name
   if (type.compare("MLX10") == 0) {
-    sensitivity = .120;
+    sensitivity = 120.;
   } else if (type.compare("MLX20") == 0) {
-    sensitivity = .0625;
+    sensitivity = 62.5;
   } else if (type.compare("MLX50") == 0) {
-    sensitivity = .025;
+    sensitivity = 25.0;
   } else if (type.compare("MLX75") == 0) {
-    sensitivity = .01667;
+    sensitivity = 16.67;
   } else {
     std::cerr << "No sensitivity known for sensor of type " << type << "."
                  " Please make sure to set sensitivity manually with the -n option." << std::endl;
@@ -62,12 +62,9 @@ void print() {
 
   measureSensors(&startState, &stopState);
 
-  char type[16];
   std::string sensorType;
   char unit;
   for (unsigned sensor = 0; sensor < PowerSensor::MAX_SENSORS; sensor++) {
-    powerSensor->getType(sensor, type);
-
     if (sensor % 2 == 0) {
       sensorType = "current";
       unit = 'A';
@@ -77,9 +74,9 @@ void print() {
     }
 
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
-      "type: " << type << ", "
+      "type: " << powerSensor->getType(sensor) << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, "
-      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " " << unit << " / V, "
+      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " mV/" << unit << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
@@ -102,7 +99,7 @@ void usage(char *argv[]) {
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
-  std::cerr << "-n set the sensitivity (in V/A for current sensors, or V/V for voltage sensors)" << std::endl;
+  std::cerr << "-n set the sensitivity (in mV/A for current sensors, or mV/V for voltage sensors)" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 "
@@ -114,6 +111,9 @@ void usage(char *argv[]) {
 
 int main(int argc, char *argv[]) {
   std::string device;
+  bool doWriteConfig = false;
+  bool doPrint = false;
+
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
@@ -133,28 +133,31 @@ int main(int argc, char *argv[]) {
         float sensitivity = getDefaultSensitivity(optarg);
         if (sensitivity > 0)
           getPowerSensor(device)->setSensitivity(sensor, sensitivity);
+        doWriteConfig = true;
         break;
       }
 
       // sensor reference voltage
       case 'v':
         getPowerSensor(device)->setVref(sensor, atof(optarg));
+        doWriteConfig = true;
         break;
 
       // sensor sensitivity
       case 'n':
         getPowerSensor(device)->setSensitivity(sensor, atof(optarg));
+        doWriteConfig = true;
         break;
 
       // sensor on/off
       case 'o':
         getPowerSensor(device)->setInUse(sensor, static_cast<bool>(atoi(optarg)));
+        doWriteConfig = true;
         break;
 
       // print
       case 'p':
-        getPowerSensor(device);
-        print();
+        doPrint = true;
         break;
 
       // help
@@ -170,6 +173,15 @@ int main(int argc, char *argv[]) {
 
   if ((optind < argc) || (argc < 2))
     usage(argv);
+
+  if (doWriteConfig) {
+    getPowerSensor(device)->writeSensorsToEEPROM();
+  }
+
+  if (doPrint) {
+    getPowerSensor(device);
+    print();
+  }
 
   return 0;
 }

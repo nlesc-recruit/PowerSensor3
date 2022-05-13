@@ -3,11 +3,12 @@
 #include <chrono>
 #include <iostream>
 #include <iomanip>
+#include <string>
 
 #include "PowerSensor.hpp"
 
 int main(int argc, char** argv) {
-  const char* device = "/dev/cu.usbmodem386A367F32371";
+  std::string device = "/dev/cu.usbmodem386A367F32371";
 
   if (argc < 2) {
     std::cout << "./test_ps <seconds> [dumpfile]" << std::endl;

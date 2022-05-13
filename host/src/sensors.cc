@@ -19,7 +19,14 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
       }
   } while ((bytesRead += retVal) < sizeof eeprom);
 
-  setType(eeprom.type);
+  // If EEPROM is corrupted, type name may be too long. Avoid unrecoverable situation by changing type if that happens
+  std::string type = eeprom.type;
+  if (type.length() >= MAX_TYPE_LENGTH) {
+    std::cerr << "Read invalid type from device, EEPROM data may be corrupt" << std::endl;
+    type = "INVALID";
+  }
+
+  setType(type);
   setVref(eeprom.vref);
   setSensitivity(eeprom.sensitivity);
   setInUse(eeprom.inUse);
@@ -30,7 +37,7 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
-  strncpy(eeprom.type, type, sizeof type);
+  strncpy(eeprom.type, type.c_str(), type.length() + 1);  // plus one for null termination character
   eeprom.vref = vref;
   eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
@@ -50,15 +57,22 @@ void PowerSensor::Sensor::reset() {
 
 void PowerSensor::Sensor::updateLevel(uint16_t level) {
   this->level = level;
-  valueAtLastMeasurement = sensitivity * (VOLTAGE * level / MAX_LEVEL - vref);
+  // sensitivity is converted from mV/(A|V) to (A|V) / V
+  valueAtLastMeasurement = (1000. / sensitivity) * (VOLTAGE * level / MAX_LEVEL - vref);
 }
 
 double PowerSensor::Sensor::getValue() const {
   return valueAtLastMeasurement;
 }
 
-void PowerSensor::Sensor::setType(const char* type) {
-  strncpy(this->type, type, sizeof type);
+void PowerSensor::Sensor::setType(const std::string type) {
+  if (type.length() >= MAX_TYPE_LENGTH) {
+    // MAX_TYPE_LENGTH includes null termination character
+    std::cerr << "Sensor type name can be at most " << MAX_TYPE_LENGTH - 1 << " characters" << std::endl;
+    exit(1);
+  } else {
+    this->type = type;
+  }
 }
 
 void PowerSensor::Sensor::setVref(const float vref) {
