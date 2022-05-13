@@ -57,8 +57,7 @@ void PowerSensor::Sensor::reset() {
 
 void PowerSensor::Sensor::updateLevel(uint16_t level) {
   this->level = level;
-  // sensitivity is converted from mV/(A|V) to (A|V) / V
-  valueAtLastMeasurement = (1000. / sensitivity) * (VOLTAGE * level / MAX_LEVEL - vref);
+  valueAtLastMeasurement = (VOLTAGE * level / MAX_LEVEL - vref) / sensitivity;
 }
 
 double PowerSensor::Sensor::getValue() const {
