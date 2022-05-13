@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <chrono>
 #include <iostream>
 #include <string>
 
@@ -50,7 +51,7 @@ int main(int argc, char *argv[]) {
   states[0] = powerSensor.read();
 
   for (uint32_t micros = 100, i = 1; micros <= MAX_MICRO_SECONDS; micros *= 2, i ^= 1) {
-    usleep(micros);
+    std::this_thread::sleep_for(std::chrono::microseconds(micros));
     states[i] = powerSensor.read();
 
     std::cout << "exp. time: " << micros * 1e-6 << " s, " "measured: " <<
