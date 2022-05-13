@@ -2,12 +2,13 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <string>
 
 #include "PowerSensor.hpp"
 
 
 void usage(char *argv[]) {
-  std::cerr << "usage: " << argv[0] << " [-d device] [-f dump_file] [-s sensor] -- command [args]" << std::endl;
+  std::cerr << "usage: " << argv[0] << " [-d device] [-f dump_file] [-s sensor_pair] -- command [args]" << std::endl;
   exit(1);
 }
 
@@ -15,7 +16,7 @@ void usage(char *argv[]) {
 int main(int argc, char *argv[]) {
   std::string device = "/dev/ttyACM1";
   std::string dumpFileName;
-  int        sensor  = -1;
+  int sensorPair  = -1;
 
   for (int opt; (opt = getopt(argc, argv, "d:f:s:")) >= 0;) {
     switch (opt) {
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
         break;
 
       case 's':
-        sensor = atoi(optarg);
+        sensorPair = atoi(optarg);
         break;
 
       default:
@@ -67,8 +68,8 @@ int main(int argc, char *argv[]) {
 
   std::cout <<
     PowerSensor::seconds(startState, stopState) << " s, " <<
-    PowerSensor::Joules(startState, stopState, sensor) << " J, " <<
-    PowerSensor::Watt(startState, stopState, sensor) << " W" <<
+    PowerSensor::Joules(startState, stopState, sensorPair) << " J, " <<
+    PowerSensor::Watt(startState, stopState, sensorPair) << " W" <<
     std::endl;
 
   return retval;

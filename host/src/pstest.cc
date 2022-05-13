@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <string>
 
 #include "PowerSensor.hpp"
 
@@ -9,7 +10,7 @@
 
 
 void usage(char *argv[]) {
-  std::cerr << "usage: " << argv[0] << " [-d device] [-f dump_file] [-s sensor]" << std::endl;
+  std::cerr << "usage: " << argv[0] << " [-d device] [-f dump_file] [-s sensor_pair]" << std::endl;
   exit(1);
 }
 
@@ -17,7 +18,7 @@ void usage(char *argv[]) {
 int main(int argc, char *argv[]) {
   std::string device = "/dev/ttyACM1";
   std::string dumpFileName;
-  int        sensor  = -1;
+  int sensorPair  = -1;
 
   for (int opt; (opt = getopt(argc, argv, "d:f:s:")) >= 0;) {
     switch (opt) {
@@ -30,7 +31,7 @@ int main(int argc, char *argv[]) {
         break;
 
       case 's':
-        sensor = atoi(optarg);
+        sensorPair = atoi(optarg);
         break;
 
       default:
@@ -54,8 +55,8 @@ int main(int argc, char *argv[]) {
 
     std::cout << "exp. time: " << micros * 1e-6 << " s, " "measured: " <<
       PowerSensor::seconds(states[i ^ 1], states[i]) << " s, " <<
-      PowerSensor::Joules(states[i ^ 1], states[i], sensor) << " J, " <<
-      PowerSensor::Watt(states[i ^ 1], states[i], sensor) << " W" <<
+      PowerSensor::Joules(states[i ^ 1], states[i], sensorPair) << " J, " <<
+      PowerSensor::Watt(states[i ^ 1], states[i], sensorPair) << " W" <<
       std::endl;
   }
 
