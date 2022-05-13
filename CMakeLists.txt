@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.2)  # ToDo: test with older versions
+cmake_minimum_required(VERSION 3.20.1)
 
 project(PowerSensor)
 
