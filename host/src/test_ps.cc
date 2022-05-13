@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 
   // ps.mark(firstState, secondState, "some name", 1);
 
-  ps.dump(""); // stop dumping
+  ps.dump("");  // stop dumping
 
   double joules = PowerSensor::Joules(firstState, secondState);
   double totalWatt = PowerSensor::Watt(firstState, secondState);

@@ -32,19 +32,28 @@ float getDefaultSensitivity(std::string type) {
   // Sensitivity is given in mV/A for current sensors, or mV/V for voltage sensors
   float sensitivity = 0;
 
-  // Current sensors. These are of type MLX91221KDF-ABF-0NN-RE, where NN is the number after
-  // MLX in the shortened name
-  if (type.compare("MLX10") == 0) {
-    sensitivity = 120.;
-  } else if (type.compare("MLX20") == 0) {
-    sensitivity = 62.5;
-  } else if (type.compare("MLX50") == 0) {
-    sensitivity = 25.0;
-  } else if (type.compare("MLX75") == 0) {
-    sensitivity = 16.67;
+  // even sensors are current sensor, odd sensors are voltage sensors
+  if ((sensor % 2) == 0) {
+    // Current sensors. These are of type MLX91221KDF-ABF-0NN-RE, where NN is the number after
+    // MLX in the shortened name
+    if (type.compare("MLX10") == 0) {
+      sensitivity = 120.;
+    } else if (type.compare("MLX20") == 0) {
+      sensitivity = 62.5;
+    } else if (type.compare("MLX50") == 0) {
+      sensitivity = 25.0;
+    } else if (type.compare("MLX75") == 0) {
+      sensitivity = 16.67;
+    } else {
+      std::cerr << "No sensitivity known for current sensor of type " << type << "."
+                  " Please make sure to set sensitivity manually with the -n option." << std::endl;
+    }
+    // convert from mV/A to V/A
+    sensitivity /= 1000.;
   } else {
-    std::cerr << "No sensitivity known for sensor of type " << type << "."
-                 " Please make sure to set sensitivity manually with the -n option." << std::endl;
+    // voltage sensor. These should have a gain of ~unity.
+    // In the future could add different types here corresponding to different voltage dividers
+    sensitivity = 1.;
   }
   return sensitivity;
 }
@@ -62,21 +71,25 @@ void print() {
 
   measureSensors(&startState, &stopState);
 
-  std::string sensorType;
-  char unit;
+  std::string sensorType, unit, sensitivityName;
+  int factor;
   for (unsigned sensor = 0; sensor < PowerSensor::MAX_SENSORS; sensor++) {
     if (sensor % 2 == 0) {
       sensorType = "current";
-      unit = 'A';
+      unit = " mV/A";
+      sensitivityName = "Sensitivity";
+      factor = 1000;  // to convert from V/A to mV/A
     } else {
       sensorType = "voltage";
-      unit = 'V';
+      unit = "";
+      sensitivityName = "Gain";
+      factor = 1;
     }
 
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
       "type: " << powerSensor->getType(sensor) << ", "
-      "Vref: " << powerSensor->getVref(sensor) << " V, "
-      "Sensitivity: " << powerSensor->getSensitivity(sensor) << " mV/" << unit << ", "
+      "Vref: " << powerSensor->getVref(sensor) << " V, " <<
+      sensitivityName << ": " << factor * powerSensor->getSensitivity(sensor) << unit << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
@@ -145,7 +158,9 @@ int main(int argc, char *argv[]) {
 
       // sensor sensitivity
       case 'n':
-        getPowerSensor(device)->setSensitivity(sensor, atof(optarg));
+        // sensitivity is given in mV/A for current sensors (even sensors) and should be scaled by a factor 1000
+        // this is not necessary for voltage sensors (odd sensors)
+        getPowerSensor(device)->setSensitivity(sensor, (sensor % 2) == 0 ? atof(optarg) / 1000: atof(optarg));
         doWriteConfig = true;
         break;
 
