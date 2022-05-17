@@ -9,6 +9,11 @@
 
 namespace PowerSensor {
 
+/**
+ * @brief Read configuration of single sensor from device EEPROM
+ *
+ * @param fd file descriptor to device
+ */
 void PowerSensor::Sensor::readFromEEPROM(int fd) {
   EEPROM eeprom;
   unsigned int retVal, bytesRead = 0;
@@ -34,6 +39,11 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
   reset();
 }
 
+/**
+ * @brief Write configuration of single sensor to device EEPROM
+ *
+ * @param fd file descriptor to device
+ */
 void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
@@ -51,19 +61,38 @@ void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   } while ((bytesWritten += retVal) < sizeof eeprom);
 }
 
+/**
+ * @brief Reset the sensor value to 0
+ *
+ */
 void PowerSensor::Sensor::reset() {
   valueAtLastMeasurement = 0;
 }
 
+/**
+ * @brief Update calibrated sensor value based on raw level
+ *
+ * @param level
+ */
 void PowerSensor::Sensor::updateLevel(uint16_t level) {
   this->level = level;
   valueAtLastMeasurement = (VOLTAGE * level / MAX_LEVEL - vref) / sensitivity;
 }
 
+/**
+ * @brief Get current calibrated sensor value
+ *
+ * @return double
+ */
 double PowerSensor::Sensor::getValue() const {
   return valueAtLastMeasurement;
 }
 
+/**
+ * @brief Set type of sensor
+ *
+ * @param type
+ */
 void PowerSensor::Sensor::setType(const std::string type) {
   if (type.length() >= MAX_TYPE_LENGTH) {
     // MAX_TYPE_LENGTH includes null termination character
@@ -74,14 +103,29 @@ void PowerSensor::Sensor::setType(const std::string type) {
   }
 }
 
+/**
+ * @brief Set reference voltage of sensor
+ *
+ * @param vref
+ */
 void PowerSensor::Sensor::setVref(const float vref) {
   this->vref = vref;
 }
 
+/**
+ * @brief Set sensitivity of sensor
+ *
+ * @param sensitivity
+ */
 void PowerSensor::Sensor::setSensitivity(const float sensitivity) {
   this->sensitivity = sensitivity;
 }
 
+/**
+ * @brief Set whether or not the sensor is in use
+ *
+ * @param inUse
+ */
 void PowerSensor::Sensor::setInUse(const bool inUse) {
   this->inUse = inUse;
 }

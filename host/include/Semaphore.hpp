@@ -5,10 +5,24 @@
 
 namespace PowerSensor {
 
+/**
+ * @brief A simple semaphore to hold/release lock when starting a new IO thread
+ *
+ */
 class Semaphore {
  public:
+    /**
+     * @brief Construct a new Semaphore object
+     *
+     * @param initialLevel
+     */
     explicit Semaphore(unsigned initialLevel = 0): level(initialLevel) {}
 
+    /**
+     * @brief Release lock
+     *
+     * @param count
+     */
     void up(unsigned count = 1) {
       std::unique_lock<std::mutex> lock(mutex);
       level += count;
@@ -18,6 +32,11 @@ class Semaphore {
         cv.notify_all();
     }
 
+    /**
+     * @brief Obtain lock
+     *
+     * @param count
+     */
     void down(unsigned count = 1) {
       std::unique_lock<std::mutex> lock(mutex);
       cv.wait(lock, [this, count] { return level >= count; });
