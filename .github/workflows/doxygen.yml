@@ -13,9 +13,10 @@ jobs:
   doxygen:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: mattnotmitt/doxygen-action@v1.9
         with:
-          doxyfile-path: 'docs/Doxyfile'
+          working-directory: 'docs'
       - uses: actions/upload-artifact@v3
         with:
           path: docs/build/*
