@@ -81,8 +81,9 @@ void autoCalibrate() {
   std::ifstream inFile(dumpFile);
   std::string line;
   char marker;
-  double value, sum;
-  int nvalues;
+  float value;
+  double sum = 0;
+  int nvalues = 0;
   while (std::getline(inFile, line)) {
     std::stringstream ss(line);
     ss >> marker;
