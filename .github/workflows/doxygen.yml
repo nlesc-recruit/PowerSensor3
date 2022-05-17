@@ -1,0 +1,9 @@
+name: doxygen
+on: [push, pull_request]
+jobs:
+  doxygen:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: mattnotmitt/doxygen-action@v1.9
+      with: working-directory: "docs"
+
