@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: mattnotmitt/doxygen-action@v1.9
         with:
-          working-directory: 'docs'
+          doxyfile-path: 'docs/Doxyfile'
       - uses: actions/upload-artifact@v3
         with:
           path: docs/build/*
