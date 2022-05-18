@@ -1,0 +1,21 @@
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: cmake
+      run: |
+        mkdir build && cd build &&
+        # Python bindings to be added after adding pybind11 install to CI
+        cmake -DEMULATOR=1 -DPYTHON_BINDINGS=0 ../
+    - name: make
+      run: make
