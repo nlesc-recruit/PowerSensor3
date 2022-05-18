@@ -5,6 +5,8 @@ add_executable(psconfig src/psconfig.cc)
 add_executable(pstest src/pstest.cc)
 add_executable(psrun src/psrun.cc)
 
+set_property(TARGET PowerSensor PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 include_directories(include/)
 target_link_libraries(psconfig PowerSensor OpenMP::OpenMP_CXX)
 target_link_libraries(pstest PowerSensor OpenMP::OpenMP_CXX)
