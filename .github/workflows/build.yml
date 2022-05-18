@@ -10,12 +10,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        gcc-version: [10, 11, 12]
+    
     steps:
     - uses: actions/checkout@v3
-    - name: Set up GCC
+    - name: Set up GCC ${{ matrix.gcc-version }}
       uses: egor-tensin/setup-gcc@v1
       with:
-        version: 11
+        version: ${{ matrix.gcc-version }}
         platform: x64
     - name: cmake
       run: |
