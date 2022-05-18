@@ -16,13 +16,18 @@ jobs:
         gcc-version: [9, 10]
     steps:
     - uses: actions/checkout@v3
+    - name: Setup python
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.10
+    - name: Install pybind11
+      run: pip install pybind11
     - name: cmake gcc-${{ matrix.gcc-version }}
       env:
        CC: gcc-${{ matrix.gcc-version }}
        CXX: g++-${{ matrix.gcc-version }}
       run: |
         mkdir build && cd build &&
-        # Python bindings to be added after adding pybind11 install to CI
-        cmake -DEMULATOR=1 -DPYTHON_BINDINGS=0 ../
+        cmake -DEMULATOR=1 -DPYTHON_BINDINGS=1 -Dpybind11_DIR=$(pybind11-config --cmakedir) ../
     - name: make
       run: cd build && make
