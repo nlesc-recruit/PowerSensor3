@@ -13,19 +13,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        gcc-version: [10, 11, 12]
-    
+        gcc-version: [9, 10]
     steps:
     - uses: actions/checkout@v3
-    - name: Set up GCC ${{ matrix.gcc-version }}
-      uses: egor-tensin/setup-gcc@v1
-      with:
-        version: ${{ matrix.gcc-version }}
-        platform: x64
-    - name: cmake
+    - name: cmake gcc-${{ matrix.gcc-version }}
+      env:
+       CC: gcc-${{ matrix.gcc-version }}
+       CXX: g++-${{ matrix.gcc-version }}
       run: |
         mkdir build && cd build &&
         # Python bindings to be added after adding pybind11 install to CI
         cmake -DEMULATOR=1 -DPYTHON_BINDINGS=0 ../
     - name: make
-      run: cd build && make VERBOSE=1
+      run: cd build && make
