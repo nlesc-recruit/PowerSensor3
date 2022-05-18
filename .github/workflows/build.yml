@@ -23,4 +23,4 @@ jobs:
         # Python bindings to be added after adding pybind11 install to CI
         cmake -DEMULATOR=1 -DPYTHON_BINDINGS=0 ../
     - name: make
-      run: cd build && make
+      run: cd build && make VERBOSE=1
