@@ -3,10 +3,11 @@
 #include "PowerSensor.hpp"
 
 namespace PowerSensorEmulator {
+  static const unsigned MAX_TYPE_LENGTH = 16;
 
 struct EEPROM {
   struct {
-    char type[16];
+    char type[MAX_TYPE_LENGTH];
     float vref;
     float sensitivity;
     bool inUse;

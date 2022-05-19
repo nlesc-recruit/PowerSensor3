@@ -5,6 +5,7 @@
 #include <iostream>
 #include <bitset>
 #include <chrono>
+#include <string>
 
 #include "device.hpp"
 
@@ -20,8 +21,8 @@ unsigned int counter = 0;
 
 void initEEPROM() {
   for (ssize_t i = 0; i < PowerSensor::MAX_SENSORS; i++) {
-    const char* type = "Type";
-    strncpy(eeprom.sensors[i].type, type, sizeof type);
+    std::string type = "Type";
+    strncpy(eeprom.sensors[i].type, type.c_str(), type.length() + 1);
     eeprom.sensors[i].vref = 1.65;
     eeprom.sensors[i].sensitivity = 1.0;
     eeprom.sensors[i].inUse = true;

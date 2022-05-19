@@ -3,6 +3,9 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#include <filesystem>
+#include <chrono>
+#include <sstream>
 
 #include "PowerSensor.hpp"
 
@@ -63,6 +66,58 @@ void measureSensors(PowerSensor::State* startState, PowerSensor::State* stopStat
   *startState = powerSensor->read();
   sleep(2);
   *stopState = powerSensor->read();
+}
+
+
+void autoCalibrate() {
+  // dump data to file for a second
+  std::filesystem::path dumpFile = std::filesystem::temp_directory_path() / \
+    std::filesystem::path("PowerSensorTmpFile.txt");
+  powerSensor->dump(dumpFile.string());
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  powerSensor->dump("");
+
+  // read data from file
+  std::ifstream inFile(dumpFile);
+  std::string line;
+  char marker;
+  float value;
+  double sum = 0;
+  int nvalues = 0;
+  while (std::getline(inFile, line)) {
+    std::stringstream ss(line);
+    ss >> marker;
+    // only if the marker is S, this is valid line with sensor values
+    if (marker != 'S')
+      continue;
+    // read the two time values (these will be ignored)
+    ss >> value >> value;
+    // now there are 3 values per sensor (current, voltage, power)
+    // ignore until the correct sensor pair is reached. pair ID = sensor ID / 2
+    // next value is current, ignore one more value if voltage needs to be calibrated (odd sensor ID)
+    for (unsigned int s = 0; s < 3 * (sensor / 2) + (sensor % 2); s++) {
+      ss >> value;
+    }
+    // finally get the sensor value and store it
+    ss >> value;
+    sum += value;
+    nvalues++;
+  }
+  // delete the dump file
+  if (std::remove(dumpFile.c_str()) != 0) {
+    perror("remove tmpfile");
+  }
+  // get the average value
+  value = sum / nvalues;
+  // assume the output value should have been zero
+  // calculate new vref based on earlier calibration values
+  float sensitivity = powerSensor->getSensitivity(sensor);
+  float vref = powerSensor->getVref(sensor);
+  float vref_new = sensitivity * value + vref;
+  std::cout << "Result of autoCal for sensor " << sensor << ":"
+  " old Vref: " << vref << " new Vref: " << vref_new;
+  // write new vref
+  powerSensor->setVref(sensor, vref_new);
 }
 
 
@@ -128,7 +183,7 @@ int main(int argc, char *argv[]) {
   bool doWriteConfig = false;
   bool doPrint = false;
 
-  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:v:n:o:ph")) >= 0;) {
+  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:av:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
@@ -150,6 +205,13 @@ int main(int argc, char *argv[]) {
         doWriteConfig = true;
         break;
       }
+
+      // sensor auto calibration of reference voltage
+      case 'a':
+        getPowerSensor(device);
+        autoCalibrate();
+        doWriteConfig = true;
+        break;
 
       // sensor reference voltage
       case 'v':

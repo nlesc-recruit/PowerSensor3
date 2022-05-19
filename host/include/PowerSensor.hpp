@@ -17,10 +17,18 @@ static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
 static const float VOLTAGE = 3.3;
 static const unsigned MAX_LEVEL = 1023;
 
+/**
+ * @brief Struct containing values of all active sensors at a single point in time
+ *
+ */
 struct State {
+  /** @brief Total energy consumption, per sensor */
   std::array<double, MAX_PAIRS> consumedEnergy;
+  /** @brief Current, per sensor */
   std::array<double, MAX_PAIRS> current;
+  /** @brief Voltage, per sensor */
   std::array<double, MAX_PAIRS> voltage;
+  /** @brief Timestamp */
   double timeAtRead;
 };
 
@@ -30,6 +38,13 @@ double Watt(const State &firstState, const State &secondState, int pairID = -1 /
 double Volt(const State &firstState, const State &secondState, int pairID);
 double Ampere(const State &firstState, const State &secondState, int pairID);
 
+/**
+ * @brief The main PowerSensor class.
+ *
+ * Connects to a PowerSensor device and reads out its sensors continously using a light-overhead thread.
+ * Sensor values can be obtained with the read method, or written to a file with the dump method
+ *
+ */
 class PowerSensor {
  public:
     explicit PowerSensor(std::string device);
@@ -82,10 +97,15 @@ class PowerSensor {
     double totalEnergy(unsigned int pairID) const;
 
     struct Sensor {
+      /** @brief Configuration of a single sensor as read from device EEPROM */
       struct EEPROM {
+        /** @brief Sensor type */
         char type[MAX_TYPE_LENGTH];
+        /** @brief Sensor reference voltage */
         float vref;
+        /** @brief Sensor sensitivity (V/A for current sensors, unitless gain for voltage sensors) */
         float sensitivity;
+        /** @brief Whether or not the sensor is in use */
         bool inUse;
       } __attribute__((packed));
 
