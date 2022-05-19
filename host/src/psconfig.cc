@@ -95,7 +95,7 @@ void autoCalibrate() {
     // now there are 3 values per sensor (current, voltage, power)
     // ignore until the correct sensor pair is reached. pair ID = sensor ID / 2
     // next value is current, ignore one more value if voltage needs to be calibrated (odd sensor ID)
-    for (int s = 0; s < 3 * (sensor / 2) + (sensor % 2); s++) {
+    for (unsigned int s = 0; s < 3 * (sensor / 2) + (sensor % 2); s++) {
       ss >> value;
     }
     // finally get the sensor value and store it
