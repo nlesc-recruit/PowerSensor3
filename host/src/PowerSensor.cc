@@ -427,7 +427,16 @@ namespace PowerSensor {
    * @param dumpFileName
    */
   void PowerSensor::dump(std::string dumpFileName) {
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
+    if (!dumpFileName.empty()) {
+      *dumpFile << "marker time dt_micro";
+      for (int pairID=0; pairID < MAX_PAIRS; pairID++) {
+        if (sensorPairs[pairID].inUse)
+          *dumpFile << " current" << pairID << " voltage" << pairID << " power" << pairID;
+      }
+      *dumpFile << " power_total" << std::endl;
+    }
   }
 
   /**
