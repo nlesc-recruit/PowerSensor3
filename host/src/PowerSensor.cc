@@ -431,7 +431,7 @@ namespace PowerSensor {
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
     if (!dumpFileName.empty()) {
       *dumpFile << "marker time dt_micro";
-      for (int pairID=0; pairID < MAX_PAIRS; pairID++) {
+      for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
         if (sensorPairs[pairID].inUse)
           *dumpFile << " current" << pairID << " voltage" << pairID << " power" << pairID;
       }
