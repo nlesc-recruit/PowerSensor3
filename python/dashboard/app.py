@@ -1,23 +1,17 @@
 import os
-from time import sleep
+import json
 
 from dash import Dash, html, dcc
 from dash.dependencies import Input, Output, State
-import plotly.subplots
 import plotly.graph_objects as go
-import plotly.express as px
 import numpy as np
-import pandas as pd
 
 import powersensor
 
 
 app = Dash('PowerSensor3')
 
-# TODO: should use dcc.Store instead of globals wherever possible
 ps = None
-run_plotter = False
-t0 = 0
 
 INTERVAL = 100  # ms
 MAX_TIME = 10  # s
@@ -30,50 +24,68 @@ app.layout = html.Div([
     html.Div([html.Div('Select device and press "Connect" to get started'),
               # dcc.Input(id='set-device', type='text', value='/dev/ttyACM0'),
               dcc.Input(id='set-device', type='text', value='/dev/cu.usbmodem386A367F32371'),
-              html.Button('Connect', id='connect'),
-              html.Div(id='connection-status')]),
+              html.Button(id='connect', children='Connect'),
+              html.Div(id='connection-status'),
+              dcc.Store(id='t0', data='0')]),
 
-    html.Div([html.Button('Toggle plotting', id='run-plotter'),
-              html.Div(id='plotting-status')]),
+    html.Div([html.Button('Toggle plotting', id='run-plotter-button'),
+              dcc.Store(id='run-plotter', data=json.dumps(False))]),
 
     html.Div([dcc.Graph(id='graph', figure=go.Figure()),
-              dcc.Interval(id='interval', interval=INTERVAL, n_intervals=0)])
+              dcc.Interval(id='interval', interval=INTERVAL)])
 ])
 
 
 @app.callback(Output('connection-status', 'children'),
+              Output('t0', 'data'),
+              Output('connect', 'children'),
               Input('connect', 'n_clicks'),
-              State('set-device', 'value'))
-def connect(n_clicks, device):
-    global ps, t0
+              State('set-device', 'value'),
+              State('t0', 'data'))
+def connect(n_clicks, device, t0):
+    global ps
+    status = 'Status: Not connected'
+    button_text = 'Connect'
+
     if n_clicks is None:
-        return "Status: Not connected"
-    if not os.path.exists(device):
-        return f"Status: No such device: {device}"
-    # connect to powersensor
-    ps = powersensor.PowerSensor(device)
-    t0 = ps.read().time_at_read
-    return "Status: Connected"
-
-
-@app.callback(Output('plotting-status', 'children'),
-              Input('run-plotter', 'n_clicks'))
-def toggle_plotting(n_clicks):
-    global run_plotter
-    if n_clicks is not None:
-        run_plotter = not run_plotter
-    if run_plotter:
-        return "Plotting enabled"
+        ps = None
+    elif ps is None:
+        # connect to powersensor
+        if not os.path.exists(device):
+            status = f'Status: No such device: {device}'
+        else:
+            ps = powersensor.PowerSensor(device)
+            status = 'Status: Connected'
+            if json.loads(t0) == 0:
+                t0 = json.dumps(ps.read().time_at_read)
+            button_text = 'Disconnect'
     else:
-        return "Plotting disabled"
+        # disconnect
+        ps = None
+    return status, t0, button_text
+
+
+@app.callback(Output('run-plotter', 'data'),
+              Input('run-plotter-button', 'n_clicks'),
+              State('run-plotter', 'data'))
+def toggle_plotting(n_clicks, data):
+    if n_clicks is None:
+        return data
+    run_plotter = json.loads(data)
+    run_plotter = not run_plotter
+    return json.dumps(run_plotter)
 
 
 @app.callback(Output('graph', 'figure'),
               Input('interval', 'n_intervals'),
-              State('graph', 'figure'))
-def update_plot(n_intervals, fig):
+              State('graph', 'figure'),
+              State('run-plotter', 'data'),
+              State('t0', 'data'))
+def update_plot(n_intervals, fig, run_plotter, t0):
+    run_plotter = json.loads(run_plotter)
+    t0 = json.loads(t0)
     # no updates if not connected or plotting disabled
-    if (ps is None) or (not run_plotter):
+    if (ps is None) or (not run_plotter) or (n_intervals is None):
         return fig
 
     fig = go.Figure(fig)
