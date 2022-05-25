@@ -6,6 +6,10 @@ bin/
 lib/
 obj/
 *.so*
+*.dylib*
 
 build/
 testing/
+
+__pycache__/
+*.py[cod]
