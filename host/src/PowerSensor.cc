@@ -106,9 +106,9 @@ namespace PowerSensor {
    */
   PowerSensor::PowerSensor(std::string device):
     fd(openDevice(device)),
+    pipe_fd(startCleanupProcess()),
     thread(nullptr),
     startTime(omp_get_wtime()) {
-      startCleanupProcess();
       readSensorsFromEEPROM();
       initializeSensorPairs();
       startIOThread();
@@ -120,6 +120,9 @@ namespace PowerSensor {
    */
   PowerSensor::~PowerSensor() {
     stopIOThread();
+    if (close(pipe_fd)) {
+      perror("close child pipe fd");
+    }
 
     if (close(fd)) {
       perror("close device");
@@ -486,11 +489,11 @@ namespace PowerSensor {
   }
 
   /**
-   * @brief Spawn childe process to make sure that the device stops sending
+   * @brief Spawn child process to make sure that the device stops sending
    * sensor values, no matter how the application terminates.
    *
    */
-  void PowerSensor::startCleanupProcess() {
+  int PowerSensor::startCleanupProcess() {
     int pipe_fds[2];
 
     if (pipe(pipe_fds) < 0) {
@@ -514,21 +517,21 @@ namespace PowerSensor {
           }
         }
 
-      // wait until parent closes pipe_fds[1] so that read fails
-      char byte;
-      ::read(pipe_fds[0], &byte, sizeof byte);
+        // wait until parent closes pipe_fds[1] so that read fails
+        char byte;
+        ::read(pipe_fds[0], &byte, sizeof byte);
 
-      // tell device to stop sending data
-      write(fd, "T", 1);
+        // tell device to stop sending data
+        write(fd, "T", 1);
 
-      // drain garbage
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      tcflush(fd, TCIFLUSH);
+        // drain garbage
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        tcflush(fd, TCIFLUSH);
 
-      exit(0);
+        exit(0);
 
     default:
-      close(pipe_fds[0]);
+      return pipe_fds[1];
     }
   }
 

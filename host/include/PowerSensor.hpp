@@ -71,6 +71,7 @@ class PowerSensor {
     static const unsigned MAX_TYPE_LENGTH = 16;
 
     int fd;
+    int pipe_fd;
     int openDevice(std::string device);
     std::queue<char> markers;
     void writeMarker();
@@ -92,7 +93,7 @@ class PowerSensor {
     void IOThread();
     void startIOThread();
     void stopIOThread();
-    void startCleanupProcess();
+    int startCleanupProcess();
 
     double totalEnergy(unsigned int pairID) const;
 
