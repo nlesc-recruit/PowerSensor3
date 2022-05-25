@@ -20,7 +20,7 @@ app.layout = html.Div([
               dcc.Store(id='t0', data='0')]),
 
     html.Div([html.Button('Toggle plotting', id='run-plotter-button'),
-              dcc.Store(id='run-plotter', data=json.dumps(False))]),
+              dcc.Store(id='run-plotter', data='false')]),
 
     html.Div([dcc.Graph(id='graph', figure=go.Figure()),
               dcc.Interval(id='interval', interval=INTERVAL)])
