@@ -127,7 +127,7 @@ void configureADC() {
   ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
   if (LL_ADC_Init(ADC1, &ADCConfig) != SUCCESS) {
-    Blink(1);
+    Blink(2);
     exit(1);
   }
 }
