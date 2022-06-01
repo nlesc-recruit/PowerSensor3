@@ -14,10 +14,6 @@ PYBIND11_MODULE(powersensor, m) {
     py::arg("first_state"), py::arg("second_state"));
   m.def("Watt", &PowerSensor::Watt, "Compute average power between two states",
     py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
-  m.def("Volt", &PowerSensor::Volt, "Compute average voltage between two states",
-    py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
-  m.def("Ampere", &PowerSensor::Ampere, "Compute average current between two states",
-    py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
 
   py::class_<PowerSensor::PowerSensor>(m, "PowerSensor")
     .def(py::init<const char*>())
