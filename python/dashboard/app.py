@@ -1,5 +1,3 @@
-import json
-
 from dash import html, dcc
 import plotly.graph_objects as go
 
@@ -22,7 +20,9 @@ app.layout = html.Div([
     html.Div([html.Button('Toggle plotting', id='run-plotter-button'),
               dcc.Store(id='run-plotter', data='false')]),
 
-    html.Div([dcc.Graph(id='graph', figure=go.Figure()),
+    html.Div([dcc.Graph(id='fig-power', figure=go.Figure()),
+              dcc.Graph(id='fig-current', figure=go.Figure()),
+              dcc.Graph(id='fig-voltage', figure=go.Figure()),
               dcc.Interval(id='interval', interval=INTERVAL)])
 ])
 
