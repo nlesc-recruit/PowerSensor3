@@ -74,32 +74,6 @@ namespace PowerSensor {
   }
 
   /**
-   * @brief Get average voltage (V) between two states for given sensor pair
-   *
-   * @param firstState
-   * @param secondState
-   * @param pairID
-   * @return double
-   */
-  double Volt(const State &firstState, const State &secondState, int pairID) {
-    checkPairID(pairID);
-    return .5 * (firstState.voltage[pairID] + secondState.voltage[pairID]);
-  }
-
-  /**
-   * @brief Get average current (A) between two states for given sensor pair
-   *
-   * @param firstState
-   * @param secondState
-   * @param pairID
-   * @return double
-   */
-  double Ampere(const State &firstState, const State &secondState, int pairID) {
-    checkPairID(pairID);
-    return .5 * (firstState.current[pairID] + secondState.current[pairID]);
-  }
-
-  /**
    * @brief Construct a new Power Sensor:: Power Sensor object
    *
    * @param device path to device, e.g. /dev/ttyACM1
