@@ -109,7 +109,7 @@ def update_plot(n_intervals, fig_power, fig_current, fig_voltage, run_plotter, t
         values = [[power], current, voltage]
         for fig_idx, fig in enumerate(figures):
             for trace_idx in range(len(fig.data)):
-                if inactive_sensors[idx] and (fig_idx != 0):
+                if inactive_sensors[trace_idx] and (fig_idx != 0):
                     continue
                 x = fig.data[trace_idx].x + (time, )
                 y = fig.data[trace_idx].y + (values[fig_idx][trace_idx], )
