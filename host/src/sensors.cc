@@ -7,7 +7,7 @@
 
 #include "PowerSensor.hpp"
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
 /**
  * @brief Read configuration of single sensor from device EEPROM
@@ -130,4 +130,4 @@ void PowerSensor::Sensor::setInUse(const bool inUse) {
   this->inUse = inUse;
 }
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

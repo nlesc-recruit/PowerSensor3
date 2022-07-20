@@ -6,27 +6,27 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(powersensor, m) {
-  m.attr("MAX_PAIRS") = py::int_(PowerSensor::MAX_PAIRS);
+  m.attr("MAX_PAIRS") = py::int_(PowerSensor3::MAX_PAIRS);
 
-  m.def("Joules", &PowerSensor::Joules, "Compute total energy usage between two states",
+  m.def("Joules", &PowerSensor3::Joules, "Compute total energy usage between two states",
     py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
-  m.def("seconds", &PowerSensor::seconds, "Compute time difference between two states",
+  m.def("seconds", &PowerSensor3::seconds, "Compute time difference between two states",
     py::arg("first_state"), py::arg("second_state"));
-  m.def("Watt", &PowerSensor::Watt, "Compute average power between two states",
+  m.def("Watt", &PowerSensor3::Watt, "Compute average power between two states",
     py::arg("first_state"), py::arg("second_state"), py::arg("sensor_pair"));
 
-  py::class_<PowerSensor::PowerSensor>(m, "PowerSensor")
+  py::class_<PowerSensor3::PowerSensor>(m, "PowerSensor")
     .def(py::init<const char*>())
-    .def("read", &PowerSensor::PowerSensor::read, "Read current sensor values")
-    .def("dump", &PowerSensor::PowerSensor::dump,
+    .def("read", &PowerSensor3::PowerSensor::read, "Read current sensor values")
+    .def("dump", &PowerSensor3::PowerSensor::dump,
       "Dump sensor values to file. Set filename to empty string to stop dumping", py::arg("filename"))
-    .def("mark", static_cast<void (PowerSensor::PowerSensor::*)(char)>(&PowerSensor::PowerSensor::mark),
+    .def("mark", static_cast<void (PowerSensor3::PowerSensor::*)(char)>(&PowerSensor3::PowerSensor::mark),
       "Add given marker character to dump file", py::arg("Marker character"));
 
-  py::class_<PowerSensor::State>(m, "State")
-    .def_readonly("consumed_energy", &PowerSensor::State::consumedEnergy,
+  py::class_<PowerSensor3::State>(m, "State")
+    .def_readonly("consumed_energy", &PowerSensor3::State::consumedEnergy,
       "Total energy consumption (J), counted from initialization of PowerSensor device")
-    .def_readonly("current", &PowerSensor::State::current, "Current current (A)")
-    .def_readonly("voltage", &PowerSensor::State::voltage, "Current voltage (V)")
-    .def_readonly("time_at_read", &PowerSensor::State::timeAtRead, "Current time (s)");
+    .def_readonly("current", &PowerSensor3::State::current, "Current current (A)")
+    .def_readonly("voltage", &PowerSensor3::State::voltage, "Current voltage (V)")
+    .def_readonly("time_at_read", &PowerSensor3::State::timeAtRead, "Current time (s)");
 }
