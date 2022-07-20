@@ -12,7 +12,7 @@
 namespace PowerSensorEmulator {
 
 EEPROM eeprom = EEPROM();
-uint8_t sensorData[PowerSensor::MAX_SENSORS*2];  // 2 bytes per sensor
+uint8_t sensorData[PowerSensor3::MAX_SENSORS*2];  // 2 bytes per sensor
 bool running = true;
 bool streamValues = false;
 bool sendMarkerNext = false;
@@ -20,7 +20,7 @@ bool sendSingleValue = false;
 unsigned int counter = 0;
 
 void initEEPROM() {
-  for (ssize_t i = 0; i < PowerSensor::MAX_SENSORS; i++) {
+  for (ssize_t i = 0; i < PowerSensor3::MAX_SENSORS; i++) {
     std::string type = "Type";
     strncpy(eeprom.sensors[i].type, type.c_str(), type.length() + 1);
     eeprom.sensors[i].vref = 1.65;
@@ -31,7 +31,7 @@ void initEEPROM() {
 
 void setSensorData() {
   static const uint16_t sensorLevels[] = {1023, 877, 731, 585, 438, 292, 146, 0};
-  for (ssize_t sensorID = 0; sensorID < PowerSensor::MAX_SENSORS; sensorID++) {
+  for (ssize_t sensorID = 0; sensorID < PowerSensor3::MAX_SENSORS; sensorID++) {
     sensorData[2*sensorID] = ((sensorID & 0x7) << 4) | ((sensorLevels[sensorID] & 0x3C0) >> 6) | (1 << 7);
     sensorData[2*sensorID + 1] = ((sendMarkerNext << 6) | (sensorLevels[sensorID] & 0x3F)) & ~(1 << 7);
     counter++;

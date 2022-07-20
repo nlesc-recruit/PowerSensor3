@@ -10,7 +10,7 @@
 
 #include "Semaphore.hpp"
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
 static const unsigned MAX_SENSORS = 8;
 static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
@@ -136,4 +136,4 @@ class PowerSensor {
     } sensorPairs[MAX_PAIRS];
 };
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

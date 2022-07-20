@@ -11,7 +11,7 @@
 #include "PowerSensor.hpp"
 
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
   /**
    * @brief Check if the given id of a sensor pair is valid
@@ -602,4 +602,4 @@ namespace PowerSensor {
     sensors[sensorID].setInUse(inUse);
   }
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

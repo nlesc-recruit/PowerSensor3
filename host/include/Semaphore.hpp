@@ -3,7 +3,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
 /**
  * @brief A simple semaphore to hold/release lock when starting a new IO thread
@@ -49,4 +49,4 @@ class Semaphore {
     unsigned level;
 };
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3
