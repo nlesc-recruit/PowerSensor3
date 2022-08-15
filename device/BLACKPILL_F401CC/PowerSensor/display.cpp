@@ -1,6 +1,8 @@
 #include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7735.h> // Hardware-specific library for ST7735
+#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
 #include <SPI.h>
+
+#include <display.h>
 
 
 #define TFT_SCLK PB13
@@ -30,21 +32,21 @@ void initDisplay() {
 
 void displaySensor(int sensor, int totalWatt, float volt, float amp, float watt) {
   char buf[12];
-  
+
   tft.fillScreen(ST77XX_BLACK);
   tft.setCursor(0, OFFSET + 10);
   tft.setTextSize(5);
   tft.setTextColor(ST77XX_YELLOW);
-  sprintf(buf, "%3d W", totalWatt);
+  snprintf(buf, sizeof(buf), "%3d W", totalWatt);
   tft.print(buf);
 
   tft.setCursor(0, OFFSET + 65);
   tft.setTextSize(1);
   tft.setTextColor(ST77XX_BLUE);
-  sprintf(buf, "S%1d:  ", sensor);
+  snprintf(buf, sizeof(buf), "S%1d:  ", sensor);
   tft.print(buf);
   tft.setTextColor(ST77XX_RED);
-  dtostrf(volt, 4, 1, buf);  
+  dtostrf(volt, 4, 1, buf);
   tft.print(strcat(buf, "V "));
   tft.setTextColor(ST77XX_GREEN);
   dtostrf(amp, 4, 1, buf);
@@ -64,7 +66,7 @@ void updateDisplay() {
 
   static unsigned long previousMillis = 0;
   unsigned long interval = (unsigned long)(millis() - previousMillis);
-  if (interval > 2000) { 
+  if (interval > 2000) {
     displaySensor(sensor, totalWatt, volt * (sensor + 1), amp * (sensor + 1), watt * (sensor + 1));
     sensor = (sensor + 1) % 4;
     previousMillis = millis();
