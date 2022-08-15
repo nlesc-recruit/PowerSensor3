@@ -1,5 +1,6 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
+#define USE_DISPLAY  // comment out to disable display
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
@@ -7,6 +8,10 @@
 #include <stm32f4xx_ll_gpio.h> // GPIO control
 #include <stm32f4xx_ll_dma.h>  // DMA control
 #include <EEPROM.h>
+
+#ifdef USE_DISPLAY
+#include "display.h"
+#endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
                                   LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
@@ -329,9 +334,17 @@ void setup() {
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
+
+#ifdef USE_DISPLAY
+  initDisplay();
+#endif
 }
 
 void loop() {
   // only check for serial events, sending sensor values to host is handled through interrupts
   serialEvent();
+  // update display if enabled
+#ifdef USE_DISPLAY
+  updateDisplay();
+#endif
 }
