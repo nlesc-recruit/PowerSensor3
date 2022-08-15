@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 
+#include <array>
 #include <thread>
 #include <fstream>
 #include <queue>
