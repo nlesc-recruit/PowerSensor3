@@ -10,7 +10,16 @@
 #include <EEPROM.h>
 
 #ifdef USE_DISPLAY
+#define UPDATE_INVERVAL 2000  // ms
+#define VOLTAGE 3.3
+#define MAX_PAIRS 4
+#define MAX_LEVEL 1023
 #include "display.h"
+uint16_t sensorLevels[MAX_SENSORS];  // to store raw (averaged) sensor values for displaying purposes
+float voltageValues[MAX_SENSORS/2];
+float currentValues[MAX_SENSORS/2];
+float powerValues[MAX_SENSORS/2];
+float totalPower;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
@@ -31,6 +40,7 @@ const int numSampleToAverage = 6; // number of samples to average
 uint32_t counter;
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
+int activeSensorPairs[MAX_SENSORS/2];
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
 uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
 uint16_t currentSample = 0;
@@ -95,6 +105,7 @@ void getActiveSensors() {
   for (int i=0; i < MAX_SENSORS; i++) {
     if (eeprom.sensors[i].inUse) {
       activeSensors[numSensor] = i;
+      activeSensorPairs[numSensor/2] = i / 2;
       numSensor++;
     }
   }
@@ -219,13 +230,20 @@ void configureNVIC() {
 extern "C" void DMA2_Stream0_IRQHandler() {
   // send ADC values to host if enabled
   if (streamValues | sendSingleValue) {
-    storeADCValues();
+    storeADCValues(/* store_only */ false);
+  // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
+  #ifndef USE_DISPLAY
   }
+  #else
+  } else {
+    storeADCValues(/* store_only */ true);
+  }
+  #endif
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void storeADCValues() {
+void storeADCValues(const bool store_only) {
   // loop over sensors and store each value at current location in averaging buffer
   for (uint8_t i = 0; i < numSensor; i++) {
     avgBuffer[i][currentSample] = dmaBuffer[i];
@@ -233,12 +251,12 @@ void storeADCValues() {
   currentSample++;
   // if the buffer is full, send the values and reset
   if (currentSample >= numSampleToAverage) {
-    sendADCValues();
+    sendADCValues(store_only);
     currentSample = 0;
   }
 }
 
-void sendADCValues() {
+void sendADCValues(const bool store_only) {
   // send all values over serial
   uint8_t data[numSensor*2];  // 2 bytes per sensor
   for (uint8_t i = 0; i < numSensor; i++) {
@@ -249,6 +267,10 @@ void sendADCValues() {
       level += avgBuffer[i][j];
     }
     level /= numSampleToAverage;
+#ifdef USE_DISPLAY
+    // store in sensorValues for display purposes
+    sensorLevels[sensor_id] = level;
+#endif
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
@@ -259,8 +281,10 @@ void sendADCValues() {
     counter++;
     sendMarkerNext = false;
   }
-  Serial.write(data, sizeof data); // send data of all active sensors to host
   sendSingleValue = false;
+  if (store_only)
+    return;
+  Serial.write(data, sizeof data); // send data of all active sensors to host
 }
 
 void serialEvent() {
@@ -319,6 +343,21 @@ void configureDevice() {
   LL_ADC_REG_StartConversionSWStart(ADC1);
 }
 
+
+void updateCalibratedSensorValues() {
+  totalPower = 0;
+  for (int pair=0; pair < MAX_SENSORS / 2; pair++) {
+    float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
+    float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
+    float power = volt * amp;
+    voltageValues[pair] = volt;
+    currentValues[pair] = amp;
+    powerValues[pair] = power;
+    totalPower += power;
+  }
+}
+
+
 void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
@@ -334,7 +373,6 @@ void setup() {
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
-
 #ifdef USE_DISPLAY
   initDisplay();
 #endif
@@ -345,6 +383,14 @@ void loop() {
   serialEvent();
   // update display if enabled
 #ifdef USE_DISPLAY
-  updateDisplay();
+  static unsigned long previousMillis = 0;
+  static int sensor_pair = 0;
+  unsigned long interval = (unsigned long)(millis() - previousMillis);
+  if (interval > UPDATE_INVERVAL) {
+    previousMillis = millis();
+    updateCalibratedSensorValues();
+    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+    sensor_pair = (sensor_pair + 1) % (numSensor / 2);
+  }
 #endif
 }

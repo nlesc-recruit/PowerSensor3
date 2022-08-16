@@ -1,10 +1,3 @@
-#include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
-#include <SPI.h>
-
-#include <display.h>
-
-
 #define TFT_SCLK PB13
 #define TFT_MOSI PB15
 #define TFT_DC PA8
@@ -15,6 +8,13 @@
 #define MAX_WIDTH  160
 #define MAX_HEIGHT 80
 #define OFFSET 24  // vertical offset: pixel 0 is outside of the screen
+
+
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
+#include <SPI.h>
+
+#include <display.h>
 
 
 // Define class for SPI2 (as default SPI1 pins overlap with ADC)
@@ -30,20 +30,21 @@ void initDisplay() {
   tft.fillScreen(ST77XX_BLACK);
 }
 
-void displaySensor(int sensor, int totalWatt, float volt, float amp, float watt) {
+void displaySensor(const int sensorPairName, const float amp, const float volt,
+                   const float watt, const float totalWatt) {
   char buf[12];
 
   tft.fillScreen(ST77XX_BLACK);
   tft.setCursor(0, OFFSET + 10);
   tft.setTextSize(5);
   tft.setTextColor(ST77XX_YELLOW);
-  snprintf(buf, sizeof(buf), "%3d W", totalWatt);
+  snprintf(buf, sizeof(buf), "%3d W", static_cast<int>(totalWatt));
   tft.print(buf);
 
   tft.setCursor(0, OFFSET + 65);
   tft.setTextSize(1);
   tft.setTextColor(ST77XX_BLUE);
-  snprintf(buf, sizeof(buf), "S%1d:  ", sensor);
+  snprintf(buf, sizeof(buf), "S%1d:  ", sensorPairName);
   tft.print(buf);
   tft.setTextColor(ST77XX_RED);
   dtostrf(volt, 4, 1, buf);
@@ -54,21 +55,4 @@ void displaySensor(int sensor, int totalWatt, float volt, float amp, float watt)
   tft.setTextColor(ST77XX_YELLOW);
   dtostrf(watt, 5, 1, buf);
   tft.print(strcat(buf, "W"));
-}
-
-
-void updateDisplay() {
-  static float volt = 3.3;
-  static float amp = 2.0;
-  static float watt = 6.6;
-  static int totalWatt = watt * 10;
-  static int sensor = 0;
-
-  static unsigned long previousMillis = 0;
-  unsigned long interval = (unsigned long)(millis() - previousMillis);
-  if (interval > 2000) {
-    displaySensor(sensor, totalWatt, volt * (sensor + 1), amp * (sensor + 1), watt * (sensor + 1));
-    sensor = (sensor + 1) % 4;
-    previousMillis = millis();
-  }
 }
