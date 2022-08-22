@@ -1,9 +1,10 @@
-#define TFT_SCLK PB13
-#define TFT_MOSI PB15
-#define TFT_DC PA8
-#define TFT_RST PA9
-#define TFT_CS PA10
-#define BACKLIGHT_PIN PB3
+#define TFT_SCLK PB3
+#define TFT_MISO PB4  // unused, but needs to be defined in SPI setup
+#define TFT_MOSI PB5
+#define TFT_RST PB14
+#define TFT_DC PB15
+#define TFT_CS PB8
+#define TFT_BLK PB9
 
 #define MAX_WIDTH  160
 #define MAX_HEIGHT 80
@@ -17,9 +18,8 @@
 #include <display.h>
 
 
-// Define class for SPI2 (as default SPI1 pins overlap with ADC)
-// MOSI, MISO, SCLK
-SPIClass SPI_2(PB15, PB14, PB13);
+// Define class for SPI3 (as default SPI1 pins overlap with ADC)
+SPIClass SPI_2(TFT_MOSI, TFT_MISO, TFT_SCLK);
 
 Adafruit_ST7735 tft = Adafruit_ST7735(&SPI_2, TFT_CS, TFT_DC, TFT_RST);
 
@@ -28,6 +28,7 @@ void initDisplay() {
   tft.setRotation(3);
   tft.invertDisplay(true);
   tft.fillScreen(ST77XX_BLACK);
+  analogWrite(TFT_BLK, 120);
 }
 
 void displaySensor(const int sensorPairName, const float amp, const float volt,
