@@ -18,7 +18,7 @@ jobs:
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
         arduino-cli config init > /dev/null
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/package_stm_index.json
-        arduino-cli core update-index > /dev/null
+        arduino-cli core update-index
     - name: Compile device code
       run: |
         export PATH="$GITHUB_WORKSPACE/bin:$PATH"
