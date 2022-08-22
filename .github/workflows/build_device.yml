@@ -13,6 +13,8 @@ jobs:
     steps:
     - name: Setup arduino-cli
       run: |
+        echo $GITHUB_WORKSPACE/bin
+        pwd
         echo $GITHUB_WORKSPACE/bin >> $GITHUB_PATH
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
         arduino-cli config init > /dev/null
