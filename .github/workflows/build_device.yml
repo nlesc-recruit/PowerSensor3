@@ -23,4 +23,8 @@ jobs:
     - name: Compile device code
       run: |
         export PATH="$GITHUB_WORKSPACE/bin:$PATH"
+        cd device
+        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_BusIO.zip
+        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_GFX.zip
+        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_ST7735.zip
         cd device && make device
