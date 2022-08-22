@@ -384,9 +384,10 @@ void loop() {
   // update display if enabled
 #ifdef USE_DISPLAY
   static unsigned long previousMillis = 0;
-  static int sensor_pair = 0;
   unsigned long interval = (unsigned long)(millis() - previousMillis);
+  
   if (interval > UPDATE_INVERVAL) {
+    static int sensor_pair = 0;
     previousMillis = millis();
     // clear the display by rewriting old values in the background color
     displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower, /* clearDisplay */ true);
