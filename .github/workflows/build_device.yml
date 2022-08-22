@@ -28,4 +28,4 @@ jobs:
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_BusIO.zip
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_GFX.zip
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_ST7735.zip
-        cd device && make device
+        make device
