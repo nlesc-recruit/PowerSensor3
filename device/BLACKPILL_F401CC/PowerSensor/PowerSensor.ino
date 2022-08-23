@@ -357,6 +357,24 @@ void updateCalibratedSensorValues() {
   }
 }
 
+#ifdef USE_DISPLAY
+void updateDisplay() {
+  static unsigned long previousMillis = 0;
+  unsigned long interval = (unsigned long)(millis() - previousMillis);
+
+  if (interval > UPDATE_INVERVAL) {
+    static int sensor_pair = 0;
+    previousMillis = millis();
+    // clear the display by rewriting old values in the background color
+    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower, /* clearDisplay */ true);
+    // update the values, then write to display
+    sensor_pair = (sensor_pair + 1) % (numSensor / 2);
+    updateCalibratedSensorValues();
+    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+  }
+}
+#endif
+
 
 void setup() {
   Serial.begin();
@@ -383,18 +401,6 @@ void loop() {
   serialEvent();
   // update display if enabled
 #ifdef USE_DISPLAY
-  static unsigned long previousMillis = 0;
-  unsigned long interval = (unsigned long)(millis() - previousMillis);
-  
-  if (interval > UPDATE_INVERVAL) {
-    static int sensor_pair = 0;
-    previousMillis = millis();
-    // clear the display by rewriting old values in the background color
-    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower, /* clearDisplay */ true);
-    // update the values, then write to display
-    sensor_pair = (sensor_pair + 1) % (numSensor / 2);
-    updateCalibratedSensorValues();
-    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
-  }
+  updateDisplay();
 #endif
 }
