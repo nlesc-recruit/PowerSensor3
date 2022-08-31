@@ -20,6 +20,7 @@ float voltageValues[MAX_SENSORS/2];
 float currentValues[MAX_SENSORS/2];
 float powerValues[MAX_SENSORS/2];
 float totalPower;
+bool displayEnabled = true;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
@@ -268,8 +269,10 @@ void sendADCValues(const bool store_only) {
     }
     level /= numSampleToAverage;
 #ifdef USE_DISPLAY
-    // store in sensorValues for display purposes
-    sensorLevels[sensor_id] = level;
+    if (displayEnabled) {
+      // store in sensorValues for display purposes
+      sensorLevels[sensor_id] = level;
+    }
 #endif
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
@@ -323,6 +326,17 @@ void serialEvent() {
       // Send value of internal counter of number of completed conversions. Used for testing and debugging
       Serial.write((const uint8_t*) &counter, sizeof counter);
       break;
+#ifdef USE_DISPLAY
+    case 'D':
+      // toggle display
+      displayEnabled = not displayEnabled;
+      if (displayEnabled) {
+        initDisplay();
+      } else {
+        deinitDisplay();
+      }
+      break;
+#endif
    }
   }
 }
@@ -392,7 +406,9 @@ void setup() {
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
 #ifdef USE_DISPLAY
-  initDisplay();
+  if (displayEnabled) {
+    initDisplay();
+  }
 #endif
 }
 
@@ -401,6 +417,8 @@ void loop() {
   serialEvent();
   // update display if enabled
 #ifdef USE_DISPLAY
-  updateDisplay();
+  if (displayEnabled) {
+    updateDisplay();
+  }
 #endif
 }

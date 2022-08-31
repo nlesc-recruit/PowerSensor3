@@ -29,6 +29,11 @@ void initDisplay() {
   analogWrite(TFT_BLK, 120);
 }
 
+void deinitDisplay() {
+  tft.fillScreen(ST77XX_BLACK);
+  analogWrite(TFT_BLK, 0);
+}
+
 void displaySensor(const int sensorPairName, const float amp, const float volt,
                    const float watt, const float totalWatt, bool clearDisplay) {
   char buf[12];
