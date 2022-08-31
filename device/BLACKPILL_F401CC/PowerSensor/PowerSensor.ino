@@ -358,6 +358,7 @@ void configureDevice() {
 }
 
 
+#ifdef USE_DISPLAY
 void updateCalibratedSensorValues() {
   totalPower = 0;
   for (int pair=0; pair < MAX_SENSORS / 2; pair++) {
@@ -371,7 +372,6 @@ void updateCalibratedSensorValues() {
   }
 }
 
-#ifdef USE_DISPLAY
 void updateDisplay() {
   static unsigned long previousMillis = 0;
   unsigned long interval = (unsigned long)(millis() - previousMillis);
