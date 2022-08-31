@@ -334,6 +334,17 @@ namespace PowerSensor3 {
   }
 
   /**
+   * @brief Toggle device display on/off
+   *
+   */
+  void PowerSensor::toggleDisplay() {
+    if (write(fd, "D", 1) < 0) {
+      perror("write device");
+      exit(1);
+    }
+  }
+
+  /**
    * @brief thread to continuously read sensor values from device
    *
    */
