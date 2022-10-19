@@ -14,7 +14,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
+        #os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
+        os: ['ubuntu-22.04']
     steps:
     - uses: actions/checkout@v2
     - name: Install arduino-cli (windows)
@@ -25,6 +26,9 @@ jobs:
     - name: Install arduino-cli (mac, linux)
       if: "!startsWith(runner.os, 'windows')"
       run: |
+        echo $GITHUB_PATH
+        echo $GITHUB_WORKSPACE
+        echo $PATH
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
         echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
         echo $GITHUB_PATH
