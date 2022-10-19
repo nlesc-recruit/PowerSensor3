@@ -14,32 +14,26 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
-        os: ['ubuntu-22.04']
+        os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
     steps:
     - uses: actions/checkout@v2
     - name: Install arduino-cli (windows)
       if: "startsWith(runner.os, 'windows')"
       run: |
         choco install -y arduino-cli
-        arduino-cli version
     - name: Install arduino-cli (mac, linux)
       if: "!startsWith(runner.os, 'windows')"
       run: |
-        echo /home/runner/work/PowerSensor3/PowerSensor3/bin >> $GITHUB_PATH
-        #echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
-        echo $GITHUB_PATH
-        echo $GITHUB_WORKSPACE
-        echo $PATH
+        # Note: the current step cannot access the updated path
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-        arduino-cli version
+        echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
     - name: Configure arduino-cli
       run: |
+        arduino-cli version
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
-        arduino-cli core update-index
-        arduino-cli core install STMicroelectronics:stm32
+        arduino-cli core update-index arduino-cli core install STMicroelectronics:stm32
     - name: Install GFX libraries
       run: |
         cd device/BLACKPILL_F401CC/PowerSensor/Libraries
