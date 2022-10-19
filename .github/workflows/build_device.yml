@@ -17,11 +17,12 @@ jobs:
         os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
     steps:
     - uses: actions/checkout@v2
-    - name: Install arduino-cli
+    - name: Install arduino-cli (windows)
       if: "startsWith(runner.os, 'windows')"
       run: |
         choco install -y arduino-cli
         arduino-cli version
+    - name: Install arduino-cli (mac, linux)
       if: "!startsWith(runner.os, 'windows')"
       run: |
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
