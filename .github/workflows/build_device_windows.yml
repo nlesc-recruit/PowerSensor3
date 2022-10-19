@@ -16,6 +16,8 @@ jobs:
       matrix:
         os: ['windows-latest']
     steps:
+    - name: Setup software
+      run: choco install -y wget
     - uses: actions/checkout@v2
     - name: Setup arduino-cli
       run: |
