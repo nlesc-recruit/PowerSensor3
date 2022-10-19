@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: ['ubuntu-22.04', 'macos-latest']
         gcc-version: ['9', '10', '11']
-        python-version ['3.10']
+        python-version: ['3.10']
         # test on multiple python versions for a single os compiler combination
         include:
           - os: 'ubuntu-22.04'
