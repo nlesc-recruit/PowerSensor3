@@ -14,24 +14,33 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-22.04', 'macos-latest']
+        os: ['ubuntu-22.04', 'macos-latest', 'windows-latest']
     steps:
     - uses: actions/checkout@v2
-    - name: Setup arduino-cli
+    - name: Install arduino-cli
+      if: "startsWith(runner.os, 'windows')"
       run: |
-        export PATH="$GITHUB_WORKSPACE/bin:$PATH"
+        choco install -y arduino-cli
+        arduino-cli version
+      if: "!startsWith(runner.os, 'windows')"
+      run: |
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-        arduino-cli config init > /dev/null
+        echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+        arduino-cli version
+    - name: Configure arduino-cli
+      run: |
+        arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32
-        arduino-cli version
+    - name: Install GFX libraries
+      run: |
+        cd device/BLACKPILL_F401CC/PowerSensor/Libraries
+        arduino-cli lib install --zip-path Adafruit_BusIO.zip
+        arduino-cli lib install --zip-path Adafruit_GFX.zip
+        arduino-cli lib install --zip-path Adafruit_ST7735.zip
     - name: Compile device code
       run: |
-        export PATH="$GITHUB_WORKSPACE/bin:$PATH"
         cd device
-        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_BusIO.zip
-        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_GFX.zip
-        arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_ST7735.zip
         make device
