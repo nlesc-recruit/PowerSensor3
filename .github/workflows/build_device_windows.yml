@@ -24,6 +24,9 @@ jobs:
         echo "$((Get-Item .).FullName)" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip
         unzip -j arduino-cli_latest_Windows_64bit.zip
+        echo $env:PATH
+        pwd
+        ls
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
