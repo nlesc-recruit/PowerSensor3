@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build for GCC-${{ matrix.gcc-version }}, ${{ matrix.os }}, python ${{ matrix.python-version }}
+    name: Build for gcc ${{ matrix.gcc-version }}, python ${{ matrix.python-version }}, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
