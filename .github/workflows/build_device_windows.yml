@@ -21,11 +21,14 @@ jobs:
     - uses: actions/checkout@v2
     - name: Setup arduino-cli
       run: |
-        echo "$((Get-Item .).FullName)" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        $env:PATH = $env:PATH + ":" + $((Get-Item .).FullName)
         wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip
         unzip -j arduino-cli_latest_Windows_64bit.zip
+        echo "PATH:"
         echo $env:PATH
+        echo "Current directory: "
         pwd
+        echo "ls: "
         ls
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
@@ -35,6 +38,7 @@ jobs:
         arduino-cli version
     - name: Compile device code
       run: |
+        $env:PATH = $env:PATH + ":" + $((Get-Item .).FullName)
         cd device
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_BusIO.zip
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_GFX.zip
