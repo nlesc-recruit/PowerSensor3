@@ -26,6 +26,7 @@ jobs:
         arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32
+        arduino-cli version
     - name: Compile device code
       run: |
         export PATH="$GITHUB_WORKSPACE/bin:$PATH"
