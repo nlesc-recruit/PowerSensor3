@@ -29,6 +29,7 @@ jobs:
        CC: gcc-${{ matrix.gcc-version }}
        CXX: g++-${{ matrix.gcc-version }}
       run: |
+        $CXX --version
         mkdir build && cd build &&
         cmake -DEMULATOR=1 -DPYTHON_BINDINGS=1 -Dpybind11_DIR=$(pybind11-config --cmakedir) ../
     - name: make
