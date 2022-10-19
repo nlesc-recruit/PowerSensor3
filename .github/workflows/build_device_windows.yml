@@ -24,12 +24,6 @@ jobs:
         $env:PATH = $env:PATH + ";" + $((Get-Item .).FullName)
         wget https://downloads.arduino.cc/arduino-cli/arduino-cli_latest_Windows_64bit.zip
         unzip -j arduino-cli_latest_Windows_64bit.zip
-        echo "PATH:"
-        echo $env:PATH
-        echo "GITHUB_PATH:"
-        echo $env:GITHUB_PATH
-        echo "ls: "
-        ls
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
@@ -38,8 +32,7 @@ jobs:
         arduino-cli version
     - name: Compile device code
       run: |
-        $env:GITHUB_PATH = $env:GITHUB_PATH + ";" + $((Get-Item .).FullName)
-        echo $env:GITHUB_PATH
+        $env:PATH = $env:PATH + ";" + $((Get-Item .).FullName)
         cd device
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_BusIO.zip
         arduino-cli lib install --zip-path BLACKPILL_F401CC/PowerSensor/Libraries/Adafruit_GFX.zip
