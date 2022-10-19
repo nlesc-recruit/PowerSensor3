@@ -9,7 +9,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build device code with arduino-cli, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-latest', 'macos-latest']
     steps:
     - uses: actions/checkout@v2
     - name: Setup arduino-cli
