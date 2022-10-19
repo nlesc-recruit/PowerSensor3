@@ -27,6 +27,8 @@ jobs:
       run: |
         curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
         echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+        echo $GITHUB_PATH
+        echo $PATH
         arduino-cli version
     - name: Configure arduino-cli
       run: |
