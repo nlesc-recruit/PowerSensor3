@@ -16,12 +16,18 @@ jobs:
       matrix:
         os: ['ubuntu-22.04', 'macos-latest']
         gcc-version: ['9', '10', '11']
+        python-version ['3.10']
+        # test on multiple python versions for a single os compiler combination
+        include:
+          - os: 'ubuntu-22.04'
+            gcc-version: '11'
+            python-version: ['3.8', '3.9']
     steps:
     - uses: actions/checkout@v3
-    - name: Setup python
+    - name: Setup python ${{ python-version }}
       uses: actions/setup-python@v3
       with:
-        python-version: '3.10'
+        python-version: ${{ python-version }}
     - name: Install pybind11
       run: pip install pybind11
     - name: cmake gcc-${{ matrix.gcc-version }}
