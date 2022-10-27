@@ -41,9 +41,9 @@ int main(int argc, char *argv[]) {
   if (optind >= argc)
     usage(argv);
 
-  PowerSensor::PowerSensor powerSensor(device);
+  PowerSensor3::PowerSensor powerSensor(device);
   powerSensor.dump(dumpFileName);
-  PowerSensor::State startState = powerSensor.read();
+  PowerSensor3::State startState = powerSensor.read();
   int retval;
 
   switch (fork()) {
@@ -64,12 +64,12 @@ int main(int argc, char *argv[]) {
       break;
   }
 
-  PowerSensor::State stopState = powerSensor.read();
+  PowerSensor3::State stopState = powerSensor.read();
 
   std::cout <<
-    PowerSensor::seconds(startState, stopState) << " s, " <<
-    PowerSensor::Joules(startState, stopState, sensorPair) << " J, " <<
-    PowerSensor::Watt(startState, stopState, sensorPair) << " W" <<
+    PowerSensor3::seconds(startState, stopState) << " s, " <<
+    PowerSensor3::Joules(startState, stopState, sensorPair) << " J, " <<
+    PowerSensor3::Watt(startState, stopState, sensorPair) << " W" <<
     std::endl;
 
   return retval;

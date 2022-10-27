@@ -1,0 +1,45 @@
+name: build_host
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build for gcc ${{ matrix.gcc-version }}, python ${{ matrix.python-version }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ['ubuntu-22.04', 'macos-latest']
+        gcc-version: ['9', '10', '11']
+        python-version: ['3.10']
+        # test on multiple python versions for a single os compiler combination
+        include:
+          - os: 'ubuntu-22.04'
+            gcc-version: '11'
+            python-version: '3.8'
+          - os: 'ubuntu-22.04'
+            gcc-version: '11'
+            python-version: '3.9'
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install pybind11
+      run: pip install pybind11
+    - name: cmake gcc-${{ matrix.gcc-version }}
+      env:
+       CC: gcc-${{ matrix.gcc-version }}
+       CXX: g++-${{ matrix.gcc-version }}
+      run: |
+        $CXX --version
+        mkdir build && cd build &&
+        cmake -DEMULATOR=1 -DPYTHON_BINDINGS=1 -Dpybind11_DIR=$(pybind11-config --cmakedir) ../
+    - name: make
+      run: cd build && make

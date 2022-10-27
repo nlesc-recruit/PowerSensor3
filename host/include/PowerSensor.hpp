@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 
+#include <array>
 #include <thread>
 #include <fstream>
 #include <queue>
@@ -10,7 +11,7 @@
 
 #include "Semaphore.hpp"
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
 static const unsigned MAX_SENSORS = 8;
 static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
@@ -35,8 +36,6 @@ struct State {
 double Joules(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
 double seconds(const State &firstState, const State &secondState);
 double Watt(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
-double Volt(const State &firstState, const State &secondState, int pairID);
-double Ampere(const State &firstState, const State &secondState, int pairID);
 
 /**
  * @brief The main PowerSensor class.
@@ -55,6 +54,7 @@ class PowerSensor {
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
+    void toggleDisplay();
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
@@ -138,4 +138,4 @@ class PowerSensor {
     } sensorPairs[MAX_PAIRS];
 };
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

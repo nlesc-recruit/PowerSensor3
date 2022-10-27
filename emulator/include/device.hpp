@@ -11,7 +11,7 @@ struct EEPROM {
     float vref;
     float sensitivity;
     bool inUse;
-  } __attribute__((packed)) sensors[PowerSensor::MAX_SENSORS];
+  } __attribute__((packed)) sensors[PowerSensor3::MAX_SENSORS];
 };
 
 void serialEventLoop(int fd);

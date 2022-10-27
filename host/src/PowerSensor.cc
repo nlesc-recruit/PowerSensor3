@@ -11,7 +11,7 @@
 #include "PowerSensor.hpp"
 
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
   /**
    * @brief Check if the given id of a sensor pair is valid
@@ -71,32 +71,6 @@ namespace PowerSensor {
    */
   double Watt(const State &firstState, const State &secondState, int pairID) {
     return Joules(firstState, secondState, pairID) / seconds(firstState, secondState);
-  }
-
-  /**
-   * @brief Get average voltage (V) between two states for given sensor pair
-   *
-   * @param firstState
-   * @param secondState
-   * @param pairID
-   * @return double
-   */
-  double Volt(const State &firstState, const State &secondState, int pairID) {
-    checkPairID(pairID);
-    return .5 * (firstState.voltage[pairID] + secondState.voltage[pairID]);
-  }
-
-  /**
-   * @brief Get average current (A) between two states for given sensor pair
-   *
-   * @param firstState
-   * @param secondState
-   * @param pairID
-   * @return double
-   */
-  double Ampere(const State &firstState, const State &secondState, int pairID) {
-    checkPairID(pairID);
-    return .5 * (firstState.current[pairID] + secondState.current[pairID]);
   }
 
   /**
@@ -356,6 +330,17 @@ namespace PowerSensor {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
       *dumpFile << "M " << startState.timeAtRead - startTime << ' ' << stopState.timeAtRead - startTime << ' ' \
         << tag << " \"" << name << '"' << std::endl;
+    }
+  }
+
+  /**
+   * @brief Toggle device display on/off
+   *
+   */
+  void PowerSensor::toggleDisplay() {
+    if (write(fd, "D", 1) < 0) {
+      perror("write device");
+      exit(1);
     }
   }
 
@@ -628,4 +613,4 @@ namespace PowerSensor {
     sensors[sensorID].setInUse(inUse);
   }
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

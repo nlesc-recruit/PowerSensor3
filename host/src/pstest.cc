@@ -44,10 +44,10 @@ int main(int argc, char *argv[]) {
   if (optind < argc)
     usage(argv);
 
-  PowerSensor::PowerSensor powerSensor(device);
+  PowerSensor3::PowerSensor powerSensor(device);
   powerSensor.dump(dumpFileName);
 
-  PowerSensor::State states[2];
+  PowerSensor3::State states[2];
   states[0] = powerSensor.read();
 
   for (uint32_t micros = 100, i = 1; micros <= MAX_MICRO_SECONDS; micros *= 2, i ^= 1) {
@@ -55,9 +55,9 @@ int main(int argc, char *argv[]) {
     states[i] = powerSensor.read();
 
     std::cout << "exp. time: " << micros * 1e-6 << " s, " "measured: " <<
-      PowerSensor::seconds(states[i ^ 1], states[i]) << " s, " <<
-      PowerSensor::Joules(states[i ^ 1], states[i], sensorPair) << " J, " <<
-      PowerSensor::Watt(states[i ^ 1], states[i], sensorPair) << " W" <<
+      PowerSensor3::seconds(states[i ^ 1], states[i]) << " s, " <<
+      PowerSensor3::Joules(states[i ^ 1], states[i], sensorPair) << " J, " <<
+      PowerSensor3::Watt(states[i ^ 1], states[i], sensorPair) << " W" <<
       std::endl;
   }
 
