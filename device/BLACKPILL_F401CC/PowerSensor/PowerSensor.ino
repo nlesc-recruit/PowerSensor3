@@ -20,7 +20,7 @@ float voltageValues[MAX_SENSORS/2];
 float currentValues[MAX_SENSORS/2];
 float powerValues[MAX_SENSORS/2];
 float totalPower;
-bool displayEnabled = false;
+bool displayEnabled = true;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
