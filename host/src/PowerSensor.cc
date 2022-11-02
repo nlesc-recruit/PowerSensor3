@@ -173,17 +173,44 @@ namespace PowerSensor3 {
     return fileDescriptor;
   }
 
+  inline char PowerSensor::readCharFromDevice() {
+    ssize_t bytesRead;
+    char buffer;
+    do {
+      if ((bytesRead = ::read(fd, &buffer, 1)) < 0) {
+        perror("read");
+        exit(1);
+      }
+    } while ((bytesRead) < 1);
+    return buffer;
+  }
+
+  inline void PowerSensor::writeCharToDevice(char buffer) {
+    if (write(fd, &buffer, 1) != 1) {
+      perror("write device");
+      exit(1);
+    }
+  }
+
   /**
    * @brief Obtain sensor configuration from device EEPROM
    *
    */
   void PowerSensor::readSensorsFromEEPROM() {
-    if (write(fd, "R", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
+    // signal device to send EEPROM data
+    writeCharToDevice('R');
+    // read data per sensor
     for (Sensor& sensor : sensors) {
       sensor.readFromEEPROM(fd);
+      // trigger device to send next sensor
+      // it does not matter what char is sent
+      writeCharToDevice('S');
+    }
+    // when done, the device sends D
+    char buffer;
+    if ((buffer = readCharFromDevice()) != 'D') {
+      std::cerr << "Expected to receive 'D' from device after reading configuration, but got " << buffer << std::endl;
+      exit(1);
     }
   }
 
@@ -198,28 +225,23 @@ namespace PowerSensor3 {
     // drain any remaining incoming data
     tcflush(fd, TCIFLUSH);
     // signal device to receive EEPROM data
-    if (write(fd, "W", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('W');
     // send EEPROM data
+    // device sends S after each sensor and D when completely done
+    char buffer;
     for (const Sensor& sensor : sensors) {
       sensor.writeToEEPROM(fd);
-    }
-    // wait for device to finish processing the new EEPROM data
-    char buffer;
-    ssize_t bytesRead;
-    do {
-      if ((bytesRead = ::read(fd, &buffer, 1)) < 0) {
-        perror("read");
+      if ((buffer = readCharFromDevice()) != 'S') {
+        std::cerr << "Expected to receive S from device, but got " << buffer << std::endl;
         exit(1);
       }
-    } while ((bytesRead) < 1);
+    }
 
-    if (buffer != 'D') {
+    if ((buffer = readCharFromDevice()) != 'D') {
       std::cerr << "Expected to receive 'D' from device after writing configuration, but got " << buffer << std::endl;
       exit(1);
     }
+
     // restart IO thread
     startIOThread();
   }
@@ -301,10 +323,7 @@ namespace PowerSensor3 {
    */
   void PowerSensor::mark(char name) {
     markers.push(name);
-    if (write(fd, "M", 1) < 0) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('M');
   }
 
   /**
@@ -338,10 +357,7 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::toggleDisplay() {
-    if (write(fd, "D", 1) < 0) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('D');
   }
 
   /**
@@ -381,12 +397,7 @@ namespace PowerSensor3 {
     if (thread == nullptr) {
       thread = new std::thread(&PowerSensor::IOThread, this);
     }
-
-    if (write(fd, "S", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
-
+    writeCharToDevice('S');
     threadStarted.down();  // wait for the IOthread to run smoothly
   }
 
@@ -399,10 +410,7 @@ namespace PowerSensor3 {
    */
   void PowerSensor::stopIOThread() {
     if (thread != nullptr) {
-      if (write(fd, "X", 1) != 1) {
-        perror("write device");
-        exit(1);
-      }
+      writeCharToDevice('X');
       thread->join();
       delete thread;
       thread = nullptr;
@@ -507,7 +515,7 @@ namespace PowerSensor3 {
         ::read(pipe_fds[0], &byte, sizeof byte);
 
         // tell device to stop sending data
-        write(fd, "T", 1);
+        writeCharToDevice('T');
 
         // drain garbage
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

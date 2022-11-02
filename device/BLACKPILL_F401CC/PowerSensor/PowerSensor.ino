@@ -1,6 +1,7 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
+#define VERSION "0.1.0"
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
@@ -61,17 +62,31 @@ struct Config {
 } eeprom;
 
 void readConfig() {
-  // send config in virtual EEPROM to host
-  Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
+  // send config in virtual EEPROM to host in chunks per sensor
+  // after each chunk, any character should be sent to the device to
+  // trigger sending the next chunk. D is sent when done
+  for (int s=0; s<MAX_SENSORS; s++) {
+    Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
+    while (Serial.read() < 0) {
+    }
+  }
+  Serial.write('D');
 }
 
 void writeConfig() {
-  // read config from host and write to virtual EEPROM
+  // read eeprom from host per byte
+  // in chunks per sensor
+  // send S to host after each sensor, D when done
   uint8_t* p_eeprom = (uint8_t*) &eeprom;
-  for (int i=0; i < sizeof eeprom; i++) {
-    while (Serial.available() == 0) {
+  for (int s=0; s<MAX_SENSORS; s++) {
+    // wait for entire sensor chunk to be available
+    while (Serial.available() < sizeof(Sensor)) {
     }
-    p_eeprom[i] = Serial.read();
+    // write sensor bytes into eeprom struct
+    for (int b=0; b<sizeof(Sensor); b++) {
+      *p_eeprom++ = Serial.read();
+    }
+    Serial.write('S');
   }
   // store updated EEPROM data to flash
   writeEEPROMToFlash();
@@ -326,6 +341,15 @@ void serialEvent() {
       // Send value of internal counter of number of completed conversions. Used for testing and debugging
       Serial.write((const uint8_t*) &counter, sizeof counter);
       break;
+    case 'B':
+      // Blink
+      Blink(1);
+      break;
+    case 'V':
+      // Send firmware version in human-readable format
+      Serial.print("Firmware version: ");
+      Serial.println(VERSION);
+      break;
 #ifdef USE_DISPLAY
     case 'D':
       // toggle display
@@ -410,6 +434,7 @@ void setup() {
     initDisplay();
   }
 #endif
+  Blink(1);
 }
 
 void loop() {
