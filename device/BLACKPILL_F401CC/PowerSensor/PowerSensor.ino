@@ -350,6 +350,10 @@ void serialEvent() {
       Serial.print("Firmware version: ");
       Serial.println(VERSION);
       break;
+    case 'Z':
+      // Reset device
+      NVIC_SystemReset();
+      break;
 #ifdef USE_DISPLAY
     case 'D':
       // toggle display
