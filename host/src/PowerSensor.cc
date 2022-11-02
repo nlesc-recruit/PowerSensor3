@@ -314,10 +314,7 @@ namespace PowerSensor3 {
    */
   void PowerSensor::mark(char name) {
     markers.push(name);
-    if (write(fd, "M", 1) < 0) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('M');
   }
 
   /**
@@ -351,10 +348,7 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::toggleDisplay() {
-    if (write(fd, "D", 1) < 0) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('D')
   }
 
   /**
@@ -394,12 +388,7 @@ namespace PowerSensor3 {
     if (thread == nullptr) {
       thread = new std::thread(&PowerSensor::IOThread, this);
     }
-
-    if (write(fd, "S", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
-
+    writeCharToDevice('S');
     threadStarted.down();  // wait for the IOthread to run smoothly
   }
 
@@ -412,10 +401,7 @@ namespace PowerSensor3 {
    */
   void PowerSensor::stopIOThread() {
     if (thread != nullptr) {
-      if (write(fd, "X", 1) != 1) {
-        perror("write device");
-        exit(1);
-      }
+      writeCharToDevice('X');
       thread->join();
       delete thread;
       thread = nullptr;
@@ -520,7 +506,7 @@ namespace PowerSensor3 {
         ::read(pipe_fds[0], &byte, sizeof byte);
 
         // tell device to stop sending data
-        write(fd, "T", 1);
+        writeCharToDevice('T');
 
         // drain garbage
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
