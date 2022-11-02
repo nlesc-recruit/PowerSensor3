@@ -1,6 +1,7 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
+#define VERSION "0.1.0"
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
@@ -343,6 +344,11 @@ void serialEvent() {
     case 'B':
       // Blink
       Blink(1);
+      break;
+    case 'V':
+      // Send firmware version in human-readable format
+      Serial.print("Firmware version: ");
+      Serial.println(VERSION);
       break;
 #ifdef USE_DISPLAY
     case 'D':
