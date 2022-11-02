@@ -20,7 +20,7 @@ float voltageValues[MAX_SENSORS/2];
 float currentValues[MAX_SENSORS/2];
 float powerValues[MAX_SENSORS/2];
 float totalPower;
-bool displayEnabled = true;
+bool displayEnabled = false;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
@@ -66,12 +66,19 @@ void readConfig() {
 }
 
 void writeConfig() {
-  // read config from host and write to virtual EEPROM
+  // read eeprom from host per byte
+  // in chunks per sensor
+  // send S to host after each sensor, D when done
   uint8_t* p_eeprom = (uint8_t*) &eeprom;
-  for (int i=0; i < sizeof eeprom; i++) {
-    while (Serial.available() == 0) {
+  for (int s=0; s<MAX_SENSORS; s++) {
+    // wait for entire sensor chunk to be available
+    while (Serial.available() < sizeof(Sensor)) {
     }
-    p_eeprom[i] = Serial.read();
+    // write sensor bytes into eeprom struct
+    for (int b=0; b<sizeof(Sensor); b++) {
+      *p_eeprom++ = Serial.read();
+    }
+    Serial.write('S');
   }
   // store updated EEPROM data to flash
   writeEEPROMToFlash();
@@ -410,6 +417,7 @@ void setup() {
     initDisplay();
   }
 #endif
+  Blink(1);
 }
 
 void loop() {

@@ -173,15 +173,33 @@ namespace PowerSensor3 {
     return fileDescriptor;
   }
 
+  inline char PowerSensor::readCharFromDevice() {
+    ssize_t bytesRead;
+    char buffer;
+    do {
+      if ((bytesRead = ::read(fd, &buffer, 1)) < 0) {
+        perror("read");
+        exit(1);
+      }
+    } while ((bytesRead) < 1);
+    return buffer;
+  }
+
+  inline void PowerSensor::writeCharToDevice(char buffer) {
+    if (write(fd, &buffer, 1) != 1) {
+      perror("write device");
+      exit(1);
+    }
+  }
+
   /**
    * @brief Obtain sensor configuration from device EEPROM
    *
    */
   void PowerSensor::readSensorsFromEEPROM() {
-    if (write(fd, "R", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
+    // signal device to send EEPROM data
+    writeCharToDevice('R');
+    // read data per sensor
     for (Sensor& sensor : sensors) {
       sensor.readFromEEPROM(fd);
     }
@@ -198,28 +216,23 @@ namespace PowerSensor3 {
     // drain any remaining incoming data
     tcflush(fd, TCIFLUSH);
     // signal device to receive EEPROM data
-    if (write(fd, "W", 1) != 1) {
-      perror("write device");
-      exit(1);
-    }
+    writeCharToDevice('W');
     // send EEPROM data
+    // device sends S after each sensor and D when completely done
+    char buffer;
     for (const Sensor& sensor : sensors) {
       sensor.writeToEEPROM(fd);
-    }
-    // wait for device to finish processing the new EEPROM data
-    char buffer;
-    ssize_t bytesRead;
-    do {
-      if ((bytesRead = ::read(fd, &buffer, 1)) < 0) {
-        perror("read");
+      if ((buffer = readCharFromDevice()) != 'S') {
+        std::cerr << "Expected to receive S from device, but got " << buffer << std::endl;
         exit(1);
       }
-    } while ((bytesRead) < 1);
+    }
 
-    if (buffer != 'D') {
+    if ((buffer = readCharFromDevice()) != 'D') {
       std::cerr << "Expected to receive 'D' from device after writing configuration, but got " << buffer << std::endl;
       exit(1);
     }
+
     // restart IO thread
     startIOThread();
   }

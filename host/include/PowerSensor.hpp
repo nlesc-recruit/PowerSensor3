@@ -80,6 +80,8 @@ class PowerSensor {
     void initializeSensorPairs();
     void updateSensorPairs();
 
+    inline char readCharFromDevice();
+    inline void writeCharToDevice(char buffer);
     void readSensorsFromEEPROM();
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
