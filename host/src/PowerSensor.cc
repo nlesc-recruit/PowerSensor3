@@ -348,7 +348,7 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::toggleDisplay() {
-    writeCharToDevice('D')
+    writeCharToDevice('D');
   }
 
   /**
