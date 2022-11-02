@@ -202,6 +202,15 @@ namespace PowerSensor3 {
     // read data per sensor
     for (Sensor& sensor : sensors) {
       sensor.readFromEEPROM(fd);
+      // trigger device to send next sensor
+      // it does not matter what char is sent
+      writeCharToDevice('S');
+    }
+    // when done, the device sends D
+    char buffer;
+    if ((buffer = readCharFromDevice()) != 'D') {
+      std::cerr << "Expected to receive 'D' from device after reading configuration, but got " << buffer << std::endl;
+      exit(1);
     }
   }
 

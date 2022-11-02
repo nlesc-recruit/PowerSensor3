@@ -61,8 +61,15 @@ struct Config {
 } eeprom;
 
 void readConfig() {
-  // send config in virtual EEPROM to host
-  Serial.write((const uint8_t*) &eeprom, sizeof eeprom);
+  // send config in virtual EEPROM to host in chunks per sensor
+  // after each chunk, any character should be sent to the device to
+  // trigger sending the next chunk. D is sent when done
+  for (int s=0; s<MAX_SENSORS; s++) {
+    Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
+    while (Serial.read() < 0) {
+    }
+  }
+  Serial.write('D');
 }
 
 void writeConfig() {
