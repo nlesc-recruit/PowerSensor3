@@ -340,6 +340,10 @@ void serialEvent() {
       // Send value of internal counter of number of completed conversions. Used for testing and debugging
       Serial.write((const uint8_t*) &counter, sizeof counter);
       break;
+    case 'B':
+      // Blink
+      Blink(1);
+      break;
 #ifdef USE_DISPLAY
     case 'D':
       // toggle display
