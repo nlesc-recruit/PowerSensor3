@@ -9,6 +9,9 @@ set_property(TARGET PowerSensor PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 include_directories(include/)
 target_link_libraries(psconfig PowerSensor OpenMP::OpenMP_CXX)
+if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+    target_link_libraries(psconfig stdc++fs)
+endif()
 target_link_libraries(pstest PowerSensor OpenMP::OpenMP_CXX)
 target_link_libraries(psrun PowerSensor OpenMP::OpenMP_CXX)
 
