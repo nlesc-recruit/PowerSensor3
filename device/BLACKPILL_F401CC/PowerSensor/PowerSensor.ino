@@ -3,6 +3,10 @@
 #define USE_DISPLAY  // comment out to disable display
 #define VERSION "0.1.0"
 
+// these two values are used to be able to jump to the bootloader from the application
+#define SYSMEM_RESET_VECTOR            0x1FFF0004
+#define BOOTLOADER_STACK_POINTER       0x20002560
+
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
 #include <stm32f4xx_ll_adc.h>  // ADC control
@@ -60,6 +64,24 @@ struct Sensor {
 struct Config {
   Sensor sensors[MAX_SENSORS];
 } eeprom;
+
+void JumpToBootloader() {
+  // ensure DMA and ADC are off
+  LL_ADC_Disable(ADC1);
+  LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
+  LL_ADC_DeInit(ADC1);
+  LL_DMA_DeInit(DMA2, LL_DMA_STREAM_0);
+
+ // function starting at to whatever address is stored in the reset vector
+ void (*SysMemBootJump)(void) = (void (*)(void)) (*((uint32_t *) SYSMEM_RESET_VECTOR));
+ HAL_DeInit();
+ HAL_RCC_DeInit();
+ SysTick->CTRL = 0;
+ SysTick->LOAD = 0;
+ SysTick->VAL = 0;
+ __set_MSP(BOOTLOADER_STACK_POINTER);
+ SysMemBootJump();
+}
 
 void readConfig() {
   // send config in virtual EEPROM to host in chunks per sensor
@@ -355,6 +377,10 @@ void serialEvent() {
     case 'Z':
       // Reset device
       NVIC_SystemReset();
+      break;
+    case 'Y':
+      // Reset device to bootloader, enables DFU mode
+      JumpToBootloader();
       break;
 #ifdef USE_DISPLAY
     case 'D':
