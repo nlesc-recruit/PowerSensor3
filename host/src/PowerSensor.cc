@@ -149,10 +149,14 @@ namespace PowerSensor3 {
     tcgetattr(fileDescriptor, &terminalOptions);
 
     // set control mode flags;
-    terminalOptions.c_cflag |= CLOCAL | CREAD | CS8;
+    terminalOptions.c_cflag = (terminalOptions.c_cflag & ~CSIZE) | CS8;
+    terminalOptions.c_cflag |= CLOCAL | CREAD;
+    terminalOptions.c_cflag &= ~(PARENB | PARODD);
+
 
     // set input mode flags;
-    terminalOptions.c_iflag = 0;
+    terminalOptions.c_iflag |= IGNBRK;
+    terminalOptions.c_iflag &= ~(IXON | IXOFF | IXANY);
 
     // clear local mode flag
     terminalOptions.c_lflag = 0;
@@ -161,11 +165,12 @@ namespace PowerSensor3 {
     terminalOptions.c_oflag = 0;
 
     // set control characters;
-    terminalOptions.c_cc[VMIN] = 0;
+    terminalOptions.c_cc[VMIN] = 1;
     terminalOptions.c_cc[VTIME] = 0;
 
     // commit the options;
     tcsetattr(fileDescriptor, TCSANOW, &terminalOptions);
+
 
     // flush anything already in the serial buffer;
     tcflush(fileDescriptor, TCIFLUSH);
@@ -198,20 +203,28 @@ namespace PowerSensor3 {
    */
   void PowerSensor::readSensorsFromEEPROM() {
     // signal device to send EEPROM data
+      std::cerr << "Sent R to device " << std::endl;
     writeCharToDevice('R');
     // read data per sensor
+    int i = 0;
     for (Sensor& sensor : sensors) {
+      std::cerr << "Reading sensor " << i << std::endl;
+      i++;
       sensor.readFromEEPROM(fd);
+      std::cerr << "Read sensor " << i << std::endl;
       // trigger device to send next sensor
       // it does not matter what char is sent
       writeCharToDevice('S');
+      std::cerr << "Sent S to device " << std::endl;
     }
     // when done, the device sends D
+    std::cerr << "Waiting for final confirmation ... ";
     char buffer;
     if ((buffer = readCharFromDevice()) != 'D') {
       std::cerr << "Expected to receive 'D' from device after reading configuration, but got " << buffer << std::endl;
       exit(1);
     }
+    std::cerr << "DONE" << std::endl;
   }
 
   /**
