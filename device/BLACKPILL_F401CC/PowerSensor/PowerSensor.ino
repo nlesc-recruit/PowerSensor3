@@ -335,8 +335,10 @@ void serialEvent() {
     case 'X':
       // Shutdown, shuts off IO thread on host
       streamValues = false;
+      delay(100);  // on an RPi host the stop does not arrive at the host properly unless there is a delay here
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
       Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+      break;
     case 'Q':
       // Send value of internal counter of number of completed conversions. Used for testing and debugging
       Serial.write((const uint8_t*) &counter, sizeof counter);
