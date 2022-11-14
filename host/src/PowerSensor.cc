@@ -171,7 +171,6 @@ namespace PowerSensor3 {
     // commit the options;
     tcsetattr(fileDescriptor, TCSANOW, &terminalOptions);
 
-
     // flush anything already in the serial buffer;
     tcflush(fileDescriptor, TCIFLUSH);
 
@@ -203,28 +202,20 @@ namespace PowerSensor3 {
    */
   void PowerSensor::readSensorsFromEEPROM() {
     // signal device to send EEPROM data
-      std::cerr << "Sent R to device " << std::endl;
     writeCharToDevice('R');
     // read data per sensor
-    int i = 0;
     for (Sensor& sensor : sensors) {
-      std::cerr << "Reading sensor " << i << std::endl;
-      i++;
       sensor.readFromEEPROM(fd);
-      std::cerr << "Read sensor " << i << std::endl;
       // trigger device to send next sensor
       // it does not matter what char is sent
       writeCharToDevice('S');
-      std::cerr << "Sent S to device " << std::endl;
     }
     // when done, the device sends D
-    std::cerr << "Waiting for final confirmation ... ";
     char buffer;
     if ((buffer = readCharFromDevice()) != 'D') {
       std::cerr << "Expected to receive 'D' from device after reading configuration, but got " << buffer << std::endl;
       exit(1);
     }
-    std::cerr << "DONE" << std::endl;
   }
 
   /**
