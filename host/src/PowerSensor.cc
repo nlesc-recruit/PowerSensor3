@@ -112,13 +112,15 @@ namespace PowerSensor3 {
     State state;
 
     std::unique_lock<std::mutex> lock(mutex);
-    // Note: timeAtLastMeasurement is the same for each sensor pair. It is always updated, also for inactive sensors.
-    state.timeAtRead = sensorPairs[0].timeAtLastMeasurement;
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
       state.current[pairID] = sensorPairs[pairID].currentAtLastMeasurement;
       state.voltage[pairID] = sensorPairs[pairID].voltageAtLastMeasurement;
+      // Note: timeAtLastMeasurement is the same for each _active_ sensor pair
+      if (sensorPairs[pairID].inUse) {
+        state.timeAtRead = sensorPairs[pairID].timeAtLastMeasurement;
+      }
     }
     return state;
   }
@@ -470,12 +472,12 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::updateSensorPairs() {
+    double now = omp_get_wtime();
     for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse) {
         Sensor currentSensor = sensors[2*pairID];
         Sensor voltageSensor = sensors[2*pairID+1];
         SensorPair& sensorPair = sensorPairs[pairID];
-        double now = omp_get_wtime();
 
         sensorPair.currentAtLastMeasurement = currentSensor.valueAtLastMeasurement;
         sensorPair.voltageAtLastMeasurement = voltageSensor.valueAtLastMeasurement;
