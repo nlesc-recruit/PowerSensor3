@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-22.04', 'macos-latest']
+        os: ['ubuntu-22.04', 'macos-11']
         gcc-version: ['9', '10', '11']
         python-version: ['3.10']
         # test on multiple python versions for a single os compiler combination
