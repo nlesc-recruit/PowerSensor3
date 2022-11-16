@@ -341,6 +341,7 @@ void serialEvent() {
     case 'M':
       // marker character, places a marker in the output file
       sendMarkerNext = true;
+      break;
     case 'I':
       // Send single set of sensor values. does nothing if streaming is enabled
       sendSingleValue = true;
