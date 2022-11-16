@@ -112,7 +112,8 @@ namespace PowerSensor3 {
     State state;
 
     std::unique_lock<std::mutex> lock(mutex);
-    state.timeAtRead = omp_get_wtime();
+    // Note: timeAtLastMeasurement is the same for each sensor pair. It is always updated, also for inactive sensors.
+    state.timeAtRead = sensorPairs[0].timeAtLastMeasurement;
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
