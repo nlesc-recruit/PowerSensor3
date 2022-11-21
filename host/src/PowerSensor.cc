@@ -211,7 +211,7 @@ namespace PowerSensor3 {
       sensor.readFromEEPROM(fd);
       // trigger device to send next sensor
       // it does not matter what char is sent
-      writeCharToDevice('S');
+      writeCharToDevice('s');
     }
     // when done, the device sends D
     char buffer;
