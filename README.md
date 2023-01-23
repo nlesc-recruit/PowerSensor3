@@ -23,8 +23,9 @@ This radio-astronomical pipeline filters, corrects, and correlates the signals f
 You are about to modify electronic circuits.  Improperly connecting wires can be dangerous and may damage computer equipment.  We are not responsible for any harm or damage that might occur.  Make sure that you understand very well how all cables should be connected.  Do not install this tool if you are not absolutely sure what you are doing.
 
 ## Getting started
-1. [Installation the PowerSensor](docs/INSTALLATION.md)
-2. [Using the PowerSensor](docs/USERGUIDE.md)
+1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
+2. [Installation the PowerSensor](docs/INSTALLATION.md)
+3. [Using the PowerSensor](docs/USERGUIDE.md)
 
 ## Further reading
 Altering the software of the device could be necessary in certain use cases. For this please refer to the following documents:
