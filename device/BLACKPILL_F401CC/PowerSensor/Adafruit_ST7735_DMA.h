@@ -6,15 +6,13 @@
 #include <STM32F4_SPI_DMA.h>
 
 class Adafruit_ST7735_DMA: public Adafruit_ST7735 {
-  public:
-    Adafruit_ST7735_DMA(SPIDMAClass *spiClass, int8_t cs, int8_t dc, int8_t rst) : Adafruit_ST7735(static_cast<SPIClass*>(spiClass), cs, dc, rst), _spi(spiClass) {
-    spiClass->begin();
-    }
+ public:
+    Adafruit_ST7735_DMA(SPIDMAClass *spiClass, int8_t cs, int8_t dc, int8_t rst);
 
     void fillScreen(uint16_t color);
     void writeColor(uint16_t color, uint32_t len) override;
 
-  private:
+ private:
     SPIDMAClass* _spi;
 };
 

@@ -1,11 +1,17 @@
 #include "Adafruit_ST7735_DMA.h"
 
+Adafruit_ST7735_DMA::Adafruit_ST7735_DMA(SPIDMAClass *spiClass, int8_t cs, int8_t dc, int8_t rst) :
+  Adafruit_ST7735(static_cast<SPIClass*>(spiClass), cs, dc, rst),
+  _spi(spiClass) {
+    spiClass->begin();
+  }
+
 void Adafruit_ST7735_DMA::fillScreen(uint16_t color) {
   uint16_t swapped_color = __builtin_bswap16(color);
 
   size_t len = _width * _height;
   uint16_t buf[len];
-  for (size_t i=0; i<len; i++) {
+  for (size_t i = 0; i < len; i++) {
     buf[i] = swapped_color;
   }
 
