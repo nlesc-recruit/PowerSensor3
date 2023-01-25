@@ -439,7 +439,6 @@ void updateDisplay() {
     // update the values, then write to display
     sensor_pair = (sensor_pair + 1) % (numSensor / 2);
     updateCalibratedSensorValues();
-    clearDisplay();
     displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
   }
 }

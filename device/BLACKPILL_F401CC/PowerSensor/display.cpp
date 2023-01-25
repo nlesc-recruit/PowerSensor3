@@ -27,7 +27,6 @@ void initDisplay() {
   tft.fillScreen(ST77XX_BLACK);
   analogWrite(TFT_BLK, 120);
 }
-
 void deinitDisplay() {
   tft.fillScreen(ST77XX_BLACK);
   analogWrite(TFT_BLK, 0);
@@ -42,6 +41,8 @@ void displaySensor(const int sensorPairName, const float amp, const float volt,
                    const float watt, const float totalWatt) {
   char buf[12];
 
+  clearDisplay();
+
   tft.setCursor(0, OFFSET + 10);
   tft.setTextSize(5);
   tft.setTextColor(ST77XX_YELLOW);
@@ -53,12 +54,15 @@ void displaySensor(const int sensorPairName, const float amp, const float volt,
   tft.setTextColor(ST77XX_BLUE);
   snprintf(buf, sizeof(buf), "S%1d:  ", sensorPairName);
   tft.print(buf);
+
   tft.setTextColor(ST77XX_RED);
   dtostrf(volt, 4, 1, buf);
   tft.print(strcat(buf, "V "));
+
   tft.setTextColor(ST77XX_GREEN);
   dtostrf(amp, 4, 1, buf);
   tft.print(strcat(buf, "A  "));
+
   tft.setTextColor(ST77XX_YELLOW);
   dtostrf(watt, 5, 1, buf);
   tft.print(strcat(buf, "W"));

@@ -9,7 +9,7 @@ class Adafruit_ST7735_DMA: public Adafruit_ST7735 {
  public:
     Adafruit_ST7735_DMA(SPIDMAClass *spiClass, int8_t cs, int8_t dc, int8_t rst);
 
-    void fillScreen(uint16_t color);
+    void fillScreen(uint16_t color) override;
     void writeColor(uint16_t color, uint32_t len) override;
 
  private:
