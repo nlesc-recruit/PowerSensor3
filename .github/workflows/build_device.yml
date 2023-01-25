@@ -14,9 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-22.04', 'macos-11', 'windows-latest']
+        os: ["ubuntu-22.04", "macos-11", "windows-latest"]
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
     - name: Install arduino-cli (windows)
       if: "startsWith(runner.os, 'windows')"
       run: |
@@ -32,15 +34,8 @@ jobs:
         arduino-cli version
         arduino-cli config init
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
-        arduino-cli config set library.enable_unsafe_install true  # to enable --zip-path option of library installs
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32
-    - name: Install GFX libraries
-      run: |
-        cd device/BLACKPILL_F401CC/PowerSensor/Libraries
-        arduino-cli lib install --zip-path Adafruit_BusIO.zip
-        arduino-cli lib install --zip-path Adafruit_GFX.zip
-        arduino-cli lib install --zip-path Adafruit_ST7735.zip
     - name: Compile device code
       run: |
         cd device

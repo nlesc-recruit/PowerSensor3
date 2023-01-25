@@ -10,52 +10,60 @@
 #define MAX_HEIGHT 80
 #define OFFSET 24  // vertical offset: pixel 0 is outside of the screen
 
-#include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_ST7735.h>  // Hardware-specific library for ST7735
-#include <SPI.h>
+#include <STM32F4_SPI_DMA.h>
+#include "Adafruit_ST7735_DMA.h"
 
 #include <display.h>
 
 // Define class for SPI3 (as default SPI1 pins overlap with ADC)
-SPIClass SPI_2(TFT_MOSI, TFT_MISO, TFT_SCLK);
-
-Adafruit_ST7735 tft = Adafruit_ST7735(&SPI_2, TFT_CS, TFT_DC, TFT_RST);
+SPIDMAClass SPI_3(TFT_MOSI, TFT_MISO, TFT_SCLK);
+Adafruit_ST7735_DMA tft = Adafruit_ST7735_DMA(&SPI_3, TFT_CS, TFT_DC, TFT_RST);
 
 void initDisplay() {
+  SPI_3.begin();
   tft.initR(INITR_GREENTAB);
   tft.setRotation(3);
   tft.invertDisplay(true);
   tft.fillScreen(ST77XX_BLACK);
   analogWrite(TFT_BLK, 120);
 }
-
 void deinitDisplay() {
   tft.fillScreen(ST77XX_BLACK);
   analogWrite(TFT_BLK, 0);
+  SPI_3.end();
+}
+
+void clearDisplay() {
+  tft.fillScreen(ST77XX_BLACK);
 }
 
 void displaySensor(const int sensorPairName, const float amp, const float volt,
-                   const float watt, const float totalWatt, bool clearDisplay) {
+                   const float watt, const float totalWatt) {
   char buf[12];
+
+  clearDisplay();
 
   tft.setCursor(0, OFFSET + 10);
   tft.setTextSize(5);
-  tft.setTextColor(clearDisplay ? ST77XX_BLACK : ST77XX_YELLOW);
+  tft.setTextColor(ST77XX_YELLOW);
   snprintf(buf, sizeof(buf), "%3d W", static_cast<int>(totalWatt));
   tft.print(buf);
 
   tft.setCursor(0, OFFSET + 65);
   tft.setTextSize(1);
-  tft.setTextColor(clearDisplay ? ST77XX_BLACK : ST77XX_BLUE);
+  tft.setTextColor(ST77XX_BLUE);
   snprintf(buf, sizeof(buf), "S%1d:  ", sensorPairName);
   tft.print(buf);
-  tft.setTextColor(clearDisplay ? ST77XX_BLACK : ST77XX_RED);
+
+  tft.setTextColor(ST77XX_RED);
   dtostrf(volt, 4, 1, buf);
   tft.print(strcat(buf, "V "));
-  tft.setTextColor(clearDisplay ? ST77XX_BLACK : ST77XX_GREEN);
+
+  tft.setTextColor(ST77XX_GREEN);
   dtostrf(amp, 4, 1, buf);
   tft.print(strcat(buf, "A  "));
-  tft.setTextColor(clearDisplay ? ST77XX_BLACK : ST77XX_YELLOW);
+
+  tft.setTextColor(ST77XX_YELLOW);
   dtostrf(watt, 5, 1, buf);
   tft.print(strcat(buf, "W"));
 }
