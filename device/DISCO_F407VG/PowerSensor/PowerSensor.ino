@@ -1,7 +1,7 @@
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
-#define VERSION "0.1.0"
+#define VERSION "0.1.0-F407"
 
 // these two values are used to be able to jump to the bootloader from the application
 #define SYSMEM_RESET_VECTOR            0x1FFF0004

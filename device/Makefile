@@ -5,8 +5,9 @@ USB =				CDCgen
 # For Discovery F407
 BOARD =			DISCO_F407VG
 DEVICE =           STMicroelectronics:stm32:Disco
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
-OPT =              -p /dev/ttyACM0
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=MassStorage,xusb=FS
+#OPT =              -p /dev/ttyACM0
+OPT =              -p /dev/cu.usbmodem142403
 
 # For Black Pill F401CCU6
 #BOARD =				BLACKPILL_F401CC
