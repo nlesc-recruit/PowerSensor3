@@ -53,6 +53,7 @@ uint16_t currentSample = 0;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
+bool dataReady = false;
 
 struct Sensor {
   char type[16];
@@ -266,17 +267,8 @@ void configureNVIC() {
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
-  // send ADC values to host if enabled
-  if (streamValues | sendSingleValue) {
-    storeADCValues(/* store_only */ false);
-  // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
-  #ifndef USE_DISPLAY
-  }
-  #else
-  } else {
-    storeADCValues(/* store_only */ true);
-  }
-  #endif
+  // Enable send to host
+  dataReady = true;
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
@@ -469,7 +461,21 @@ void setup() {
 }
 
 void loop() {
-  // only check for serial events, sending sensor values to host is handled through interrupts
+  // check for data to send to host
+  if (dataReady) {
+    if (streamValues | sendSingleValue) {
+      storeADCValues(/* store_only */ false);
+      // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
+    #ifndef USE_DISPLAY
+    }
+    #else
+    } else {
+      storeADCValues(/* store_only */ true);
+    }
+    dataReady = false;
+    #endif
+  }
+  // check for serial events
   serialEvent();
   // update display if enabled
 #ifdef USE_DISPLAY
