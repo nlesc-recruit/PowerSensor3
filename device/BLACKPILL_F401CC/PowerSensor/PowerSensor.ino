@@ -47,7 +47,8 @@ uint32_t counter;
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 int activeSensorPairs[MAX_SENSORS/2];
-uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
+uint16_t dmaBuffer[2*MAX_SENSORS];  // 16b per sensor, twice for double buffering
+uint16_t* p_dmaBuffer;
 uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
 uint16_t currentSample = 0;
 bool streamValues = false;
@@ -253,6 +254,10 @@ void configureDMA() {
     exit(1);
   }
 
+  // setup double buffer mode
+  LL_DMA_SetMemory1Address(DMA2, LL_DMA_STREAM_0, (uint32_t) &dmaBuffer[MAX_SENSORS]);
+  LL_DMA_EnableDoubleBufferMode(DMA2, LL_DMA_STREAM_0);
+
   // enable interrupt on transfer-complete
   LL_DMA_EnableIT_TC(DMA2, LL_DMA_STREAM_0);
 
@@ -267,7 +272,14 @@ void configureNVIC() {
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
-  // Enable send to host
+  // Enable send to host of the correct buffer
+  if (LL_DMA_GetCurrentTargetMem(DMA2, LL_DMA_STREAM_0) == LL_DMA_CURRENTTARGETMEM0) {
+    // DMA using memory zero, so we can process memory one
+    p_dmaBuffer = &dmaBuffer[MAX_SENSORS];
+  } else {
+    // DMA using memory one, so we can process memory zero
+    p_dmaBuffer = &dmaBuffer[0];
+  }
   dataReady = true;
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
@@ -276,7 +288,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 void storeADCValues(const bool store_only) {
   // loop over sensors and store each value at current location in averaging buffer
   for (uint8_t i = 0; i < numSensor; i++) {
-    avgBuffer[i][currentSample] = dmaBuffer[i];
+    avgBuffer[i][currentSample] = *(p_dmaBuffer + i);
   }
   currentSample++;
   // if the buffer is full, send the values and reset
@@ -472,8 +484,8 @@ void loop() {
     } else {
       storeADCValues(/* store_only */ true);
     }
-    dataReady = false;
     #endif
+    dataReady = false;
   }
   // check for serial events
   serialEvent();
