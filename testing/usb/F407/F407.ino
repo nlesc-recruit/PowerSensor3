@@ -84,7 +84,7 @@ void processValues(uint16_t level_current, uint16_t level_voltage) {
 
 #ifndef INTERACTIVE
   if (measurement_running) {
-    
+    Serial.write(data, sizeof(data));
   }
 #endif
   // bookkeeping
