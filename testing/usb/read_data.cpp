@@ -94,7 +94,7 @@ void readValueFromDevice(int fd, uint16_t *value, uint8_t *id) {
 void dataReader(int fd, std::string dumpFileName, bool* quit) {
   // write header
   std::ofstream dumpFile(dumpFileName);
-  dumpFile << "dt    current    voltage" << std::endl;
+  dumpFile << "#dt    current    voltage" << std::endl;
 
   uint16_t dt, current, voltage;
 
