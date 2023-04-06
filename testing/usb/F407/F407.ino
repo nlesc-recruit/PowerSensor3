@@ -2,6 +2,7 @@
 #define SENSORS 2
 #define PAIRS 1
 #define VERSION "TEST-F407-0.1"
+//#define INTERACTIVE
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
@@ -25,10 +26,70 @@ ADC_TypeDef* ADCCurrent = ADC1;  // use first ADC for current sensors
 ADC_TypeDef* ADCVoltage = ADC2; // use second ADC for voltage sensors
 
 uint8_t numSensor = SENSORS;
-uint32_t dmaBuffer[PAIRS];  // DMA reads both ADCs at the same time to one 32b value
+uint32_t dmaBuffer;  // DMA reads both ADCs at the same time to one 32b value
 uint32_t counter = 0;
 uint32_t tstart;
 uint32_t tend;
+bool measurement_running = false;
+
+/*
+ * Simple counter; Rate = 159 KHz
+ */
+//extern "C" void DMA2_Stream0_IRQHandler() {
+//  // keep track of number of conversions
+//  counter++;
+//  // clear DMA TC flag
+//  LL_DMA_ClearFlag_TC0(DMA2);
+//}
+
+extern "C" void DMA2_Stream0_IRQHandler() {
+  // extract the two ADC values
+  uint16_t level_current = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer);
+  uint16_t level_voltage = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer);
+
+  processValues(level_current, level_voltage);
+
+  // keep track of number of conversions
+  counter++;
+  // clear DMA TC flag
+  LL_DMA_ClearFlag_TC0(DMA2);
+}
+
+void processValues(uint16_t level_current, uint16_t level_voltage) {
+  // we send two timestamp (dt) bytes and two bytes per sensor
+  // timestamp packet 0: 110 TTTTT (most significant 5 bits)
+  // timestamp packet 1: 111 TTTTT (least significant 5 bits)
+  // then repeat:
+  // sensor 0 packet 0: 000 SSSSS (least sig bits)
+  // sensor 0 packet 1: 001 SSSSS (most sig bits)
+  // sensor 1 packet 0: 010 SSSSS
+  // sensor 1 packet 1: 011 SSSSS
+  // So first 3 bits are sensor id followed by 0 or 1 for the 2 packets
+  // timestamp is "sensor" 11
+  uint8_t data[6];
+  // timestamp
+  uint32_t tnew = micros();
+  static uint32_t t = tnew;  // ensure that the first dt is zero
+  uint16_t dt = tnew - t;
+
+  // timestamp
+  data[0] = (0b110 << 5) | ((dt >> 5) & 0x1F);
+  data[1] = (0b111 << 5) | (dt & 0x1F);
+  // sensor 0 (current)
+  data[2] = (0b000 << 5) | ((level_current >> 5) & 0x1F);
+  data[3] = (0b001 << 5) | (level_current & 0x1F);
+  // sensor 1 (voltage)
+  data[4] = (0b010 << 5) | ((level_voltage >> 5) & 0x1F);
+  data[5] = (0b011 << 5) | (level_voltage & 0x1F);
+
+#ifndef INTERACTIVE
+  if (measurement_running) {
+    
+  }
+#endif
+  // bookkeeping
+  t = tnew;
+}
 
 void Blink(uint8_t amount) {
   // Blink LED
@@ -50,13 +111,17 @@ void configureADCCommon() {
    • uint32_t MultiDMATransfer
    • uint32_t MultiTwoSamplingDelay
   */
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;  // at default cpu/bus clock speeds and a divider of 4, the ADC runs at 21 MHz
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;  // at default cpu/bus clock speeds and a divider of 8, the ADC runs at 10.5 MHz
   ADCCommonConfig.Multimode = LL_ADC_MULTI_DUAL_REG_SIMULT;  // regular simultaneous mode
   ADCCommonConfig.MultiDMATransfer = LL_ADC_MULTI_REG_DMA_UNLMT_2; // allow unlimited DMA transfers. MODE2 = half-words by ADC pairs
   ADCCommonConfig.MultiTwoSamplingDelay = LL_ADC_MULTI_TWOSMP_DELAY_5CYCLES; // fastest possible mode
 
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADCCurrent), &ADCCommonConfig) != SUCCESS) {
+#ifdef INTERACTIVE
     Serial.println("Failed common ADC setup");
+#else
+    Blink(1);
+#endif
   }
 }
 
@@ -74,7 +139,11 @@ void configureADC(ADC_TypeDef* adc) {
   ADCConfig.SequencersScanMode = ADC_SCANMODES[(numSensor/2) - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
   if (LL_ADC_Init(adc, &ADCConfig) != SUCCESS) {
+#ifdef INTERACTIVE
     Serial.println("Failed ADC setup");
+#else
+    Blink(1);
+#endif
   }
 }
 
@@ -95,17 +164,20 @@ void configureADCChannels(ADC_TypeDef* adc, const bool master) {
   ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS; // enable continuous conversion mode
   ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED; // Allow unlimited transfers to DMA
 
-
   if (LL_ADC_REG_Init(adc, &ADCChannelConfig) != SUCCESS) {
+#ifdef INTERACTIVE
     Serial.println("Failed ADC channel setup");
+#else
+    Blink(1);
+#endif
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
   // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
-  // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 21 MHz, the data rate is
-  // 21 MHz * 32 / (10 + 56) = 10.2 Mbps
+  // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 10.5 MHz, the data rate is
+  // 10.5 MHz * 32 / (10 + 56) = 5.1 Mbps
   // With 4 sensor pairs, each pair is sampled at
-  // 21 MHz / (10+56) / 4 = 79.5 KHz
+  // 10.5 MHz / (10+56) / 4 = 39.75 KHz
   for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = i;
     LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
@@ -129,7 +201,11 @@ void configureDMA() {
   DMAConfig.Channel = LL_DMA_CHANNEL_0;
 
   if (LL_DMA_Init(DMA2, LL_DMA_STREAM_0, &DMAConfig) != SUCCESS) {
+#ifdef INTERACTIVE
     Serial.println("Failed DMA setup");
+#else
+    Blink(1);
+#endif
   }
 
   // enable interrupt on transfer-complete
@@ -153,7 +229,11 @@ void configureGPIO() {
   GPIOConfig.Mode = LL_GPIO_MODE_ANALOG;
 
   if (LL_GPIO_Init(GPIOA, &GPIOConfig) != SUCCESS) {
+#ifdef INTERACTIVE
     Serial.println("Failed GPIO setup");
+#else
+    Blink(1);
+#endif
   }
 }
 
@@ -161,12 +241,6 @@ void configureNVIC() {
   // set the DMA interrupt to be lower than USB to avoid breaking communication to host
   NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
   NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-}
-
-extern "C" void DMA2_Stream0_IRQHandler() {
-  counter++;
-  // clear DMA TC flag
-  LL_DMA_ClearFlag_TC0(DMA2);
 }
 
 void configureDevice() {
@@ -199,7 +273,8 @@ void process() {
 
   Serial.print("Rate: ");
   Serial.println(rate);
-  Serial.println("Expected rate is 318.18 KHz");
+  Serial.println("Expected rate is 159.09 KHz");
+//  Serial.println("Expected data rate at 16b/sensor is 5.09 Mbps");
 }
 
 void serialEvent() {
@@ -207,20 +282,28 @@ void serialEvent() {
     switch (Serial.read()) {
     case 'S':
       // Start
+#ifdef INTERACTIVE
       Serial.println("Starting measurement");
+#endif
+      measurement_running = true;
       tstart = millis();
       counter = 0;
       break;
     case 'T':
       // Stop
-      Serial.println("Stopping measurement");
+      measurement_running = false;
       tend = millis();
+#ifdef INTERACTIVE
+      Serial.println("Stopping measurement");
       process();
+#endif
       break;
     case '\n':
       return;
     default:
+#ifdef INTERACTIVE
       Serial.println("Ignoring unknown command");
+#endif
       break;
     }
   }
@@ -230,11 +313,13 @@ void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
 
+#ifdef INTERACTIVE
   // Start when signal from host is received
   Blink(1);
   while (Serial.available() == 0) {}
   Serial.read();
   Serial.println("Starting setup");
+#endif
 
   // enable clocks
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
@@ -245,7 +330,11 @@ void setup() {
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
 
+#ifdef INTERACTIVE
   Serial.println("Finished setup");
+#else
+  Blink(1);
+#endif
 }
 
 void loop() {
