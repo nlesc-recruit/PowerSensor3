@@ -123,6 +123,7 @@ void dataReader(int fd, std::string dumpFileName, bool* quit) {
     // if all three values have been updated, write to file and reset
     if (counter >= 3) {
       dumpFile << dt << " " << current << " " << voltage << std::endl;
+      std::cerr << dt << " " << current << " " << voltage << std::endl;
       counter = 0;
     }
   }
@@ -131,6 +132,7 @@ void dataReader(int fd, std::string dumpFileName, bool* quit) {
 
 int main() {
   std::string device = "/dev/cu.usbmodem207338A658481";
+  // std::string device = "/dev/cu.usbmodem144203";
   std::string dumpFileName = "out.txt";
   bool quit = false;
 

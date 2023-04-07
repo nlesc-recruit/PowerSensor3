@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
+import os
+import sys
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    dt, current, voltage = np.loadtxt('out.txt', dtype=int, unpack=True)
+    fname = sys.argv[1]
+    dt, current, voltage = np.loadtxt(fname, dtype=int, unpack=True)
+
+    # measurement is 5 seconds
+    actual_dt = 5.0e6 / len(dt)
 
     expected_dt = 1000. / 159.09
 
-    print("Found {len(dt)} data points")
-    print(f"Expected dt: {expected_dt} us")
+    print(f"Found {len(dt)} data points")
+    print(f"Expected dt: {expected_dt:.2f} us")
+    print(f"Actual average dt on host: {actual_dt:.2f} us")
 
-    print(f'{dt.min()=} {dt.mean()=} {dt.max()=}')
-    print(f'{np.median(dt)=} {dt.std()=}')
+    print(f'{dt.min()=:.0f} {dt.mean()=:.2f} {dt.max()=:.0f}')
+    print(f'{np.median(dt)=:.0f} {dt.std()=:.2f}')
 
     plt.plot(dt, c='k', marker='o', ls='')
     plt.axhline(expected_dt, c='r', ls='--')
@@ -20,5 +27,6 @@ if __name__ == '__main__':
     plt.ylim(0, 2*dt.mean())
     plt.xlabel('Time step')
     plt.ylabel('Interval ($\mu$s)')
+    plt.title(os.path.splitext(fname)[0])
     plt.show()
 
