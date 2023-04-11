@@ -46,8 +46,9 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   // extract the two ADC values
   uint16_t level_current = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer);
   uint16_t level_voltage = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer);
+  uint16_t t = micros();
 
-  processValues(level_current, level_voltage);
+  processValues(level_current, level_voltage, t);
 
   // keep track of number of conversions
   counter++;
@@ -55,7 +56,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void processValues(uint16_t level_current, uint16_t level_voltage) {
+void processValues(uint16_t level_current, uint16_t level_voltage, uint16_t t) {
   // we send two timestamp (dt) bytes and two bytes per sensor
   // timestamp packet 0: 110 TTTTT (most significant 5 bits)
   // timestamp packet 1: 111 TTTTT (least significant 5 bits)
@@ -68,13 +69,13 @@ void processValues(uint16_t level_current, uint16_t level_voltage) {
   // timestamp is "sensor" 11
   uint8_t data[6];
   // timestamp
-  uint32_t tnew = micros();
-  static uint32_t t = tnew;  // ensure that the first dt is zero
-  uint16_t dt = tnew - t;
+//  uint32_t tnew = micros();
+//  static uint32_t t = tnew;  // ensure that the first dt is zero
+//  uint16_t dt = tnew - t;
 
   // timestamp
-  data[0] = (0b110 << 5) | ((dt >> 5) & 0x1F);
-  data[1] = (0b111 << 5) | (dt & 0x1F);
+  data[0] = (0b110 << 5) | ((t >> 5) & 0x1F);
+  data[1] = (0b111 << 5) | (t & 0x1F);
   // sensor 0 (current)
   data[2] = (0b000 << 5) | ((level_current >> 5) & 0x1F);
   data[3] = (0b001 << 5) | (level_current & 0x1F);
@@ -88,7 +89,7 @@ void processValues(uint16_t level_current, uint16_t level_voltage) {
   }
 #endif
   // bookkeeping
-  t = tnew;
+//  t = tnew;
 }
 
 void Blink(uint8_t amount) {
@@ -174,14 +175,12 @@ void configureADCChannels(ADC_TypeDef* adc, const bool master) {
 
   // Set which channels will be converted and in which order, as well as their sampling time
   // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
-  // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 10.5 MHz, the data rate is
-  // 10.5 MHz * 32 / (10 + 56) = 5.1 Mbps
-  // With 4 sensor pairs, each pair is sampled at
-  // 10.5 MHz / (10+56) / 4 = 39.75 KHz
+  // At 144 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 10.5 MHz, the data rate is
+  // 10.5 MHz * 32 / (10 + 144) = 2.18 Mbps
   for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = i;
     LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
+    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_144CYCLES);
   }
 }
 
