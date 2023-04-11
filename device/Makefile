@@ -5,7 +5,7 @@ USB =				CDCgen
 # For Discovery F407
 BOARD =			DISCO_F407VG
 DEVICE =           STMicroelectronics:stm32:Disco
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod,xusb=FS
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod,xusb=FS,opt=o3std
 #OPT =              -p /dev/ttyACM0
 OPT =              -p /dev/cu.usbmodem142403
 

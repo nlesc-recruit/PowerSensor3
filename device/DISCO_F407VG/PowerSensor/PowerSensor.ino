@@ -163,7 +163,7 @@ void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
-  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV4;
+  ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;
 
   // Apply settings
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
@@ -260,8 +260,8 @@ void configureDMA() {
 }
 
 void configureNVIC() {
-  // set the DMA interrupt to be lower than USB to avoid breaking communication to host
-  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  // set the DMA interrupt prio to be higher than USB to ensure constant sampling
+  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) - 1);
   NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
@@ -269,7 +269,6 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   uint16_t t = micros();
   // process ADC values
   processADCValues(t);
-
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
