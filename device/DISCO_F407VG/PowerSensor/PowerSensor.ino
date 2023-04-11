@@ -5,6 +5,7 @@
 
 // these two values are used to be able to jump to the bootloader from the application
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
+// The bootloader stack pointer is located in
 #define BOOTLOADER_STACK_POINTER       0x20002560
 
 #include <Arduino.h>
@@ -42,14 +43,11 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
-const int numSampleToAverage = 6; // number of samples to average
 uint32_t counter;
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 int activeSensorPairs[MAX_SENSORS/2];
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
-uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
-uint16_t currentSample = 0;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
@@ -205,7 +203,7 @@ void configureADCChannels() {
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_28CYCLES);
   }
 
 }
@@ -236,7 +234,7 @@ void configureDMA() {
   LL_DMA_StructInit(&DMAConfig);
 
   DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA);
-  DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer; // target is the buffer in RAM
+  DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer[0]; // target is the buffer in RAM
   DMAConfig.Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
   DMAConfig.Mode = LL_DMA_MODE_CIRCULAR;
   DMAConfig.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
@@ -282,16 +280,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 }
 
 void storeADCValues(const bool store_only) {
-  // loop over sensors and store each value at current location in averaging buffer
-  for (uint8_t i = 0; i < numSensor; i++) {
-    avgBuffer[i][currentSample] = dmaBuffer[i];
-  }
-  currentSample++;
-  // if the buffer is full, send the values and reset
-  if (currentSample >= numSampleToAverage) {
-    sendADCValues(store_only);
-    currentSample = 0;
-  }
+  sendADCValues(store_only);
 }
 
 void sendADCValues(const bool store_only) {
@@ -299,12 +288,7 @@ void sendADCValues(const bool store_only) {
   uint8_t data[numSensor*2];  // 2 bytes per sensor
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
-    // calculate average level of current sensor
-    uint16_t level = 0.;
-    for (uint8_t j = 0; j < numSampleToAverage; j++) {
-      level += avgBuffer[i][j];
-    }
-    level /= numSampleToAverage;
+    uint16_t level = dmaBuffer[i];
 #ifdef USE_DISPLAY
     if (displayEnabled) {
       // store in sensorValues for display purposes
