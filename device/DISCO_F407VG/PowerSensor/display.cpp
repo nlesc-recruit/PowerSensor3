@@ -23,7 +23,11 @@ void initDisplay() {
   SPI_3.begin();
   tft.initR(INITR_GREENTAB);
   tft.setRotation(3);
+#ifdef TFT_BLUE
+  tft.invertDisplay(false);
+#else
   tft.invertDisplay(true);
+#endif
   tft.fillScreen(ST77XX_BLACK);
   analogWrite(TFT_BLK, 120);
 }

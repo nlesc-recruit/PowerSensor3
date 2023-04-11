@@ -5,7 +5,7 @@ USB =				CDCgen
 # For Discovery F407
 BOARD =			DISCO_F407VG
 DEVICE =           STMicroelectronics:stm32:Disco
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=MassStorage,xusb=FS
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod,xusb=FS
 #OPT =              -p /dev/ttyACM0
 OPT =              -p /dev/cu.usbmodem142403
 
@@ -14,11 +14,13 @@ OPT =              -p /dev/cu.usbmodem142403
 #DEVICE =            STMicroelectronics:stm32:GenF4
 #FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod
 
+FLAGS="-DTFT_BLUE"
+
 
 all: device
 
 device:
-	arduino-cli compile -e --fqbn $(FQBN) $(BOARD)/PowerSensor --libraries $(BOARD)/PowerSensor/Libraries
+	arduino-cli compile -e --fqbn $(FQBN) $(BOARD)/PowerSensor --libraries $(BOARD)/PowerSensor/Libraries --build-property compiler.cpp.extra_flags=$(FLAGS)
 
 upload: device
 	arduino-cli upload $(OPT) --fqbn $(FQBN) -i $(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
