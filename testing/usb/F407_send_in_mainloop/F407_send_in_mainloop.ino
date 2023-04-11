@@ -50,8 +50,9 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   // extract the two ADC values
   uint16_t level_current = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer);
   uint16_t level_voltage = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer);
+  uint16_t dt = micros();
 
-  processValues(level_current, level_voltage);
+  processValues(level_current, level_voltage, dt);
 
   // keep track of number of conversions
   counter++;
@@ -59,7 +60,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void processValues(uint16_t level_current, uint16_t level_voltage) {
+void processValues(uint16_t level_current, uint16_t level_voltage, uint16_t dt) {
   // we send two timestamp (dt) bytes and two bytes per sensor
   // timestamp packet 0: 110 TTTTT (most significant 5 bits)
   // timestamp packet 1: 111 TTTTT (least significant 5 bits)
@@ -71,9 +72,10 @@ void processValues(uint16_t level_current, uint16_t level_voltage) {
   // So first 3 bits are sensor id followed by 0 or 1 for the 2 packets
   // timestamp is "sensor" 11
   // timestamp
-  uint32_t tnew = micros();
-  static uint32_t t = tnew;  // ensure that the first dt is zero
-  uint16_t dt = tnew - t;
+//  uint32_t tnew = micros();
+//  static uint32_t t = tnew;  // ensure that the first dt is zero
+//  uint16_t dt = tnew - t;
+//  uint32_t dt = micros();
 
   // timestamp
   data[0] = (0b110 << 5) | ((dt >> 5) & 0x1F);
@@ -97,7 +99,7 @@ void processValues(uint16_t level_current, uint16_t level_voltage) {
   }
 #endif
   // bookkeeping
-  t = tnew;
+//  t = tnew;
 }
 
 void Blink(uint8_t amount) {
@@ -182,15 +184,21 @@ void configureADCChannels(ADC_TypeDef* adc, const bool master) {
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
+  // allowed sampling times (in units of ADC clock cycles):
+  // 3 15 28 56 84 112 114 480
+  
   // Sampling time is set to be long enough to stay under 12 Mbps (max USB speed)
   // At 56 cycles, 10b resolution, 32 bits per sensor pair, and an ADC clock of 10.5 MHz, the data rate is
   // 10.5 MHz * 32 / (10 + 56) = 5.1 Mbps
-  // With 4 sensor pairs, each pair is sampled at
-  // 10.5 MHz / (10+56) / 4 = 39.75 KHz
+  // sensors are sampled at
+  // 10.5 MHz / (10+56) = 159.09 KHz -> 6.29 us
+  //
+  // with 144 cycles, sampling is 68.18 KHz -> 14.67 us
+  // with 480 cycles, sampling is 21.43 KHz -> 46.67 us
   for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = i;
     LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_56CYCLES);
+    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_144CYCLES);
   }
 }
 
@@ -248,7 +256,9 @@ void configureGPIO() {
 
 void configureNVIC() {
   // set the DMA interrupt to be lower than USB to avoid breaking communication to host
-  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+//  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) - 1);
+//  NVIC_SetPriority(DMA2_Stream0_IRQn, 0);
   NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
@@ -282,7 +292,7 @@ void process() {
 
   Serial.print("Rate: ");
   Serial.println(rate);
-  Serial.println("Expected rate is 159.09 KHz");
+//  Serial.println("Expected rate is 159.09 KHz");
 //  Serial.println("Expected data rate at 16b/sensor is 5.09 Mbps");
 }
 
