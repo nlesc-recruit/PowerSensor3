@@ -264,28 +264,39 @@ void configureNVIC() {
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
+  uint16_t t = micros();
   // send ADC values to host if enabled
   if (streamValues | sendSingleValue) {
-    storeADCValues(/* store_only */ false);
+    storeADCValues(t, /* store_only */ false);
   // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
   #ifndef USE_DISPLAY
   }
   #else
   } else {
-    storeADCValues(/* store_only */ true);
+    storeADCValues(t, /* store_only */ true);
   }
   #endif
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void storeADCValues(const bool store_only) {
-  sendADCValues(store_only);
+void storeADCValues(const uint16_t t, const bool store_only) {
+  sendADCValues(t, store_only);
 }
 
-void sendADCValues(const bool store_only) {
+void sendADCValues(const uint16_t t, const bool store_only) {
   // send all values over serial
-  uint8_t data[numSensor*2];  // 2 bytes per sensor
+  uint8_t data[(numSensor+1)*2];  // 2 bytes per sensor plus 2 bytes for timestamp
+
+  // for timestamp packet, we use the sensor id 0b111 and set the marker bit
+  // the host can recognize that this is not a sensor value because the marker bit
+  // can only be set for sensor 0
+  // so the timestamp packets are
+  // 1 111 TTTT, where T are the upper 4 bits of the timestamp
+  // 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+  data[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
+  data[1] = ((0b01) << 6) | (t & 0x3F);
+  
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     uint16_t level = dmaBuffer[i];
@@ -298,10 +309,10 @@ void sendADCValues(const bool store_only) {
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
-    data[2*i] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+    data[2*i + 2] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    data[2*i+1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
+    data[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }

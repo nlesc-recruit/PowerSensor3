@@ -92,6 +92,7 @@ class PowerSensor {
     std::thread* thread;
     mutable std::mutex mutex, dumpFileMutex;
     double startTime;
+    unsigned int timestamp;
     void IOThread();
     void startIOThread();
     void stopIOThread();

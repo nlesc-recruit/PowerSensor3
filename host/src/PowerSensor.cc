@@ -378,6 +378,15 @@ namespace PowerSensor3 {
 
     while (readLevelFromDevice(&sensorNumber, &level, &marker)) {
       std::unique_lock<std::mutex> lock(mutex);
+
+      // detect timestamp packet, value is in microseconds
+      // note that an actual marker can only set set for sensor zero in the device firmware
+      if ((marker == 1) && (sensorNumber == (MAX_SENSORS-1))) {
+        timestamp = level;
+        marker = 0;
+        continue;
+      }
+
       sensors[sensorNumber].updateLevel(level);
       sensorsRead++;
 
@@ -433,7 +442,7 @@ namespace PowerSensor3 {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
     dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
     if (!dumpFileName.empty()) {
-      *dumpFile << "marker time dt_micro";
+      *dumpFile << "marker time dt_micro device_timestamp";
       for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
         if (sensorPairs[pairID].inUse)
           *dumpFile << " current" << pairID << " voltage" << pairID << " power" << pairID;
@@ -454,6 +463,7 @@ namespace PowerSensor3 {
 
     *dumpFile << "S " << time - startTime;
     *dumpFile << ' ' << static_cast<int>(1e6 * (time - previousTime));
+    *dumpFile << ' ' << timestamp;
     previousTime = time;
 
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
