@@ -1,6 +1,9 @@
 /* NOTE: to avoid dropping data one must increase the USB transmit buffer size
  * See CDC_TRANSMIT_QUEUE_BUFFER_SIZE in packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h
  * A value of 6 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE instead of the default 2 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE seems to be enough
+ * 
+ * TODO: the timestamps are mostly good, but at regular intervals one timestamp is about twice as high and the next is zero
+ * Timestamp updated before data is sent? Should freeze data as much as possible in the DMA IRQ handler
  */
 
 #define USE_FULL_LL_DRIVER
