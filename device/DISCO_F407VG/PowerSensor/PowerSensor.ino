@@ -265,26 +265,14 @@ void configureNVIC() {
 
 extern "C" void DMA2_Stream0_IRQHandler() {
   uint16_t t = micros();
-  // send ADC values to host if enabled
-  if (streamValues | sendSingleValue) {
-    storeADCValues(t, /* store_only */ false);
-  // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
-  #ifndef USE_DISPLAY
-  }
-  #else
-  } else {
-    storeADCValues(t, /* store_only */ true);
-  }
-  #endif
+  // process ADC values
+  processADCValues(t);
+
   // clear DMA TC flag
   LL_DMA_ClearFlag_TC0(DMA2);
 }
 
-void storeADCValues(const uint16_t t, const bool store_only) {
-  sendADCValues(t, store_only);
-}
-
-void sendADCValues(const uint16_t t, const bool store_only) {
+void processADCValues(const uint16_t t) {
   // send all values over serial
   uint8_t data[(numSensor+1)*2];  // 2 bytes per sensor plus 2 bytes for timestamp
 
@@ -316,10 +304,12 @@ void sendADCValues(const uint16_t t, const bool store_only) {
     counter++;
     sendMarkerNext = false;
   }
-  sendSingleValue = false;
-  if (store_only)
-    return;
-  Serial.write(data, sizeof data); // send data of all active sensors to host
+
+  // send data to host if enabled
+  if (streamValues | sendSingleValue) {
+    Serial.write(data, sizeof(data));
+    sendSingleValue = false;
+  }
 }
 
 void serialEvent() {
