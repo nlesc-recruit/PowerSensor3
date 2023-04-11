@@ -38,12 +38,9 @@ bool displayEnabled = true;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
-                                  LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS,
-                                  LL_ADC_REG_SEQ_SCAN_ENABLE_5RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_6RANKS,
-                                  LL_ADC_REG_SEQ_SCAN_ENABLE_7RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_8RANKS};
+                                  LL_ADC_REG_SEQ_SCAN_ENABLE_3RANKS, LL_ADC_REG_SEQ_SCAN_ENABLE_4RANKS};
 
-const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4,
-                              LL_ADC_REG_RANK_5, LL_ADC_REG_RANK_6, LL_ADC_REG_RANK_7, LL_ADC_REG_RANK_8};
+const uint32_t ADC_RANKS[] = {LL_ADC_REG_RANK_1, LL_ADC_REG_RANK_2, LL_ADC_REG_RANK_3, LL_ADC_REG_RANK_4};
 
 const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHANNEL_2, LL_ADC_CHANNEL_3,
                                  LL_ADC_CHANNEL_4, LL_ADC_CHANNEL_5, LL_ADC_CHANNEL_6, LL_ADC_CHANNEL_7};
@@ -55,7 +52,7 @@ uint32_t counter;
 uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 int activeSensorPairs[MAX_SENSORS/2];
-uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
+uint32_t dmaBuffer[MAX_SENSORS/2];  // DMA reads both ADCs at the same time to one 32b value
 uint8_t serialData[(MAX_SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
 bool sendData = false;
 bool streamValues = false;
@@ -76,8 +73,10 @@ struct Config {
 void JumpToBootloader() {
   // ensure DMA and ADC are off
   LL_ADC_Disable(ADC1);
+  LL_ADC_DeInit(ADC2);
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
   LL_ADC_DeInit(ADC1);
+  LL_ADC_DeInit(ADC2);
   LL_DMA_DeInit(DMA2, LL_DMA_STREAM_0);
 
  // function starting at to whatever address is stored in the reset vector
@@ -158,11 +157,10 @@ void getActiveSensors() {
 }
 
 void Blink(uint8_t amount) {
-  // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
   for (uint8_t i = 0; i < amount; i++) {
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(250);
     digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+    digitalWrite(LED_BUILTIN, LOW);
     delay(250);
   }
 }
@@ -172,6 +170,9 @@ void configureADCCommon() {
   LL_ADC_CommonStructInit(&ADCCommonConfig);
 
   ADCCommonConfig.CommonClock = LL_ADC_CLOCK_SYNC_PCLK_DIV8;
+  ADCCommonConfig.Multimode = LL_ADC_MULTI_DUAL_REG_SIMULT;  // regular simultaneous mode
+  ADCCommonConfig.MultiDMATransfer = LL_ADC_MULTI_REG_DMA_UNLMT_2; // allow unlimited DMA transfers. MODE2 = half-words by ADC pairs
+  ADCCommonConfig.MultiTwoSamplingDelay = LL_ADC_MULTI_TWOSMP_DELAY_5CYCLES; // fastest possible mode
 
   // Apply settings
   if (LL_ADC_CommonInit(__LL_ADC_COMMON_INSTANCE(ADC1), &ADCCommonConfig) != SUCCESS) {
@@ -180,40 +181,41 @@ void configureADCCommon() {
   }
 }
 
-void configureADC() {
+void configureADC(ADC_TypeDef* adc) {
   LL_ADC_InitTypeDef ADCConfig;
   LL_ADC_StructInit(&ADCConfig);
 
   ADCConfig.Resolution = LL_ADC_RESOLUTION_10B; // 10-bit ADC resolution
   ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT; // right-align data within 16b register
-  ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
+  ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor/2 - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
-  if (LL_ADC_Init(ADC1, &ADCConfig) != SUCCESS) {
+  if (LL_ADC_Init(adc, &ADCConfig) != SUCCESS) {
     Blink(2);
     exit(1);
   }
 }
 
-void configureADCChannels() {
+void configureADCChannels(ADC_TypeDef* adc, const bool master) {
   LL_ADC_REG_InitTypeDef ADCChannelConfig;
   LL_ADC_REG_StructInit(&ADCChannelConfig);
 
   ADCChannelConfig.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;   // trigger conversion from software
-  ADCChannelConfig.SequencerLength = ADC_SCANMODES[numSensor - 1];  // number of ranks to convert
+  ADCChannelConfig.SequencerLength = ADC_SCANMODES[numSensor/2 - 1];  // number of ranks to convert
   ADCChannelConfig.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE; // not using discontinous mode
   ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS; // enable continuous conversion mode
   ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED; // Allow unlimited transfers to DMA
 
-  if (LL_ADC_REG_Init(ADC1, &ADCChannelConfig) != SUCCESS) {
+  if (LL_ADC_REG_Init(adc, &ADCChannelConfig) != SUCCESS) {
     Blink(3);
     exit(1);
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
-  for (uint8_t i = 0; i < numSensor; i++) {
+  // ADC1 does even sensors, ADC2 odd sensors
+  for (uint8_t i = !master; i < numSensor; i+=2) {
     uint8_t sensor_id = activeSensors[i];
-    LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_28CYCLES);
+    LL_ADC_REG_SetSequencerRanks(adc, ADC_RANKS[i/2], ADC_CHANNELS[sensor_id]);
+    LL_ADC_SetChannelSamplingTime(adc, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_144CYCLES);
   }
 
 }
@@ -243,15 +245,15 @@ void configureDMA() {
   LL_DMA_InitTypeDef DMAConfig;
   LL_DMA_StructInit(&DMAConfig);
 
-  DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA);
+  DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA_MULTI);  // macro handles obtaining common data register for multi-ADC mode
   DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer[0]; // target is the buffer in RAM
   DMAConfig.Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
   DMAConfig.Mode = LL_DMA_MODE_CIRCULAR;
   DMAConfig.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
   DMAConfig.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
-  DMAConfig.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_HALFWORD;
-  DMAConfig.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD;
-  DMAConfig.NbData = numSensor;
+  DMAConfig.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_WORD;
+  DMAConfig.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_WORD;
+  DMAConfig.NbData = numSensor / 2;
   DMAConfig.Channel = LL_DMA_CHANNEL_0;
 
   // write config
@@ -286,7 +288,14 @@ extern "C" void DMA2_Stream0_IRQHandler() {
   
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
-    uint16_t level = dmaBuffer[i];
+    // even sensors are current values from ADC1
+    // odd sensors are voltage values from ADC2
+    uint16_t level;
+    if (i % 2 == 0) {
+      level = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_MASTER, dmaBuffer[i/2]);
+    } else {
+      level = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
+    }
 #ifdef USE_DISPLAY
     if (displayEnabled) {
       // store in sensorValues for display purposes
@@ -388,17 +397,21 @@ void serialEvent() {
 void configureDevice() {
   // ensure DMA and ADC are off
   LL_ADC_Disable(ADC1);
+  LL_ADC_Disable(ADC2);
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
 
   getActiveSensors();
   configureGPIO();
   configureDMA();
   configureADCCommon();
-  configureADC();
-  configureADCChannels();
+  configureADC(ADC1);
+  configureADC(ADC2);
+  configureADCChannels(ADC1, /* master */ true);
+  configureADCChannels(ADC2, /* master */ false);
   configureNVIC();
   LL_ADC_Enable(ADC1);
-  LL_ADC_REG_StartConversionSWStart(ADC1);
+  LL_ADC_Enable(ADC2);
+  LL_ADC_REG_StartConversionSWStart(ADC1);  // ADC1 controls others ADCs in multi mode
 }
 
 
@@ -435,7 +448,7 @@ void updateDisplay() {
 void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH); // HIGH is off
+  digitalWrite(LED_BUILTIN, LOW);
 
   // read virtual EEPROM data
   readEEPROMFromFlash();
@@ -444,6 +457,7 @@ void setup() {
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC2);
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
