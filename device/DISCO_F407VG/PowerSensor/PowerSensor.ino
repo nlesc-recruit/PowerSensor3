@@ -274,20 +274,13 @@ void configureNVIC() {
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
-  uint16_t t = micros();
-  // process ADC values
-  processADCValues(t);
-  // clear DMA TC flag
-  LL_DMA_ClearFlag_TC0(DMA2);
-}
-
-void processADCValues(const uint16_t t) {
   // for timestamp packet, we use the sensor id 0b111 and set the marker bit
   // the host can recognize that this is not a sensor value because the marker bit
   // can only be set for sensor 0
   // so the timestamp packets are
   // 1 111 TTTT, where T are the upper 4 bits of the timestamp
   // 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+  uint16_t t = micros();
   serialData[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
   serialData[1] = ((0b01) << 6) | (t & 0x3F);
   
@@ -311,11 +304,14 @@ void processADCValues(const uint16_t t) {
     sendMarkerNext = false;
   }
 
-  // send data to host if enabled
+  // trigger sending data to host if enabled
   if (streamValues | sendSingleValue) {
     sendData = true;
     sendSingleValue = false;
   }
+
+  // clear DMA TC flag
+  LL_DMA_ClearFlag_TC0(DMA2);
 }
 
 void serialEvent() {
