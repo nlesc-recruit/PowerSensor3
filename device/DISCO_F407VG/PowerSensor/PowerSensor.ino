@@ -48,6 +48,8 @@ uint8_t numSensor;  // number of active sensors
 int activeSensors[MAX_SENSORS]; // which sensors are active
 int activeSensorPairs[MAX_SENSORS/2];
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
+uint8_t serialData[(MAX_SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
+bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
@@ -273,17 +275,14 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 }
 
 void processADCValues(const uint16_t t) {
-  // send all values over serial
-  uint8_t data[(numSensor+1)*2];  // 2 bytes per sensor plus 2 bytes for timestamp
-
   // for timestamp packet, we use the sensor id 0b111 and set the marker bit
   // the host can recognize that this is not a sensor value because the marker bit
   // can only be set for sensor 0
   // so the timestamp packets are
   // 1 111 TTTT, where T are the upper 4 bits of the timestamp
   // 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
-  data[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
-  data[1] = ((0b01) << 6) | (t & 0x3F);
+  serialData[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
+  serialData[1] = ((0b01) << 6) | (t & 0x3F);
   
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
@@ -297,17 +296,17 @@ void processADCValues(const uint16_t t) {
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
-    data[2*i + 2] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+    serialData[2*i + 2] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    data[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
+    serialData[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }
 
   // send data to host if enabled
   if (streamValues | sendSingleValue) {
-    Serial.write(data, sizeof(data));
+    sendData = true;
     sendSingleValue = false;
   }
 }
@@ -454,7 +453,10 @@ void setup() {
 }
 
 void loop() {
-  // only check for serial events, sending sensor values to host is handled through interrupts
+  if (sendData) {
+    Serial.write(serialData, 2 * (numSensor+1));
+    sendData = false;
+  }
   serialEvent();
   // update display if enabled
 #ifdef USE_DISPLAY
