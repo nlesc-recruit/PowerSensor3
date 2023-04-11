@@ -134,8 +134,8 @@ void dataReader(int fd, std::string dumpFileName, bool* quit) {
 }
 
 int main() {
-  std::string device = "/dev/cu.usbmodem207338A658481";
-  // std::string device = "/dev/cu.usbmodem144203";
+  std::string device = "/dev/cu.usbmodem207338A658481";  // F407
+  // std::string device = "/dev/cu.usbmodem386A367F32371";  // F401
   std::string dumpFileName = "out.txt";
   bool quit = false;
 

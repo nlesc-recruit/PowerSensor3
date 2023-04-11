@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     plt.plot(dt, c='k', marker='o', ls='')
     plt.axhline(expected_dt, c='r', ls='--')
-    plt.xlim(0, min(len(dt), 1000))
+    #plt.xlim(0, min(len(dt), 1000))
     plt.ylim(0, 2*dt.mean())
     plt.xlabel('Time step')
     plt.ylabel('Interval ($\mu$s)')
