@@ -1,3 +1,8 @@
+/* NOTE: to avoid dropping data one must increase the USB transmit buffer size
+ * See CDC_TRANSMIT_QUEUE_BUFFER_SIZE in packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h
+ * A value of 6 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE instead of the default 2 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE seems to be enough
+ */
+
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
