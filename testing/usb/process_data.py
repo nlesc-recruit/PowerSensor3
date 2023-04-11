@@ -7,12 +7,17 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     fname = sys.argv[1]
-    dt, current, voltage = np.loadtxt(fname, dtype=int, unpack=True)
+    # dt, current, voltage = np.loadtxt(fname, dtype=int, unpack=True)
+    t, current, voltage, dt = np.loadtxt(fname, dtype=int, unpack=True)
+
+    # first dt is always zero, remove it to not skew results
+    dt = dt[1:]
+
 
     # measurement is 5 seconds
     actual_dt = 5.0e6 / len(dt)
 
-    expected_dt = 1000. / 159.09
+    expected_dt = 1000. / 68.18
 
     print(f"Found {len(dt)} data points")
     print(f"Expected dt: {expected_dt:.2f} us")
@@ -30,3 +35,4 @@ if __name__ == '__main__':
     plt.title(os.path.splitext(fname)[0])
     plt.show()
 
+    import IPython; IPython.embed()

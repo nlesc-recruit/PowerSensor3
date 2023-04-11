@@ -7,7 +7,6 @@
 #include <iostream>
 #include <thread>
 
-
 int openDevice(std::string device) {
   int fileDescriptor;
 
@@ -94,9 +93,9 @@ void readValueFromDevice(int fd, uint16_t *value, uint8_t *id) {
 void dataReader(int fd, std::string dumpFileName, bool* quit) {
   // write header
   std::ofstream dumpFile(dumpFileName);
-  dumpFile << "#dt    current    voltage" << std::endl;
+  dumpFile << "#t    current    voltage    dt" << std::endl;
 
-  uint16_t dt, current, voltage;
+  uint16_t t, current, voltage;
 
   while (!(*quit)) {
     static unsigned counter = 0;
@@ -105,7 +104,7 @@ void dataReader(int fd, std::string dumpFileName, bool* quit) {
     readValueFromDevice(fd, &value, &id);
     switch (id) {
       case 0b11:
-        dt = value;
+        t = value;
         counter++;
         break;
       case 0b00:
@@ -122,9 +121,13 @@ void dataReader(int fd, std::string dumpFileName, bool* quit) {
     }
     // if all three values have been updated, write to file and reset
     if (counter >= 3) {
-      dumpFile << dt << " " << current << " " << voltage << std::endl;
-      std::cerr << dt << " " << current << " " << voltage << std::endl;
+      static uint16_t prev_t = t;
+      uint16_t dt = ( t - prev_t );
+      dt %= 1024;  // in two lines because % is only modulo for positive numbers
+      dumpFile << t << " " << current << " " << voltage << " " << dt << std::endl;
+      std::cerr << t << " " << current << " " << voltage << " " << dt << std::endl;
       counter = 0;
+      prev_t = t;
     }
   }
   dumpFile.close();
