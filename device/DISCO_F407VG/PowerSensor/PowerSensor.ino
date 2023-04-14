@@ -1,20 +1,21 @@
 /* NOTE: to avoid dropping data one must increase the USB transmit buffer size
  * See CDC_TRANSMIT_QUEUE_BUFFER_SIZE in packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h
  * A value of 6 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE instead of the default 2 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE seems to be enough
- * 
- * TODO: the timestamps are mostly good, but at regular intervals one timestamp is about twice as high and the next is zero
- * Timestamp updated before data is sent? Should freeze data as much as possible in the DMA IRQ handler
  */
 
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
-#define VERSION "0.1.0-F407"
+#define VERSION "F407-0.1.0"
 
 // these two values are used to be able to jump to the bootloader from the application
+// Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in STM32F405xx/07xx and STM32F415xx/17xx
+// in the reference manual.
+// at boot the first word contains the initial value of the stack pointer. However this can change depending on the firmware.
+// To be safe we put the stack at the end of the first RAM block. RAM starts at 0x2000 0000 and the first block is 12 KB in size
+// the second word stores the address at which code execution should start, this is where we jump to to run the bootloader
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
-// The bootloader stack pointer is located in
-#define BOOTLOADER_STACK_POINTER       0x20002560
+#define BOOTLOADER_STACK_POINTER       0x2001BFFF
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
