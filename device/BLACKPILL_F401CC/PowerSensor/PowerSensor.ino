@@ -5,7 +5,6 @@
 
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
-#define USE_DISPLAY  // comment out to disable display
 #define VERSION "0.1.0"
 
 // these two values are used to be able to jump to the bootloader from the application
@@ -24,7 +23,7 @@
 #include <stm32f4xx_ll_dma.h>  // DMA control
 #include <EEPROM.h>
 
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
 #define UPDATE_INVERVAL 2000  // ms
 #define VOLTAGE 3.3
 #define MAX_PAIRS 4
@@ -310,7 +309,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
         level += avgBuffer[i][j];
       }
       level /= numSampleToAverage;
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
       if (displayEnabled) {
         // store in sensorValues for display purposes
         sensorLevels[sensor_id] = level;
@@ -395,7 +394,7 @@ void serialEvent() {
       // Reset device to bootloader, enables DFU mode
       JumpToBootloader();
       break;
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
     case 'D':
       // toggle display
       displayEnabled = not displayEnabled;
@@ -427,7 +426,7 @@ void configureDevice() {
 }
 
 
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
 void updateCalibratedSensorValues() {
   totalPower = 0;
   for (int pair=0; pair < MAX_SENSORS / 2; pair++) {
@@ -472,7 +471,7 @@ void setup() {
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
   if (displayEnabled) {
     initDisplay();
   }
@@ -488,7 +487,7 @@ void loop() {
   // only check for serial events, sending sensor values to host is handled through interrupts
   serialEvent();
   // update display if enabled
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
   if (displayEnabled) {
     updateDisplay();
   }
