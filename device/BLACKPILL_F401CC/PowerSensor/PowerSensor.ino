@@ -1,3 +1,8 @@
+/* NOTE: to avoid dropping data one must increase the USB transmit buffer size
+ * See CDC_TRANSMIT_QUEUE_BUFFER_SIZE in Arduino15/packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h
+ * A value of 6 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE instead of the default 2 times CDC_TRANSMIT_QUEUE_BUFFER_SIZE seems to be enough
+ */
+
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
 #define USE_DISPLAY  // comment out to disable display
@@ -55,6 +60,8 @@ int activeSensorPairs[MAX_SENSORS/2];
 uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
 uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
 uint16_t currentSample = 0;
+uint8_t serialData[(MAX_SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
+bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
@@ -265,71 +272,71 @@ void configureDMA() {
 }
 
 void configureNVIC() {
-  // set the DMA interrupt to be lower than USB to avoid breaking communication to host
-  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) + 1);
+  // set the DMA interrupt prio to be higher than USB to ensure constant sampling
+  // NOTE: this means USB communication cannot be used in the DMA interrupt handler
+  NVIC_SetPriority(DMA2_Stream0_IRQn, NVIC_GetPriority(OTG_FS_IRQn) - 1);
   NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
-  // send ADC values to host if enabled
-  if (streamValues | sendSingleValue) {
-    storeADCValues(/* store_only */ false);
-  // if the display is enabled, make sure to always read out the values, but do not send them to host if not enabled
-  #ifndef USE_DISPLAY
-  }
-  #else
-  } else {
-    storeADCValues(/* store_only */ true);
-  }
-  #endif
-  // clear DMA TC flag
-  LL_DMA_ClearFlag_TC0(DMA2);
-}
-
-void storeADCValues(const bool store_only) {
+  static uint16_t t = 0;
   // loop over sensors and store each value at current location in averaging buffer
   for (uint8_t i = 0; i < numSensor; i++) {
     avgBuffer[i][currentSample] = dmaBuffer[i];
   }
   currentSample++;
-  // if the buffer is full, send the values and reset
-  if (currentSample >= numSampleToAverage) {
-    sendADCValues(store_only);
-    currentSample = 0;
-  }
-}
 
-void sendADCValues(const bool store_only) {
-  // send all values over serial
-  uint8_t data[numSensor*2];  // 2 bytes per sensor
-  for (uint8_t i = 0; i < numSensor; i++) {
-    uint8_t sensor_id = activeSensors[i];
-    // calculate average level of current sensor
-    uint16_t level = 0.;
-    for (uint8_t j = 0; j < numSampleToAverage; j++) {
-      level += avgBuffer[i][j];
-    }
-    level /= numSampleToAverage;
+  if (currentSample == numSampleToAverage / 2) {
+    // if we are halfway, store the timestamp
+    t = micros();
+  } else if (currentSample >= numSampleToAverage) {
+    // if the buffer is full, process the values
+    // for timestamp packet, we use the sensor id 0b111 and set the marker bit
+    // the host can recognize that this is not a sensor value because the marker bit
+    // can only be set for sensor 0
+    // so the timestamp packets are
+    // 1 111 TTTT, where T are the upper 4 bits of the timestamp
+    // 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+    uint16_t t = micros();
+    serialData[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
+    serialData[1] = ((0b01) << 6) | (t & 0x3F);
+
+    // process the sensor values
+    for (uint8_t i = 0; i < numSensor; i++) {
+      uint8_t sensor_id = activeSensors[i];
+      // calculate average level of current sensor
+      uint16_t level = 0.;
+      for (uint8_t j = 0; j < numSampleToAverage; j++) {
+        level += avgBuffer[i][j];
+      }
+      level /= numSampleToAverage;
 #ifdef USE_DISPLAY
-    if (displayEnabled) {
-      // store in sensorValues for display purposes
-      sensorLevels[sensor_id] = level;
-    }
+      if (displayEnabled) {
+        // store in sensorValues for display purposes
+        sensorLevels[sensor_id] = level;
+      }
 #endif
-    // add metadata to remaining bits: 2 bytes available with 10b sensor value
-    // First byte: 1 iii aaaa
-    // where iii is the sensor id, a are the upper 4 bits of the level
-    data[2*i] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
-    // Second byte: 0 m bbbbbb
-    // where m is the marker bit, b are the lower 6 bits of the level
-    data[2*i+1] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
-    counter++;
-    sendMarkerNext = false;
+      // add metadata to remaining bits: 2 bytes available with 10b sensor value
+      // First byte: 1 iii aaaa
+      // where iii is the sensor id, a are the upper 4 bits of the level
+      serialData[2*i + 2] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+      // Second byte: 0 m bbbbbb
+      // where m is the marker bit, b are the lower 6 bits of the level
+      serialData[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
+
+      counter++;
+      sendMarkerNext = false;
+    }
+    // finally reset the sampling counter and trigger the sending of data in the main loop
+    currentSample = 0;
+    if (streamValues | sendSingleValue) {
+      sendData = true;
+      sendSingleValue = false;
+    }
   }
-  sendSingleValue = false;
-  if (store_only)
-    return;
-  Serial.write(data, sizeof data); // send data of all active sensors to host
+
+  // clear DMA TC flag
+  LL_DMA_ClearFlag_TC0(DMA2);
 }
 
 void serialEvent() {
@@ -474,6 +481,10 @@ void setup() {
 }
 
 void loop() {
+  if (sendData) {
+    Serial.write(serialData, 2 * (numSensor+1));
+    sendData = false;
+  }
   // only check for serial events, sending sensor values to host is handled through interrupts
   serialEvent();
   // update display if enabled
