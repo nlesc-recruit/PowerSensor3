@@ -216,7 +216,7 @@ void configureADCChannels() {
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
   }
 
 }
