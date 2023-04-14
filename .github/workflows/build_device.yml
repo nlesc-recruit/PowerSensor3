@@ -40,4 +40,4 @@ jobs:
     - name: Compile ${{ matrix.device }} device code
       run: |
         cd device
-        make device ${{ matrix.device }}
+        make device DEV=${{ matrix.device }}
