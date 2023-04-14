@@ -9,7 +9,7 @@
 # For Black Pill F401CCU6
 BOARD =				BLACKPILL_F401CC
 DEVICE =            STMicroelectronics:stm32:GenF4
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod
+FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod,opt=o3std
 
 USB =				CDCgen
 
