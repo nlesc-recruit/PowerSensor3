@@ -15,6 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-22.04", "macos-11", "windows-latest"]
+        device: ["F401", "F407"]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -36,7 +37,7 @@ jobs:
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32
-    - name: Compile device code
+    - name: Compile ${{ matrix.device }} device code
       run: |
         cd device
-        make device
+        make device DEV=${{ matrix.device }}

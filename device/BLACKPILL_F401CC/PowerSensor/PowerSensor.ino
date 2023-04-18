@@ -5,7 +5,7 @@
 
 #define USE_FULL_LL_DRIVER
 #define MAX_SENSORS 8  // limited by number of bits used for sensor id
-#define VERSION "0.1.0"
+#define VERSION "F401-0.1.0"
 
 // these two values are used to be able to jump to the bootloader from the application
 // Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in STM32F401xB/C
@@ -216,7 +216,7 @@ void configureADCChannels() {
   for (uint8_t i = 0; i < numSensor; i++) {
     uint8_t sensor_id = activeSensors[i];
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_3CYCLES);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
   }
 
 }
