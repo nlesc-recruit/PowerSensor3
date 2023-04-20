@@ -411,7 +411,7 @@ void configureDevice() {
 #ifndef NODISPLAY
 void updateCalibratedSensorValues() {
   totalPower = 0;
-  for (int pair=0; pair < SENSORS / 2; pair++) {
+  for (int pair=0; pair < PAIRS; pair++) {
     float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
     float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
     float power = volt * amp;
