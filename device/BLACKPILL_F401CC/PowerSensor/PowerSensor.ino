@@ -4,7 +4,8 @@
  */
 
 #define USE_FULL_LL_DRIVER
-#define MAX_SENSORS 8  // limited by number of bits used for sensor id
+#define SENSORS 8  // limited by number of bits used for sensor id
+#define PAIRS 4
 #define VERSION "F401-0.1.0"
 
 // these two values are used to be able to jump to the bootloader from the application
@@ -26,13 +27,12 @@
 #ifndef NODISPLAY
 #define UPDATE_INVERVAL 2000  // ms
 #define VOLTAGE 3.3
-#define MAX_PAIRS 4
 #define MAX_LEVEL 1023
 #include "display.h"
-uint16_t sensorLevels[MAX_SENSORS];  // to store raw (averaged) sensor values for displaying purposes
-float voltageValues[MAX_SENSORS/2];
-float currentValues[MAX_SENSORS/2];
-float powerValues[MAX_SENSORS/2];
+uint16_t sensorLevels[SENSORS];  // to store raw (averaged) sensor values for displaying purposes
+float voltageValues[PAIRS];
+float currentValues[PAIRS];
+float powerValues[PAIRS];
 float totalPower;
 bool displayEnabled = true;
 #endif
@@ -53,13 +53,10 @@ const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GP
 
 const int numSampleToAverage = 6; // number of samples to average
 uint32_t counter;
-uint8_t numSensor;  // number of active sensors
-int activeSensors[MAX_SENSORS]; // which sensors are active
-int activeSensorPairs[MAX_SENSORS/2];
-uint16_t dmaBuffer[MAX_SENSORS];  // 16b per sensor
-uint16_t avgBuffer[MAX_SENSORS][numSampleToAverage];
+uint16_t dmaBuffer[SENSORS];  // 16b per sensor
+uint16_t avgBuffer[SENSORS][numSampleToAverage];
 uint16_t currentSample = 0;
-uint8_t serialData[(MAX_SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
+uint8_t serialData[(SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
 bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
@@ -73,7 +70,7 @@ struct Sensor {
 } __attribute__((packed));
 
 struct Config {
-  Sensor sensors[MAX_SENSORS];
+  Sensor sensors[SENSORS];
 } eeprom;
 
 void JumpToBootloader() {
@@ -98,7 +95,7 @@ void readConfig() {
   // send config in virtual EEPROM to host in chunks per sensor
   // after each chunk, any character should be sent to the device to
   // trigger sending the next chunk. D is sent when done
-  for (int s=0; s<MAX_SENSORS; s++) {
+  for (int s=0; s<SENSORS; s++) {
     Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
     while (Serial.read() < 0) {
     }
@@ -111,7 +108,7 @@ void writeConfig() {
   // in chunks per sensor
   // send S to host after each sensor, D when done
   uint8_t* p_eeprom = (uint8_t*) &eeprom;
-  for (int s=0; s<MAX_SENSORS; s++) {
+  for (int s=0; s<SENSORS; s++) {
     // wait for entire sensor chunk to be available
     while (Serial.available() < sizeof(Sensor)) {
     }
@@ -149,17 +146,6 @@ void writeEEPROMToFlash() {
   eeprom_buffer_flush();
 }
 
-void getActiveSensors() {
-  numSensor = 0;
-  for (int i=0; i < MAX_SENSORS; i++) {
-    if (eeprom.sensors[i].inUse) {
-      activeSensors[numSensor] = i;
-      activeSensorPairs[numSensor/2] = i / 2;
-      numSensor++;
-    }
-  }
-}
-
 void Blink(uint8_t amount) {
   // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
   for (uint8_t i = 0; i < amount; i++) {
@@ -189,7 +175,7 @@ void configureADC() {
 
   ADCConfig.Resolution = LL_ADC_RESOLUTION_10B; // 10-bit ADC resolution
   ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT; // right-align data within 16b register
-  ADCConfig.SequencersScanMode = ADC_SCANMODES[numSensor - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
+  ADCConfig.SequencersScanMode = ADC_SCANMODES[SENSORS - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
 
   if (LL_ADC_Init(ADC1, &ADCConfig) != SUCCESS) {
     Blink(2);
@@ -202,7 +188,7 @@ void configureADCChannels() {
   LL_ADC_REG_StructInit(&ADCChannelConfig);
 
   ADCChannelConfig.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;   // trigger conversion from software
-  ADCChannelConfig.SequencerLength = ADC_SCANMODES[numSensor - 1];  // number of ranks to convert
+  ADCChannelConfig.SequencerLength = ADC_SCANMODES[SENSORS - 1];  // number of ranks to convert
   ADCChannelConfig.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE; // not using discontinous mode
   ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS; // enable continuous conversion mode
   ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED; // Allow unlimited transfers to DMA
@@ -213,10 +199,9 @@ void configureADCChannels() {
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
-  for (uint8_t i = 0; i < numSensor; i++) {
-    uint8_t sensor_id = activeSensors[i];
-    LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[sensor_id]);
-    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[sensor_id], LL_ADC_SAMPLINGTIME_15CYCLES);
+  for (uint8_t i = 0; i<SENSORS; i++) {
+    LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[i]);
+    LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[i], LL_ADC_SAMPLINGTIME_15CYCLES);
   }
 
 }
@@ -227,9 +212,8 @@ void configureGPIO() {
   LL_GPIO_StructInit(&GPIOConfig);
 
   uint32_t pins = 0;
-  for (uint8_t i = 0; i < numSensor; i++) {
-    uint8_t sensor_id = activeSensors[i];
-    pins |= GPIO_PINS[sensor_id];
+  for (uint8_t i = 0; i < SENSORS; i++) {
+    pins |= GPIO_PINS[i];
   }
 
   GPIOConfig.Pin = pins;
@@ -254,7 +238,7 @@ void configureDMA() {
   DMAConfig.MemoryOrM2MDstIncMode = LL_DMA_MEMORY_INCREMENT;
   DMAConfig.PeriphOrM2MSrcDataSize = LL_DMA_PDATAALIGN_HALFWORD;
   DMAConfig.MemoryOrM2MDstDataSize = LL_DMA_MDATAALIGN_HALFWORD;
-  DMAConfig.NbData = numSensor;
+  DMAConfig.NbData = SENSORS;
   DMAConfig.Channel = LL_DMA_CHANNEL_0;
 
   // write config
@@ -280,7 +264,7 @@ void configureNVIC() {
 extern "C" void DMA2_Stream0_IRQHandler() {
   static uint16_t t = 0;
   // loop over sensors and store each value at current location in averaging buffer
-  for (uint8_t i = 0; i < numSensor; i++) {
+  for (uint8_t i = 0; i < SENSORS; i++) {
     avgBuffer[i][currentSample] = dmaBuffer[i];
   }
   currentSample++;
@@ -301,8 +285,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
     serialData[1] = ((0b01) << 6) | (t & 0x3F);
 
     // process the sensor values
-    for (uint8_t i = 0; i < numSensor; i++) {
-      uint8_t sensor_id = activeSensors[i];
+    for (uint8_t i = 0; i < SENSORS; i++) {
       // calculate average level of current sensor
       uint16_t level = 0.;
       for (uint8_t j = 0; j < numSampleToAverage; j++) {
@@ -312,13 +295,13 @@ extern "C" void DMA2_Stream0_IRQHandler() {
 #ifndef NODISPLAY
       if (displayEnabled) {
         // store in sensorValues for display purposes
-        sensorLevels[sensor_id] = level;
+        sensorLevels[i] = level;
       }
 #endif
       // add metadata to remaining bits: 2 bytes available with 10b sensor value
       // First byte: 1 iii aaaa
       // where iii is the sensor id, a are the upper 4 bits of the level
-      serialData[2*i + 2] = ((sensor_id & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
+      serialData[2*i + 2] = ((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
       // Second byte: 0 m bbbbbb
       // where m is the marker bit, b are the lower 6 bits of the level
       serialData[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
@@ -414,7 +397,6 @@ void configureDevice() {
   LL_ADC_Disable(ADC1);
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
 
-  getActiveSensors();
   configureGPIO();
   configureDMA();
   configureADCCommon();
@@ -429,7 +411,7 @@ void configureDevice() {
 #ifndef NODISPLAY
 void updateCalibratedSensorValues() {
   totalPower = 0;
-  for (int pair=0; pair < MAX_SENSORS / 2; pair++) {
+  for (int pair=0; pair < PAIRS; pair++) {
     float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
     float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
     float power = volt * amp;
@@ -445,12 +427,12 @@ void updateDisplay() {
   unsigned long interval = (unsigned long)(millis() - previousMillis);
 
   if (interval > UPDATE_INVERVAL) {
-    static int sensor_pair = 0;
+    static unsigned int sensor_pair = 0;
     previousMillis = millis();
     // update the values, then write to display
-    sensor_pair = (sensor_pair + 1) % (numSensor / 2);
+    sensor_pair = (sensor_pair + 1) % PAIRS;
     updateCalibratedSensorValues();
-    displaySensor(activeSensorPairs[sensor_pair], currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+    displaySensor(sensor_pair, currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
   }
 }
 #endif
@@ -481,7 +463,7 @@ void setup() {
 
 void loop() {
   if (sendData) {
-    Serial.write(serialData, 2 * (numSensor+1));
+    Serial.write(serialData, sizeof(serialData));
     sendData = false;
   }
   // only check for serial events, sending sensor values to host is handled through interrupts
