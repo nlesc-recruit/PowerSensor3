@@ -176,7 +176,7 @@ if __name__ == '__main__':
     # size-5 fontmap (yellow only)
     colour = COLOURS["yellow"]
     if DEBUG:
-        print("yellow-large")
+        print("yellow-large", file=sys.stderr)
     # create a map for each character
     for idx_char, char in enumerate(chars):
         # select the right bitmap and create version with rgb565 colours
@@ -188,8 +188,12 @@ if __name__ == '__main__':
             print(fontmap_large[idx_char].reshape(nrow * size, ncol * size), file=sys.stderr)
             print('\n\n', file=sys.stderr)
 
+    # flip endianness of the font maps
+    fontmap.byteswap(inplace=True)
+    fontmap_large.byteswap(inplace=True)
+
     # create the fontmap array for use in the C++ firmware
-    prefix = "static const unsigned uint16_t fontMap[] PROGMEM = {\n    "
+    prefix = "static const uint16_t fontMap[] PROGMEM = {\n    "
     suffix = "};"
     fontmap_str = np.array2string(fontmap.ravel(), separator=', ', formatter={'int': hex}, threshold=np.inf)
     # index newlines with 4 spaces instead of one and convert the hex values to upper case
@@ -207,6 +211,7 @@ if __name__ == '__main__':
     fontmap_large_str = prefix + fontmap_large_str[1:-1] + suffix
 
     print("// Fontmaps automatically generated with create_fontmaps.py")
+    print("#include <Arduino.h>")
     print(fontmap_str)
     print('')
     print(fontmap_large_str)
