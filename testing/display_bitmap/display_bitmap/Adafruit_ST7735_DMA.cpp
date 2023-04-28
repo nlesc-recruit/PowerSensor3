@@ -55,15 +55,17 @@ void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
   // ascii has period, slash, then 0-9
   // check that we have a valid character to display and compute index 
   // in 0123456789.
-  if (c > '9' | c < '0' | c == '/') {
+  int idx;
+  if (c == '.') {
+    // period is the eleventh character
+    idx = 10;
+  } else if (c > '9' | c < '.' | c == '/') {
     // invalid character, only digits and period supported
     // could fall back to pixel-by-pixel writing here
     return;
-  }
-  int idx = c - '0';
-  if (c < 0) {
-    // period, which is the eleventh character
-    idx = 10;
+  } else {
+    // digit
+    idx = c - '0';
   }
 
   // set pointer to start of the character in the correct fontmap
