@@ -34,8 +34,8 @@ if __name__ == '__main__':
     print(f"Passed time: {powersensor.seconds(state1, state2):.2f} s")
     print(f"Total energy: {powersensor.Joules(state1, state2, -1):.2f} J")
     print("\nTotals/averages per sensor pair:")
-    funcs = ["Joules", "Watt", "Volt", "Ampere"]
-    units = dict(zip(funcs, ["J (total)", "W (avg)", "V (avg)", "A (avg)"]))
+    funcs = ["Joules", "Watt"]
+    units = dict(zip(funcs, ["J (total)", "W (avg)"]))
     for func in funcs:
         values = [getattr(powersensor, func)(state1, state2, i) for i in range(4)]
         formatted_value = ' '.join([f'{item:.2f}' for item in values])
