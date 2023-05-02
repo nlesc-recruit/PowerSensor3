@@ -1,4 +1,4 @@
-const int numSampleToAverage = 6; // number of samples to average
+const int numSampleToAverage = 6;  // number of samples to average
 uint32_t counter;
 __IO uint16_t dmaBuffer[SENSORS];  // 16b per sensor
 uint16_t avgBuffer[SENSORS][numSampleToAverage];
@@ -31,9 +31,11 @@ void configureADC() {
   LL_ADC_InitTypeDef ADCConfig;
   LL_ADC_StructInit(&ADCConfig);
 
-  ADCConfig.Resolution = LL_ADC_RESOLUTION_10B; // 10-bit ADC resolution
-  ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT; // right-align data within 16b register
-  ADCConfig.SequencersScanMode = ADC_SCANMODES[SENSORS - 1] == LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;  // enable scan only if there is more than one rank to convert
+  ADCConfig.Resolution = LL_ADC_RESOLUTION_10B;  // 10-bit ADC resolution
+  ADCConfig.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT;  // right-align data within 16b register
+  // enable scan only if there is more than one rank to convert
+  ADCConfig.SequencersScanMode = ADC_SCANMODES[SENSORS - 1] ==
+    LL_ADC_REG_SEQ_SCAN_DISABLE ? LL_ADC_SEQ_SCAN_DISABLE: LL_ADC_SEQ_SCAN_ENABLE;
 
   if (LL_ADC_Init(ADC1, &ADCConfig) != SUCCESS) {
     Blink(2);
@@ -47,9 +49,9 @@ void configureADCChannels() {
 
   ADCChannelConfig.TriggerSource = LL_ADC_REG_TRIG_SOFTWARE;   // trigger conversion from software
   ADCChannelConfig.SequencerLength = ADC_SCANMODES[SENSORS - 1];  // number of ranks to convert
-  ADCChannelConfig.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE; // not using discontinous mode
-  ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS; // enable continuous conversion mode
-  ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED; // Allow unlimited transfers to DMA
+  ADCChannelConfig.SequencerDiscont = LL_ADC_REG_SEQ_DISCONT_DISABLE;  // not using discontinous mode
+  ADCChannelConfig.ContinuousMode = LL_ADC_REG_CONV_CONTINUOUS;  // enable continuous conversion mode
+  ADCChannelConfig.DMATransfer = LL_ADC_REG_DMA_TRANSFER_UNLIMITED;  // Allow unlimited transfers to DMA
 
   if (LL_ADC_REG_Init(ADC1, &ADCChannelConfig) != SUCCESS) {
     Blink(3);
@@ -57,11 +59,10 @@ void configureADCChannels() {
   }
 
   // Set which channels will be converted and in which order, as well as their sampling time
-  for (uint8_t i = 0; i<SENSORS; i++) {
+  for (uint8_t i = 0; i < SENSORS; i++) {
     LL_ADC_REG_SetSequencerRanks(ADC1, ADC_RANKS[i], ADC_CHANNELS[i]);
     LL_ADC_SetChannelSamplingTime(ADC1, ADC_CHANNELS[i], LL_ADC_SAMPLINGTIME_15CYCLES);
   }
-
 }
 
 void configureDMA() {
@@ -70,7 +71,7 @@ void configureDMA() {
   LL_DMA_StructInit(&DMAConfig);
 
   DMAConfig.PeriphOrM2MSrcAddress =  LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA);
-  DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer; // target is the buffer in RAM
+  DMAConfig.MemoryOrM2MDstAddress = (uint32_t) &dmaBuffer;  // target is the buffer in RAM
   DMAConfig.Direction = LL_DMA_DIRECTION_PERIPH_TO_MEMORY;
   DMAConfig.Mode = LL_DMA_MODE_CIRCULAR;
   DMAConfig.PeriphOrM2MSrcIncMode = LL_DMA_PERIPH_NOINCREMENT;
