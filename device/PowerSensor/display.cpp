@@ -1,3 +1,4 @@
+#ifdef STM32F401xC
 #define TFT_SCLK PB3
 #define TFT_MISO PB4  // unused, but needs to be defined in SPI setup
 #define TFT_MOSI PB5
@@ -5,6 +6,15 @@
 #define TFT_DC PB15
 #define TFT_CS PB8
 #define TFT_BLK PB9
+#elif defined STM32F407xx
+#define TFT_SCLK PB13
+#define TFT_MISO PB14  // unused, but needs to be defined in SPI setup
+#define TFT_MOSI PB15
+#define TFT_RST PB11
+#define TFT_DC PB12
+#define TFT_CS PB8
+#define TFT_BLK PB9
+#endif
 
 #define MAX_WIDTH  160
 #define MAX_HEIGHT 80
