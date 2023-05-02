@@ -56,16 +56,16 @@ void clearDisplay() {
 
 void displayInitialValues() {
   clearDisplay();
-  
+
   tft.setCursor(0, OFFSET_MAIN);
   tft.setTextSize(5);
 
   tft.setTextColor(ST77XX_YELLOW);
   tft.print("  0 W");
-  
+
   tft.setCursor(0, OFFSET_BOTTOM);
   tft.setTextSize(1);
-  
+
   tft.setTextColor(ST77XX_BLUE);
   tft.print("S0:  ");
   tft.setTextColor(ST77XX_RED);
