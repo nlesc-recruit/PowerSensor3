@@ -40,6 +40,13 @@ void Adafruit_ST7735_DMA::writeFastChar(int16_t x, int16_t y, unsigned char c,
               uint16_t color, uint8_t size) {
   const uint16_t valuesPerChar = FONT_NROW * FONT_NCOL * size * size;
 
+  // if the character is a space, we can simply write zeroes
+  if (c == ' ') {
+    setAddrWindow(x, y, FONT_NCOL * size, FONT_NROW * size);
+    _spi->DMAtransfer(const_cast<uint16_t*>(&fontMapSpace[0]), valuesPerChar * sizeof(uint16_t));
+    return;
+  }
+
   // valid characters are ./0123456789
   // this is a continuous range in ascii, check if we have a valid character
   if (c < '.' | c > '9') {

@@ -221,6 +221,9 @@ if __name__ == '__main__':
             color_mapping += ", "
     color_mapping += "\n};"
 
+    # create fontmap for space: just zeroes at max font size
+    fontmap_space = f"static const uint16_t fontMapSpace[FONT_NROW * {size} * FONT_NCOL * {size}] PROGMEM = {{0}};"
+
     # file header
     header = f"""/* Fontmaps automatically generated with create_fontmaps.py
 * These are bitmaps for the following characters: {chars}
@@ -229,6 +232,7 @@ if __name__ == '__main__':
 * A size-5 fontmap is available for the following colour: ST77XX_{fontmap_large_colour.upper()}
 * The colorMap map can be used to find the start of the size-1 font map corresponding to a specific colour
 * Each size-1 character is stored as 40 bytes (ASCII 5x7 plus empty 8th line font).
+* An array of zeroes at the largest font size is also intialized for the space character
 * The font is based on the font available in the Adafruit GFX library, see
 * https://github.com/adafruit/Adafruit-GFX-Library/blob/master/glcdfont.c
 * Note: the characters in the Adafruit library are rotated by 90 degrees compared to this font
@@ -245,6 +249,8 @@ if __name__ == '__main__':
     print(header)
     print('')
     print(color_mapping)
+    print('')
+    print(fontmap_space)
     print('')
     print(fontmap_str)
     print('')

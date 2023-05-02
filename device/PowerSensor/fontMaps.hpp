@@ -5,6 +5,7 @@
 * A size-5 fontmap is available for the following colour: ST77XX_YELLOW
 * The colorMap map can be used to find the start of the size-1 font map corresponding to a specific colour
 * Each size-1 character is stored as 40 bytes (ASCII 5x7 plus empty 8th line font).
+* An array of zeroes at the largest font size is also intialized for the space character
 * The font is based on the font available in the Adafruit GFX library, see
 * https://github.com/adafruit/Adafruit-GFX-Library/blob/master/glcdfont.c
 * Note: the characters in the Adafruit library are rotated by 90 degrees compared to this font
@@ -18,6 +19,8 @@
 static const std::map<uint16_t, uint16_t> colorMap{
   {ST77XX_RED, 0}, {ST77XX_GREEN, 480}, {ST77XX_BLUE, 960}, {ST77XX_YELLOW, 1440}
 };
+
+static const uint16_t fontMapSpace[FONT_NROW * 5 * FONT_NCOL * 5] PROGMEM = {0};
 
 static const uint16_t fontMap[] PROGMEM = {
     0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
