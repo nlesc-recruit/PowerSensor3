@@ -4,6 +4,16 @@ __IO uint16_t dmaBuffer[SENSORS];  // 16b per sensor
 uint16_t avgBuffer[SENSORS][numSampleToAverage];
 uint16_t currentSample = 0;
 
+void Blink(uint8_t amount) {
+  // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
+  for (uint8_t i = 0; i < amount; i++) {
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+  }
+}
+
 void configureADCCommon() {
   LL_ADC_CommonInitTypeDef ADCCommonConfig;
   LL_ADC_CommonStructInit(&ADCCommonConfig);

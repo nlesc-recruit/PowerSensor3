@@ -6,7 +6,14 @@
 #define USE_FULL_LL_DRIVER
 #define SENSORS 8  // limited by number of bits used for sensor id
 #define PAIRS 4
+
+#ifdef STM32F401xC
 #define VERSION "F401-0.1.0"
+#elif defined STM32F407xx
+#define VERSION "F407-0.1.0"
+#else
+#error "Unsupported device"
+#endif
 
 // these two values are used to be able to jump to the bootloader from the application
 // Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in STM32F401xB/C
@@ -57,20 +64,10 @@ bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
 
-void Blink(uint8_t amount) {
-  // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
-  for (uint8_t i = 0; i < amount; i++) {
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(250);
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(250);
-  }
-}
-
 // include device-specific code for setting up the ADC, DMA, and buffers and counters
 #ifdef STM32F401xC
 #include "device_specific/BLACKPILL_F401CC.cpp"
-#else ifdef STM32F407xx
+#elif defined STM32F407xx
 #include "device_specific/DISCO_F407VG.cpp"
 #endif
 
@@ -88,8 +85,14 @@ struct Config {
 void JumpToBootloader() {
   // ensure DMA and ADC are off
   LL_ADC_Disable(ADC1);
+#ifdef STM32F407xx
+  LL_ADC_Disable(ADC2);
+#endif
   LL_DMA_DisableStream(DMA2, LL_DMA_STREAM_0);
   LL_ADC_DeInit(ADC1);
+#ifdef STM32F407xx
+  LL_ADC_DeInit(ADC2);
+#endif
   LL_DMA_DeInit(DMA2, LL_DMA_STREAM_0);
 
  // function starting at to whatever address is stored in the reset vector
@@ -263,10 +266,20 @@ void configureDevice() {
   configureGPIO();
   configureDMA();
   configureADCCommon();
+#ifdef STM32F401xC
   configureADC();
   configureADCChannels();
+#elif defined STM32F407xx
+  configureADC(ADC1);
+  configureADC(ADC2);
+  configureADCChannels(ADC1, /* master */ true);
+  configureADCChannels(ADC2, /* master */ false);
+#endif
   configureNVIC();
   LL_ADC_Enable(ADC1);
+#ifdef STM32F407xx
+  LL_ADC_Enable(ADC2);
+#endif
   LL_ADC_REG_StartConversionSWStart(ADC1);
 }
 
@@ -313,6 +326,9 @@ void setup() {
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
   LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC1);
+#ifdef STM32F407xx
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_ADC2);
+#endif
 
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
