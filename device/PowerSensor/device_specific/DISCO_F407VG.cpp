@@ -97,12 +97,13 @@ void configureDMA() {
 }
 
 extern "C" void DMA2_Stream0_IRQHandler() {
-  // for timestamp packet, we use the sensor id 0b111 and set the marker bit
-  // the host can recognize that this is not a sensor value because the marker bit
-  // can only be set for sensor 0
-  // so the timestamp packets are
-  // 1 111 TTTT, where T are the upper 4 bits of the timestamp
-  // 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+  /* for timestamp packet, we use the sensor id 0b111 and set the marker bit
+   * the host can recognize that this is not a sensor value because the marker bit
+   * can only be set for sensor 0
+   * so the timestamp packets are
+   * 1 111 TTTT, where T are the upper 4 bits of the timestamp
+   * 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+   */
   uint16_t t = micros();
   serialData[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
   serialData[1] = ((0b01) << 6) | (t & 0x3F);

@@ -15,11 +15,14 @@
 #error "Unsupported device"
 #endif
 
-// these two values are used to be able to jump to the bootloader from the application
-// Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in the uC reference manual
-// at boot the first word contains the initial value of the stack pointer. However this can change depending on the firmware.
-// To be safe we put the stack at the end of the first RAM block. RAM starts at 0x2000 0000 and is either 12 KB (F401CC) or 64 KB (F407VG) in size
-// the second word stores the address at which code execution should start, this is where we jump to to run the bootloader
+/* The following two values are used to be able to jump to the bootloader from the application
+ * Start of system memory is 0x1FFF 0000, see Table 3 in the uC reference manual
+ * at boot the first word contains the initial value of the stack pointer.
+ * To be safe we put the stack at the end of the first RAM block.
+ * RAM starts at 0x2000 0000 and is either 12 KB (F401CC) or 64 KB (F407VG) in size
+ * the second word stores the address at which code execution should start,
+ * this is where we jump to to run the bootloader
+ */
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
 #ifdef STM32F401xC
 #define BOOTLOADER_STACK_POINTER       0x2000FFFF
@@ -27,10 +30,10 @@
 #define BOOTLOADER_STACK_POINTER       0x2001BFFF
 #endif
 
-#include <stm32f4xx_ll_bus.h>  // clock control
-#include <stm32f4xx_ll_adc.h>  // ADC control
-#include <stm32f4xx_ll_gpio.h> // GPIO control
-#include <stm32f4xx_ll_dma.h>  // DMA control
+#include <stm32f4xx_ll_bus.h>   // clock control
+#include <stm32f4xx_ll_adc.h>   // ADC control
+#include <stm32f4xx_ll_gpio.h>  // GPIO control
+#include <stm32f4xx_ll_dma.h>   // DMA control
 #include <EEPROM.h>
 
 #ifndef NODISPLAY
@@ -38,7 +41,7 @@
 #define VOLTAGE 3.3
 #define MAX_LEVEL 1023
 #include "display.h"
-uint16_t sensorLevels[SENSORS];  // to store raw (averaged) sensor values for displaying purposes
+uint16_t sensorLevels[SENSORS];  // to store sensor values for displaying purposes
 float voltageValues[PAIRS];
 float currentValues[PAIRS];
 float powerValues[PAIRS];
@@ -97,22 +100,22 @@ void JumpToBootloader() {
 #endif
   LL_DMA_DeInit(DMA2, LL_DMA_STREAM_0);
 
- // function starting at to whatever address is stored in the reset vector
- void (*SysMemBootJump)(void) = (void (*)(void)) (*((uint32_t *) SYSMEM_RESET_VECTOR));
- HAL_DeInit();
- HAL_RCC_DeInit();
- SysTick->CTRL = 0;
- SysTick->LOAD = 0;
- SysTick->VAL = 0;
- __set_MSP(BOOTLOADER_STACK_POINTER);
- SysMemBootJump();
+  // function starting at to whatever address is stored in the reset vector
+  void (*SysMemBootJump)(void) = (void (*)(void)) (*(reinterpret_cast<uint32_t *>(SYSMEM_RESET_VECTOR)));
+  HAL_DeInit();
+  HAL_RCC_DeInit();
+  SysTick->CTRL = 0;
+  SysTick->LOAD = 0;
+  SysTick->VAL = 0;
+  __set_MSP(BOOTLOADER_STACK_POINTER);
+  SysMemBootJump();
 }
 
 void readConfig() {
   // send config in virtual EEPROM to host in chunks per sensor
   // after each chunk, any character should be sent to the device to
   // trigger sending the next chunk. D is sent when done
-  for (int s=0; s<SENSORS; s++) {
+  for (int s=0; s < SENSORS; s++) {
     Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
     while (Serial.read() < 0) {
     }
@@ -124,13 +127,13 @@ void writeConfig() {
   // read eeprom from host per byte
   // in chunks per sensor
   // send S to host after each sensor, D when done
-  uint8_t* p_eeprom = (uint8_t*) &eeprom;
-  for (int s=0; s<SENSORS; s++) {
+  uint8_t* p_eeprom = reinterpret_cast<uint8_t*>(&eeprom);
+  for (int s=0; s < SENSORS; s++) {
     // wait for entire sensor chunk to be available
     while (Serial.available() < sizeof(Sensor)) {
     }
     // write sensor bytes into eeprom struct
-    for (int b=0; b<sizeof(Sensor); b++) {
+    for (int b=0; b < sizeof(Sensor); b++) {
       *p_eeprom++ = Serial.read();
     }
     Serial.write('S');
@@ -147,7 +150,7 @@ void readEEPROMFromFlash() {
   // copy from flash to buffer
   eeprom_buffer_fill();
   // read buffer per byte
-  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  uint8_t* p_eeprom = reinterpret_cast<uint8_t*>(&eeprom);
   for (uint16_t i=0; i < sizeof eeprom; i++) {
     *p_eeprom++ = eeprom_buffered_read_byte(i);
   }
@@ -155,7 +158,7 @@ void readEEPROMFromFlash() {
 
 void writeEEPROMToFlash() {
   // write buffer per byte
-  uint8_t* p_eeprom = (uint8_t*) &eeprom;
+  uint8_t* p_eeprom = reinterpret_cast<uint8_t*>(&eeprom);
   for (uint16_t i=0; i < sizeof eeprom; i++) {
     eeprom_buffered_write_byte(i, *p_eeprom++);
   }
@@ -191,7 +194,7 @@ void configureNVIC() {
 
 void serialEvent() {
   if (Serial.available() > 0) {
-   switch (Serial.read()) {
+    switch (Serial.read()) {
     case 'R':
       // read sensor configuration from EEPROM
       readConfig();
@@ -221,8 +224,8 @@ void serialEvent() {
       // Shutdown, shuts off IO thread on host
       streamValues = false;
       delay(100);  // on an RPi host the stop does not arrive at the host properly unless there is a delay here
-      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
-      Serial.write((const uint8_t []) { 0xFF, 0x3F}, 2);
+      Serial.write((const uint8_t[]) { 0xFF, 0x3F}, 2);
+      Serial.write((const uint8_t[]) { 0xFF, 0x3F}, 2);
       break;
     case 'Q':
       // Send value of internal counter of number of completed conversions. Used for testing and debugging
@@ -248,7 +251,7 @@ void serialEvent() {
 #ifndef NODISPLAY
     case 'D':
       // toggle display
-      displayEnabled = not displayEnabled;
+      displayEnabled = !displayEnabled;
       if (displayEnabled) {
         initDisplay();
       } else {
@@ -256,7 +259,7 @@ void serialEvent() {
       }
       break;
 #endif
-   }
+    }
   }
 }
 
@@ -290,8 +293,10 @@ void configureDevice() {
 void updateCalibratedSensorValues() {
   totalPower = 0;
   for (int pair=0; pair < PAIRS; pair++) {
-    float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
-    float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
+    float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL
+      - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
+    float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL
+      - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
     float power = volt * amp;
     voltageValues[pair] = volt;
     currentValues[pair] = amp;
@@ -310,7 +315,8 @@ void updateDisplay() {
     // update the values, then write to display
     sensor_pair = (sensor_pair + 1) % PAIRS;
     updateCalibratedSensorValues();
-    displaySensor(sensor_pair, currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+    displaySensor(sensor_pair, currentValues[sensor_pair],
+      voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
   }
 }
 #endif
@@ -319,7 +325,11 @@ void updateDisplay() {
 void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH); // HIGH is off
+#ifdef STM32F401xC
+  digitalWrite(LED_BUILTIN, LOW);
+#elif defined STM32F407xx
+  digitalWrite(LED_BUILTIN, HIGH);  // HIGH is off on F407
+#endif
 
   // read virtual EEPROM data
   readEEPROMFromFlash();
