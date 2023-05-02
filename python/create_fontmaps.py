@@ -151,11 +151,13 @@ if __name__ == '__main__':
     bitmaps = np.rot90(bitmaps, axes=(1, 2))
 
     # a font map is created for the following characters only
-    chars = "0123456789."
+    chars = "./0123456789"
     nchar = len(chars)
     # create a size-1 fontmap for each colour, and a size-5 one for yellow only
     size = 5
     fontmap_names = COLOURS.keys()
+    # number of entries in each fontmap
+    fontmap_size = nchar * nrow * ncol
     fontmap = np.zeros((len(fontmap_names), nchar, nbyte * 8), dtype=np.uint16)
     fontmap_large = np.zeros((nchar, nbyte * 8 * size * size), dtype=np.uint16)
 
@@ -174,7 +176,8 @@ if __name__ == '__main__':
                 print('\n\n', file=sys.stderr)
 
     # size-5 fontmap (yellow only)
-    colour = COLOURS["yellow"]
+    fontmap_large_colour = "yellow"
+    colour = COLOURS[fontmap_large_colour]
     if DEBUG:
         print("yellow-large", file=sys.stderr)
     # create a map for each character
@@ -210,8 +213,40 @@ if __name__ == '__main__':
     # define full C++ array, removing the [] from the numpy string
     fontmap_large_str = prefix + fontmap_large_str[1:-1] + suffix
 
-    print("// Fontmaps automatically generated with create_fontmaps.py")
-    print("#include <Arduino.h>")
+    # create mapping for color to start of that fontmap
+    color_mapping = "static const std::map<uint16_t, uint16_t> colorMap{"
+    for idx, color in enumerate(COLOURS.keys()):
+        color_mapping += f"{{ST77XX_{color.upper()}, {fontmap_size * idx}}}"
+        if idx < len(COLOURS.keys()) - 1:
+            color_mapping += ", "
+    color_mapping += "};"
+
+    # file header
+    header = f"""/* Fontmaps automatically generated with create_fontmaps.py
+* These are bitmaps for the following characters: {chars}
+* The colour is included as well in RGB565 format, so actually each "bit"map is a map of uint16 values.
+* A size-1 fontmap is available for the following colours: {', '.join([f'ST77XX_{c.upper()}' for c in COLOURS.keys()])}
+* A size-5 fontmap is available for the following colour: ST77XX_{fontmap_large_colour.upper()}
+* The colorMap map can be used to find the start of the size-1 font map corresponding to a specific colour
+* Each size-1 character is stored as 40 bytes (ASCII 5x8 font).
+* The font is based on the font available in the Adafruit GFX library, see
+* https://github.com/adafruit/Adafruit-GFX-Library/blob/master/glcdfont.c
+* Note: the characters in the Adafruit are rotated by 90 degrees compared to this font
+*/
+#ifndef POWERSENSOR_FONTMAPS_H
+#define POWERSENSOR_FONTMAPS_H
+#include <Arduino.h>
+#include <map>"""
+
+    footer = "#endif  // POWERSENSOR_FONTMAPS_H"
+
+    # print the complete file contents
+    print(header)
+    print('')
+    print(color_mapping)
+    print('')
     print(fontmap_str)
     print('')
     print(fontmap_large_str)
+    print('')
+    print(footer)
