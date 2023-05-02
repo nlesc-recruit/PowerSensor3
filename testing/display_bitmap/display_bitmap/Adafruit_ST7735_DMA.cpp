@@ -1,5 +1,5 @@
 #include "Adafruit_ST7735_DMA.h"
-#include "fontMaps.cpp"
+#include "fontMaps.h"
 
 extern void Blink(uint8_t);
 
@@ -52,38 +52,16 @@ void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
   static uint16_t valuesPerChar = 5*8;
   static uint16_t nChar = 11;
 
-  // ascii has period, slash, then 0-9
-  // check that we have a valid character to display and compute index 
-  // in 0123456789.
-  int idx;
-  if (c == '.') {
-    // period is the eleventh character
-    idx = 10;
-  } else if (c > '9' | c < '.' | c == '/') {
-    // invalid character, only digits and period supported
+  // valid characters are ./0123456789
+  // this is a continuous range in ascii, check if we have a valid character
+  if (c < '.' | c > '9') {
     // could fall back to pixel-by-pixel writing here
     return;
-  } else {
-    // digit
-    idx = c - '0';
   }
-
-  // set pointer to start of the character in the correct fontmap
-  uint16_t* charStart;
-  switch (color) {
-    case ST77XX_RED:
-      charStart = const_cast<uint16_t*>(&fontMap[(nChar*0 + idx) * valuesPerChar]);
-      break;
-    case ST77XX_GREEN:
-      charStart = const_cast<uint16_t*>(&fontMap[(nChar*1 + idx) * valuesPerChar]);
-      break;
-    case ST77XX_BLUE:
-      charStart = const_cast<uint16_t*>(&fontMap[(nChar*2 + idx) * valuesPerChar]);
-      break;
-    case ST77XX_YELLOW:
-      charStart = const_cast<uint16_t*>(&fontMap[(nChar*3 + idx) * valuesPerChar]);
-      break;
-  }
+  // get index starting from period
+  int idx = c - '.';
+  // pointer to start of this character in the font map
+  uint16_t* charStart = const_cast<uint16_t*>(&fontMap[colorMap.at(color) + idx * valuesPerChar]);
 
   startWrite();
   setAddrWindow(x, y, 5, 8);
