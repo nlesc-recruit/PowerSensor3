@@ -19,6 +19,8 @@
 #define MAX_WIDTH  160
 #define MAX_HEIGHT 80
 #define OFFSET 24  // vertical offset: pixel 0 is outside of the screen
+#define OFFSET_MAIN (OFFSET + 10)
+#define OFFSET_BOTTOM (OFFSET + 65)
 
 #include <STM32F4_SPI_DMA.h>
 #include "Adafruit_ST7735_DMA.h"
@@ -38,11 +40,12 @@ void initDisplay() {
 #else
   tft.invertDisplay(true);
 #endif
-  tft.fillScreen(ST77XX_BLACK);
+  clearDisplay();
   analogWrite(TFT_BLK, 120);
+  displayInitialValues();
 }
 void deinitDisplay() {
-  tft.fillScreen(ST77XX_BLACK);
+  clearDisplay();
   analogWrite(TFT_BLK, 0);
   SPI_3.end();
 }
@@ -51,33 +54,66 @@ void clearDisplay() {
   tft.fillScreen(ST77XX_BLACK);
 }
 
+void displayInitialValues() {
+  clearDisplay();
+  
+  tft.setCursor(0, OFFSET_MAIN);
+  tft.setTextSize(5);
+
+  tft.setTextColor(ST77XX_YELLOW);
+  tft.print("  0 W");
+  
+  tft.setCursor(0, OFFSET_BOTTOM);
+  tft.setTextSize(1);
+  
+  tft.setTextColor(ST77XX_BLUE);
+  tft.print("S0:  ");
+  tft.setTextColor(ST77XX_RED);
+  tft.print(" 0.0V  ");
+  tft.setTextColor(ST77XX_GREEN);
+  tft.print(" 0.0A  ");
+  tft.setTextColor(ST77XX_YELLOW);
+  tft.print("  0.0W");
+}
+
 void displaySensor(const int sensorPairName, const float amp, const float volt,
                    const float watt, const float totalWatt) {
-  char buf[12];
+  char buf[6];  // at most 5 characters plus terminator
 
-  clearDisplay();
-
-  tft.setCursor(0, OFFSET + 10);
+  tft.setCursor(0, OFFSET_MAIN);
   tft.setTextSize(5);
+
   tft.setTextColor(ST77XX_YELLOW);
-  snprintf(buf, sizeof(buf), "%3d W", static_cast<int>(totalWatt));
-  tft.print(buf);
+  snprintf(buf, sizeof(buf), "%3d", static_cast<int>(totalWatt));
+  tft.drawFastNumber(buf, 3);
 
-  tft.setCursor(0, OFFSET + 65);
+  /* the bottom row contains the sensor values. We need to find the right cursor location for each number
+   * the layouw is S<s>:  <vv.v>V  <aa.a>A  <www.w>W
+   * The first character is an S, followed by the sensor ID
+   * multiply by (font width plus one for space) to get the cursor positions
+   */
   tft.setTextSize(1);
+  unsigned int cursorPos = FONT_NCOL + 1;  // start after the first S character
+  tft.setCursor(cursorPos, OFFSET_BOTTOM);
   tft.setTextColor(ST77XX_BLUE);
-  snprintf(buf, sizeof(buf), "S%1d:  ", sensorPairName);
-  tft.print(buf);
+  snprintf(buf, sizeof(buf), "%1d", sensorPairName);
+  tft.drawFastNumber(buf, 1);
 
+  cursorPos += 4 * (FONT_NCOL + 1);  // skip sensor value (1 character), :, two spaces
+  tft.setCursor(cursorPos, OFFSET_BOTTOM);
   tft.setTextColor(ST77XX_RED);
   dtostrf(volt, 4, 1, buf);
-  tft.print(strcat(buf, "V "));
+  tft.drawFastNumber(buf, 4);
 
+  cursorPos += 7 * (FONT_NCOL + 1);  // skip voltage (4 characters), V, 2 spaces
+  tft.setCursor(cursorPos, OFFSET_BOTTOM);
   tft.setTextColor(ST77XX_GREEN);
   dtostrf(amp, 4, 1, buf);
-  tft.print(strcat(buf, "A  "));
+  tft.drawFastNumber(buf, 4);
 
+  cursorPos += 7 * (FONT_NCOL + 1);  // skip current (4 characters), A, 2 spaces
+  tft.setCursor(cursorPos, OFFSET_BOTTOM);
   tft.setTextColor(ST77XX_YELLOW);
   dtostrf(watt, 5, 1, buf);
-  tft.print(strcat(buf, "W"));
+  tft.drawFastNumber(buf, 5);
 }

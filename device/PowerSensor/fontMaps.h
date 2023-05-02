@@ -4,10 +4,10 @@
 * A size-1 fontmap is available for the following colours: ST77XX_RED, ST77XX_GREEN, ST77XX_BLUE, ST77XX_YELLOW
 * A size-5 fontmap is available for the following colour: ST77XX_YELLOW
 * The colorMap map can be used to find the start of the size-1 font map corresponding to a specific colour
-* Each size-1 character is stored as 40 bytes (ASCII 5x8 font).
+* Each size-1 character is stored as 40 bytes (ASCII 5x7 plus empty 8th line font).
 * The font is based on the font available in the Adafruit GFX library, see
 * https://github.com/adafruit/Adafruit-GFX-Library/blob/master/glcdfont.c
-* Note: the characters in the Adafruit are rotated by 90 degrees compared to this font
+* Note: the characters in the Adafruit library are rotated by 90 degrees compared to this font
 */
 #ifndef POWERSENSOR_FONTMAPS_H
 #define POWERSENSOR_FONTMAPS_H

@@ -36,7 +36,7 @@ void Adafruit_ST7735_DMA::writeColor(uint16_t color, uint32_t len) {
   delete[] buf;
 }
 
-void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
+void Adafruit_ST7735_DMA::writeFastChar(int16_t x, int16_t y, unsigned char c,
               uint16_t color, uint8_t size) {
   const uint16_t valuesPerChar = FONT_NROW * FONT_NCOL * size * size;
 
@@ -66,8 +66,15 @@ void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
       break;
   }
 
-  startWrite();
   setAddrWindow(x, y, FONT_NCOL * size, FONT_NROW * size);
   _spi->DMAtransfer(charStart, valuesPerChar * sizeof(uint16_t));
+}
+
+void Adafruit_ST7735_DMA::drawFastNumber(char* number, uint16_t len) {
+  startWrite();
+  for (uint16_t i=0; i < len; i++) {
+    writeFastChar(cursor_x, cursor_y, number[i], textcolor, textsize_x);  // assume text size x and y are equal
+    cursor_x += (FONT_NCOL + 1) * textsize_x;
+  }
   endWrite();
 }
