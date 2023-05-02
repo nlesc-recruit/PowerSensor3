@@ -214,12 +214,12 @@ if __name__ == '__main__':
     fontmap_large_str = prefix + fontmap_large_str[1:-1] + suffix
 
     # create mapping for color to start of that fontmap
-    color_mapping = "static const std::map<uint16_t, uint16_t> colorMap{"
+    color_mapping = "static const std::map<uint16_t, uint16_t> colorMap{\n  "
     for idx, color in enumerate(COLOURS.keys()):
         color_mapping += f"{{ST77XX_{color.upper()}, {fontmap_size * idx}}}"
         if idx < len(COLOURS.keys()) - 1:
             color_mapping += ", "
-    color_mapping += "};"
+    color_mapping += "\n};"
 
     # file header
     header = f"""/* Fontmaps automatically generated with create_fontmaps.py
