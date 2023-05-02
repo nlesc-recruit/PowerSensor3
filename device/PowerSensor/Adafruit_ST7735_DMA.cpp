@@ -35,3 +35,39 @@ void Adafruit_ST7735_DMA::writeColor(uint16_t color, uint32_t len) {
   _spi->DMAtransfer(buf, len * sizeof(uint16_t));
   delete[] buf;
 }
+
+void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
+              uint16_t color, uint8_t size) {
+  const uint16_t valuesPerChar = FONT_NROW * FONT_NCOL * size * size;
+
+  // valid characters are ./0123456789
+  // this is a continuous range in ascii, check if we have a valid character
+  if (c < '.' | c > '9') {
+    // could fall back to pixel-by-pixel writing here
+    return;
+  }
+  // get index starting from period
+  int idx = c - '.';
+  // pointer to start of this character in the font map
+  uint16_t* charStart;
+  switch (size) {
+    case (1):
+      charStart = const_cast<uint16_t*>(&fontMap[colorMap.at(color) + idx * valuesPerChar]);
+      break;
+    case (5):
+      // only yellow supported
+      if (color != ST77XX_YELLOW) {
+        return;
+      }
+      charStart = const_cast<uint16_t*>(&fontMapLarge[idx * valuesPerChar]);
+      break;
+    default:
+      // other font sizes not supported
+      break;
+  }
+
+  startWrite();
+  setAddrWindow(x, y, FONT_NCOL * size, FONT_NROW * size);
+  _spi->DMAtransfer(charStart, valuesPerChar * sizeof(uint16_t));
+  endWrite();
+}
