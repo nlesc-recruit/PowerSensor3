@@ -16,13 +16,16 @@
 #endif
 
 // these two values are used to be able to jump to the bootloader from the application
-// Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in STM32F401xB/C
-// in the reference manual.
+// Start of system memory is 0x1FFF 0000, see Table 3. Memory mapping vs. Boot mode/physical remap in the uC reference manual
 // at boot the first word contains the initial value of the stack pointer. However this can change depending on the firmware.
-// To be safe we put the stack at the end of RAM. RAM starts at 0x2000 0000 and is 64 KB in size
+// To be safe we put the stack at the end of RAM. RAM starts at 0x2000 0000 and is either 12 KB (F401CC) or 64 KB (F407VG) in size
 // the second word stores the address at which code execution should start, this is where we jump to to run the bootloader
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
+#ifdef STM32F401xC
 #define BOOTLOADER_STACK_POINTER       0x2000FFFF
+#elif defined STM32F407xx
+#define BOOTLOADER_STACK_POINTER       0x2001BFFF
+#endif
 
 #include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
