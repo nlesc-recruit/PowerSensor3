@@ -14,7 +14,7 @@ class Adafruit_ST7735_DMA: public Adafruit_ST7735 {
     void fillScreen(uint16_t color) override;
     void writeColor(uint16_t color, uint32_t len) override;
     void drawFastChar(int16_t x, int16_t y, unsigned char c,
-              uint16_t color);
+              uint16_t color, uint8_t size);
 
  private:
     SPIDMAClass* _spi;

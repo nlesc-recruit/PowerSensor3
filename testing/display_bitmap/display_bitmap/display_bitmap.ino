@@ -41,10 +41,13 @@ void loop() {
     static char c = '0';
     tft.fillScreen(ST77XX_BLACK);
 
-    tft.drawFastChar(MAX_WIDTH/2, MAX_HEIGHT/2, c, ST77XX_RED);
-    tft.drawFastChar(MAX_WIDTH/2, MAX_HEIGHT/2 + 8, c, ST77XX_GREEN);
-    tft.drawFastChar(MAX_WIDTH/2, MAX_HEIGHT/2 + 16, c, ST77XX_BLUE);
-    tft.drawFastChar(MAX_WIDTH/2, MAX_HEIGHT/2 + 24, c, ST77XX_YELLOW);
+    uint8_t size = 1;
+    tft.drawFastChar(MAX_WIDTH/2, OFFSET + 0, c, ST77XX_RED, size);
+    tft.drawFastChar(MAX_WIDTH/2, OFFSET + 8, c, ST77XX_GREEN, size);
+    tft.drawFastChar(MAX_WIDTH/2, OFFSET + 16, c, ST77XX_BLUE, size);
+    tft.drawFastChar(MAX_WIDTH/2, OFFSET + 24, c, ST77XX_YELLOW, size);
+    size = 5;
+    tft.drawFastChar(MAX_WIDTH/2, OFFSET + 32, c, ST77XX_YELLOW, size);
     
     c++;
     if (c == '9' + 1) {
