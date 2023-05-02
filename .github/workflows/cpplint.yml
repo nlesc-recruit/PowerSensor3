@@ -16,4 +16,4 @@ jobs:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v3
     - run: pip install cpplint
-    - run: cpplint --recursive --quiet host device python emulator
+    - run: cpplint --recursive --quiet --extensions cpp,cc,ino --headers h,hpp host device python
