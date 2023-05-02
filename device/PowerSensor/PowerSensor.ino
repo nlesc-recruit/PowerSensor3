@@ -40,7 +40,7 @@
 #define UPDATE_INVERVAL 2000  // ms
 #define VOLTAGE 3.3
 #define MAX_LEVEL 1023
-#include "display.h"
+#include "display.hpp"
 uint16_t sensorLevels[SENSORS];  // to store sensor values for displaying purposes
 float voltageValues[PAIRS];
 float currentValues[PAIRS];
@@ -80,9 +80,9 @@ bool sendMarkerNext = false;
 
 // include device-specific code for setting up the ADC and DMA
 #ifdef STM32F401xC
-#include "device_specific/BLACKPILL_F401CC.h"
+#include "device_specific/BLACKPILL_F401CC.hpp"
 #elif defined STM32F407xx
-#include "device_specific/DISCO_F407VG.h"
+#include "device_specific/DISCO_F407VG.hpp"
 #endif
 
 struct Sensor {
