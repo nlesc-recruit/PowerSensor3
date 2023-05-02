@@ -1,4 +1,4 @@
-#include "Adafruit_ST7735_DMA.h"
+#include "Adafruit_ST7735_DMA.hpp"
 
 Adafruit_ST7735_DMA::Adafruit_ST7735_DMA(SPIDMAClass *spiClass, int8_t cs, int8_t dc, int8_t rst) :
   Adafruit_ST7735(static_cast<SPIClass*>(spiClass), cs, dc, rst),

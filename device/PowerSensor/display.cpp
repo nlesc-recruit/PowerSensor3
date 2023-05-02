@@ -23,9 +23,9 @@
 #define OFFSET_BOTTOM (OFFSET + 65)
 
 #include <STM32F4_SPI_DMA.h>
-#include "Adafruit_ST7735_DMA.h"
 
-#include <display.h>
+#include "Adafruit_ST7735_DMA.hpp"
+#include "display.hpp"
 
 // Define class for SPI3 (as default SPI1 pins overlap with ADC)
 SPIDMAClass SPI_3(TFT_MOSI, TFT_MISO, TFT_SCLK);

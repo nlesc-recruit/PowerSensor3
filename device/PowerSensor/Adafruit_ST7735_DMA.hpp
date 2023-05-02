@@ -4,7 +4,7 @@
 #include <Adafruit_SPITFT.h>
 #include <Adafruit_ST7735.h>
 #include <STM32F4_SPI_DMA.h>
-#include <fontMaps.h>
+#include <fontMaps.hpp>
 
 class Adafruit_ST7735_DMA: public Adafruit_ST7735 {
  public:
