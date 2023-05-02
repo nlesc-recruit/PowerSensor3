@@ -41,7 +41,7 @@ void Adafruit_ST7735_DMA::writeColor(uint16_t color, uint32_t len) {
 
 void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
               uint16_t color, uint8_t size) {
-  const uint16_t valuesPerChar = 5*8*size*size;
+  const uint16_t valuesPerChar = FONT_NROW * FONT_NCOL * size * size;
 
   // valid characters are ./0123456789
   // this is a continuous range in ascii, check if we have a valid character
@@ -69,7 +69,7 @@ void Adafruit_ST7735_DMA::drawFastChar(int16_t x, int16_t y, unsigned char c,
   }
 
   startWrite();
-  setAddrWindow(x, y, 5 * size, 8 * size);
+  setAddrWindow(x, y, FONT_NCOL * size, FONT_NROW * size);
 
   _spi->DMAtransfer(charStart, valuesPerChar * sizeof(uint16_t));
   endWrite();
