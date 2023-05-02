@@ -1,6 +1,3 @@
-uint32_t counter;
-__IO uint32_t dmaBuffer[PAIRS];  // DMA reads both ADCs at the same time to one 32b value
-
 void Blink(uint8_t amount) {
   for (uint8_t i = 0; i < amount; i++) {
     digitalWrite(LED_BUILTIN, HIGH);

@@ -1,9 +1,3 @@
-const int numSampleToAverage = 6;  // number of samples to average
-uint32_t counter;
-__IO uint16_t dmaBuffer[SENSORS];  // 16b per sensor
-uint16_t avgBuffer[SENSORS][numSampleToAverage];
-uint16_t currentSample = 0;
-
 void Blink(uint8_t amount) {
   // Blink LED, note that outputs are inverted: LOW is on, HIGH is off
   for (uint8_t i = 0; i < amount; i++) {

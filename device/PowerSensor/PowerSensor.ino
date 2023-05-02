@@ -63,17 +63,26 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
+#ifdef STM32F401xC
+const int numSampleToAverage = 6;  // number of samples to average
+__IO uint16_t dmaBuffer[SENSORS];  // 16b per sensor
+uint16_t avgBuffer[SENSORS][numSampleToAverage];
+uint16_t currentSample = 0;
+#elif defined STM32F407xx
+__IO uint32_t dmaBuffer[PAIRS];  // DMA reads both ADCs at the same time to one 32b value
+#endif
+uint32_t counter = 0;
 uint8_t serialData[(SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
 bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
 
-// include device-specific code for setting up the ADC, DMA, and buffers and counters
+// include device-specific code for setting up the ADC and DMA
 #ifdef STM32F401xC
-#include "device_specific/BLACKPILL_F401CC.cpp"
+#include "device_specific/BLACKPILL_F401CC.h"
 #elif defined STM32F407xx
-#include "device_specific/DISCO_F407VG.cpp"
+#include "device_specific/DISCO_F407VG.h"
 #endif
 
 struct Sensor {
