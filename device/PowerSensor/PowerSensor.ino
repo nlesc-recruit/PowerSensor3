@@ -27,7 +27,6 @@
 #define BOOTLOADER_STACK_POINTER       0x2001BFFF
 #endif
 
-#include <Arduino.h>
 #include <stm32f4xx_ll_bus.h>  // clock control
 #include <stm32f4xx_ll_adc.h>  // ADC control
 #include <stm32f4xx_ll_gpio.h> // GPIO control
