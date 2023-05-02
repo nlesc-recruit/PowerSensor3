@@ -25,6 +25,6 @@ upload: device
 	arduino-cli upload $(OPT) --fqbn $(FQBN) -i PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
 
 fontmap:
-	../python/create_fontmaps.py > PowerSensor/fontMaps.h
+	../python/create_fontmaps.py > PowerSensor/fontMaps.hpp
 
 .PHONY: all
