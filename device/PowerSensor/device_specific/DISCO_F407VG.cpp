@@ -113,7 +113,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
     } else {
       level = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
     }
-#ifdef USE_DISPLAY
+#ifndef NODISPLAY
     if (displayEnabled) {
       // store in sensorValues for display purposes
       sensorLevels[i] = level;
