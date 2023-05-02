@@ -19,9 +19,9 @@ endif
 all: device
 
 device:
-	arduino-cli compile -e --fqbn $(FQBN) $(BOARD)/PowerSensor --libraries $(BOARD)/PowerSensor/Libraries --build-property compiler.cpp.extra_flags="$(FLAGS)"
+	arduino-cli compile -e --fqbn $(FQBN) PowerSensor --libraries PowerSensor/Libraries --build-property compiler.cpp.extra_flags="$(FLAGS)"
 
 upload: device
-	arduino-cli upload $(OPT) --fqbn $(FQBN) -i $(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
+	arduino-cli upload $(OPT) --fqbn $(FQBN) -i PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
 
 .PHONY: all
