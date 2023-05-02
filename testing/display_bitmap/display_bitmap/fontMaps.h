@@ -11,7 +11,6 @@
 */
 #ifndef POWERSENSOR_FONTMAPS_H
 #define POWERSENSOR_FONTMAPS_H
-#include <Arduino.h>
 #include <map>
 
 static const std::map<uint16_t, uint16_t> colorMap{{ST77XX_RED, 0}, {ST77XX_GREEN, 480}, {ST77XX_BLUE, 960}, {ST77XX_YELLOW, 1440}};

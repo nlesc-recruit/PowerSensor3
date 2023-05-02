@@ -235,7 +235,6 @@ if __name__ == '__main__':
 */
 #ifndef POWERSENSOR_FONTMAPS_H
 #define POWERSENSOR_FONTMAPS_H
-#include <Arduino.h>
 #include <map>"""
 
     footer = "#endif  // POWERSENSOR_FONTMAPS_H"
