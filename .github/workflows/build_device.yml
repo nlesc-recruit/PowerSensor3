@@ -40,9 +40,8 @@ jobs:
     - name: Patch cdc_queue.h
       shell: bash
       run: |
-        pip install pyyaml
         REPO_ROOT=$PWD
-        STM32_DIR=$(python/get_get_arduino_stm32_directory.py)
+        STM32_DIR=$(python/get_arduino_stm32_directory.py)
         echo "STM32_DIR = ${STM32_DIR}"
         cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
         patch ${REPO_ROOT}/patch/cdc_queue.patch
