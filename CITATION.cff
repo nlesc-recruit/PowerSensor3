@@ -21,8 +21,7 @@ authors:
     affiliation: ASTRON
     orcid: 'https://orcid.org/0000-0002-1915-5067'
   - given-names: Ben
-    name-particle: van
-    family-names: Werkhoven
+    family-names: van Werkhoven
     affiliation: Netherlands eScience Center
     orcid: 'https://orcid.org/0000-0002-7508-3272'
   - given-names: Quinten
@@ -32,7 +31,6 @@ authors:
     affiliation: ASTRON
     orcid: 'https://orcid.org/0000-0001-9482-1253'
   - given-names: Steven
-    name-particle: van der
-    family-names: Vlugt
+    family-names: van der Vlugt
     affiliation: ASTRON
     orcid: 'https://orcid.org/0000-0001-6834-4860'
