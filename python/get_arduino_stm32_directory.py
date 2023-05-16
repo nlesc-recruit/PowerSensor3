@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 
 from pathlib import Path
+from shutil import which
 import subprocess
 
 import yaml
 
 
 if __name__ == '__main__':
-    try:
-        raw_config = subprocess.Popen(['arduino-cli', 'config', 'dump'], stdout=subprocess.PIPE).communicate()[0]
-    except FileNotFoundError as e:
-        raise ValueError('Failed to run arduino-cli, is it installed?') from e
+
+    arduino_cli = which('arduino-cli')
+    if arduino_cli is None:
+        raise ValueError("arduino-cli not found")
+
+    raw_config = subprocess.Popen([arduino_cli, 'config', 'dump'], stdout=subprocess.PIPE).communicate()[0]
     config = yaml.safe_load(raw_config)
     data_dir = Path(config['directories']['data'])
 
