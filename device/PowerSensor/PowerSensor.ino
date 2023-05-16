@@ -302,15 +302,17 @@ void configureDevice() {
 void updateCalibratedSensorValues() {
   totalPower = 0;
   for (int pair=0; pair < PAIRS; pair++) {
-    float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL
-      - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
-    float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL
-      - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
-    float power = volt * amp;
-    voltageValues[pair] = volt;
-    currentValues[pair] = amp;
-    powerValues[pair] = power;
-    totalPower += power;
+    if (eeprom.sensors[2 * pair].inUse & eeprom.sensors[2 * pair + 1].inUse) {
+      float amp = (VOLTAGE * sensorLevels[2 * pair] / MAX_LEVEL
+        - eeprom.sensors[2 * pair].vref) / eeprom.sensors[2 * pair].sensitivity;
+      float volt = (VOLTAGE * sensorLevels[2 * pair + 1] / MAX_LEVEL
+        - eeprom.sensors[2 * pair + 1].vref) / eeprom.sensors[2 * pair + 1].sensitivity;
+      float power = volt * amp;
+      voltageValues[pair] = volt;
+      currentValues[pair] = amp;
+      powerValues[pair] = power;
+      totalPower += power;
+    }
   }
 }
 
@@ -320,12 +322,15 @@ void updateDisplay() {
 
   if (interval > UPDATE_INVERVAL) {
     static unsigned int sensor_pair = 0;
+
     previousMillis = millis();
     // update the values, then write to display
     sensor_pair = (sensor_pair + 1) % PAIRS;
     updateCalibratedSensorValues();
-    displaySensor(sensor_pair, currentValues[sensor_pair],
-      voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+    if (eeprom.sensors[2 * sensor_pair].inUse & eeprom.sensors[2 * sensor_pair + 1].inUse) {
+      displaySensor(sensor_pair, currentValues[sensor_pair],
+        voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
+    }
   }
 }
 #endif
