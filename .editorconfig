@@ -18,7 +18,7 @@ charset = utf-8
 indent_size = 4
 
 # 2 space indentation
-[*.{js,json,yml,html,xml}]
+[*.{js,json,yml,html,xml,c,cpp,cc,hpp,h,ino}]
 indent_size = 2
 
 [*.{md,Rmd}]
