@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 
+#include <array>
 #include <thread>
 #include <fstream>
 #include <queue>
@@ -10,7 +11,7 @@
 
 #include "Semaphore.hpp"
 
-namespace PowerSensor {
+namespace PowerSensor3 {
 
 static const unsigned MAX_SENSORS = 8;
 static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
@@ -53,6 +54,7 @@ class PowerSensor {
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
+    void toggleDisplay();
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
@@ -78,6 +80,8 @@ class PowerSensor {
     void initializeSensorPairs();
     void updateSensorPairs();
 
+    inline char readCharFromDevice();
+    inline void writeCharToDevice(char buffer);
     void readSensorsFromEEPROM();
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
@@ -88,6 +92,7 @@ class PowerSensor {
     std::thread* thread;
     mutable std::mutex mutex, dumpFileMutex;
     double startTime;
+    unsigned int timestamp;
     void IOThread();
     void startIOThread();
     void stopIOThread();
@@ -136,4 +141,4 @@ class PowerSensor {
     } sensorPairs[MAX_PAIRS];
 };
 
-}  // namespace PowerSensor
+}  // namespace PowerSensor3

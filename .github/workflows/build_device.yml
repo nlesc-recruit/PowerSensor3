@@ -1,0 +1,52 @@
+name: build_device
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build device code with arduino-cli, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-22.04", "macos-11", "windows-latest"]
+        device: ["F401", "F407"]
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
+    - name: Install arduino-cli (windows)
+      if: "startsWith(runner.os, 'windows')"
+      run: |
+        choco install -y arduino-cli
+    - name: Install arduino-cli (mac, linux)
+      if: "!startsWith(runner.os, 'windows')"
+      run: |
+        # Note: the current step cannot access the updated path
+        curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+        echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+    - name: Configure arduino-cli
+      run: |
+        arduino-cli version
+        arduino-cli config init
+        arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
+        arduino-cli core update-index
+        arduino-cli core install STMicroelectronics:stm32
+    - name: Patch cdc_queue.h
+      shell: bash
+      run: |
+        pip3 install pyyaml pathlib  # required on MacOS/Windows runners
+        REPO_ROOT=$PWD
+        STM32_DIR=$(python/get_arduino_stm32_directory.py)
+        echo "STM32_DIR = ${STM32_DIR}"
+        cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
+        patch ${REPO_ROOT}/patch/cdc_queue.patch
+    - name: Compile ${{ matrix.device }} device code
+      run: |
+        cd device
+        make device DEV=${{ matrix.device }}

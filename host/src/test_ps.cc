@@ -25,21 +25,21 @@ int main(int argc, char** argv) {
 
   std::cout << "Measuring for " << duration << " s" << std::endl;
 
-  PowerSensor::PowerSensor ps(device);
+  PowerSensor3::PowerSensor ps(device);
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-  PowerSensor::State firstState = ps.read();
+  PowerSensor3::State firstState = ps.read();
   ps.dump(filename.c_str());
   std::this_thread::sleep_for(std::chrono::seconds(duration));
-  PowerSensor::State secondState = ps.read();
+  PowerSensor3::State secondState = ps.read();
 
   // ps.mark(firstState, secondState, "some name", 1);
 
   ps.dump("");  // stop dumping
 
-  double joules = PowerSensor::Joules(firstState, secondState);
-  double totalWatt = PowerSensor::Watt(firstState, secondState);
-  double seconds = PowerSensor::seconds(firstState, secondState);
+  double joules = PowerSensor3::Joules(firstState, secondState);
+  double totalWatt = PowerSensor3::Watt(firstState, secondState);
+  double seconds = PowerSensor3::seconds(firstState, secondState);
 
   std::cout << "Totals:" << std::endl;
   std::cout << "seconds: " << seconds << std::endl;
@@ -52,9 +52,9 @@ int main(int argc, char** argv) {
   for (ssize_t id=0; id < PowerSensor::MAX_PAIRS; id++) {
     // check current sensor of the given pair
     if (ps.getInUse(2 * id)) {
-      double volt = PowerSensor::Volt(firstState, secondState, id);
-      double ampere = PowerSensor::Ampere(firstState, secondState, id);
-      double watt = PowerSensor::Watt(firstState, secondState, id);
+      double volt = PowerSensor3::Volt(firstState, secondState, id);
+      double ampere = PowerSensor3::Ampere(firstState, secondState, id);
+      double watt = PowerSensor3::Watt(firstState, secondState, id);
       std::cout << volt << '\t' << ampere << '\t' << watt << std::endl;
     }
   }

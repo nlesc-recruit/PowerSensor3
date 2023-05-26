@@ -10,23 +10,23 @@
 #include "PowerSensor.hpp"
 
 
-std::unique_ptr<PowerSensor::PowerSensor> powerSensor;
+std::unique_ptr<PowerSensor3::PowerSensor> powerSensor;
 unsigned int sensor = 0;
 
 
 unsigned int selectSensor(unsigned int sensor) {
-  if (sensor >= PowerSensor::MAX_SENSORS) {
-    std::cerr << "Invalid sensor ID: " << sensor << ", max value is " << PowerSensor::MAX_SENSORS - 1 << std::endl;
+  if (sensor >= PowerSensor3::MAX_SENSORS) {
+    std::cerr << "Invalid sensor ID: " << sensor << ", max value is " << PowerSensor3::MAX_SENSORS - 1 << std::endl;
   }
   return sensor;
 }
 
 
-PowerSensor::PowerSensor *getPowerSensor(std::string device) {
+PowerSensor3::PowerSensor *getPowerSensor(std::string device) {
   if (device.empty())
     device = "/dev/ttyACM0";
   if (powerSensor.get() == nullptr)
-    powerSensor = std::unique_ptr<PowerSensor::PowerSensor>(new PowerSensor::PowerSensor(device));
+    powerSensor = std::unique_ptr<PowerSensor3::PowerSensor>(new PowerSensor3::PowerSensor(device));
 
   return powerSensor.get();
 }
@@ -62,7 +62,7 @@ float getDefaultSensitivity(std::string type) {
 }
 
 
-void measureSensors(PowerSensor::State* startState, PowerSensor::State* stopState) {
+void measureSensors(PowerSensor3::State* startState, PowerSensor3::State* stopState) {
   *startState = powerSensor->read();
   sleep(2);
   *stopState = powerSensor->read();
@@ -122,13 +122,13 @@ void autoCalibrate() {
 
 
 void print() {
-  PowerSensor::State startState, stopState;
+  PowerSensor3::State startState, stopState;
 
   measureSensors(&startState, &stopState);
 
   std::string sensorType, unit, sensitivityName;
   int factor;
-  for (unsigned sensor = 0; sensor < PowerSensor::MAX_SENSORS; sensor++) {
+  for (unsigned sensor = 0; sensor < PowerSensor3::MAX_SENSORS; sensor++) {
     if (sensor % 2 == 0) {
       sensorType = "current";
       unit = " mV/A";
@@ -149,7 +149,7 @@ void print() {
   }
 
   double totalUsage = 0;
-  for (unsigned int pair = 0; pair < PowerSensor::MAX_PAIRS; pair++) {
+  for (unsigned int pair = 0; pair < PowerSensor3::MAX_PAIRS; pair++) {
       double usage = Watt(startState, stopState, pair);
       totalUsage += usage;
       std::cout << "Current usage pair " << pair << ": " << usage << " W" << std::endl;
@@ -160,10 +160,10 @@ void print() {
 
 void usage(char *argv[]) {
   std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] "
-    "[-a | -v volt] [-n sensitivity] [-o on/off] [-p]" << std::endl;
+    "[-a | -v volt] [-n sensitivity] [-o on/off] [-p] [-l]" << std::endl;
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
-  std::cerr << "-s selects the sensor (0-" << PowerSensor::MAX_SENSORS << ")" << std::endl;
+  std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
@@ -171,6 +171,7 @@ void usage(char *argv[]) {
                "or unitless gain for voltage sensors (odd sensors)" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
+  std::cerr << "-l toggles device display on/off" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 "
                "-o 1 -s 1 -t voltage0 -v 0 -n 0.95 -o 1 -p" << std::endl;
   std::cerr << "Known current sensor types: MLX10, MLX20, MLX50, MLX75." << std::endl;
@@ -183,7 +184,7 @@ int main(int argc, char *argv[]) {
   bool doWriteConfig = false;
   bool doPrint = false;
 
-  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:av:n:o:ph")) >= 0;) {
+  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:av:n:o:lph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
@@ -231,6 +232,11 @@ int main(int argc, char *argv[]) {
       case 'o':
         getPowerSensor(device)->setInUse(sensor, static_cast<bool>(atoi(optarg)));
         doWriteConfig = true;
+        break;
+
+      // toggle display
+      case 'l':
+        getPowerSensor(device)->toggleDisplay();
         break;
 
       // print

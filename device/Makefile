@@ -1,24 +1,30 @@
 # Makefile for device code
+DEV ?= F401
 
-# For Discovery F407
-#BOARD =			DISCO_F407VG
-#DEVICE =           STMicroelectronics:stm32:Disco
-#FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB)
-#OPT =              -p /dev/ttyACM0
+ifeq ($(DEV), F401)
+# BLack Pill F401CCU6
+BOARD =        BLACKPILL_F401CC
+DEVICE =       STMicroelectronics:stm32:GenF4
+FQBN =	       $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,opt=o3std
+else ifeq ($(DEV), F407)
+# Discovery F407
+BOARD =			DISCO_F407VG
+DEVICE =        STMicroelectronics:stm32:Disco
+FQBN =          $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,xusb=FS,opt=o3std
+else
+$(error Unknown device $(DEV), allowed devices are F401 (default) and F407)
+endif
 
-# For Black Pill F401CCU6
-BOARD =				BLACKPILL_F401CC
-DEVICE =            STMicroelectronics:stm32:GenF4
-FQBN =				$(DEVICE):pnum=$(BOARD),usb=$(USB),upload_method=dfuMethod
-
-USB =				CDCgen
 
 all: device
 
 device:
-	arduino-cli compile -e --fqbn $(FQBN) $(BOARD)/PowerSensor
+	arduino-cli compile -e --fqbn $(FQBN) PowerSensor --libraries PowerSensor/Libraries --build-property compiler.cpp.extra_flags="$(FLAGS)"
 
 upload: device
-	arduino-cli upload $(OPT) --fqbn $(FQBN) -i $(BOARD)/PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
+	arduino-cli upload $(OPT) --fqbn $(FQBN) -i PowerSensor/build/$(subst :,.,$(DEVICE))/PowerSensor.ino.bin
+
+fontmap:
+	../python/create_fontmaps.py > PowerSensor/fontMaps.hpp
 
 .PHONY: all

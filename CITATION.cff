@@ -1,0 +1,36 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: PowerSensor3
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+repository-code: "https://github.com/nlesc-recruit/PowerSensor3"
+license: Apache-2.0
+version: 0.1.0
+authors:
+  - given-names: Leon
+    family-names: Oostrum
+    email: l.oostrum@esciencecenter.nl
+    affiliation: Netherlands eScience Center
+    orcid: 'https://orcid.org/0000-0001-8724-8372'
+  - given-names: John
+    family-names: Romein
+    affiliation: ASTRON
+    orcid: 'https://orcid.org/0000-0002-1915-5067'
+  - given-names: Ben
+    family-names: van Werkhoven
+    affiliation: Netherlands eScience Center
+    orcid: 'https://orcid.org/0000-0002-7508-3272'
+  - given-names: Quinten
+    family-names: Twisk
+  - given-names: Gijs
+    family-names: Schoonderbeek
+    affiliation: ASTRON
+    orcid: 'https://orcid.org/0000-0001-9482-1253'
+  - given-names: Steven
+    family-names: van der Vlugt
+    affiliation: ASTRON
+    orcid: 'https://orcid.org/0000-0001-6834-4860'
