@@ -1,6 +1,14 @@
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/77f179fdc0c84de3aa5420a99bddf84a)](https://www.codacy.com/gh/nlesc-recruit/PowerSensor3/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nlesc-recruit/PowerSensor3&amp;utm_campaign=Badge_Grade)
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/7401/badge)](https://bestpractices.coreinfrastructure.org/projects/7401)
+[![github url](https://img.shields.io/badge/github-url-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/nlesc-recruit/PowerSensor3)
+[![License](https://img.shields.io/github/license/nlesc-recruit/PowerSensor3)](https://github.com/nlesc-recruit/PowerSensor3)
+[![DOI](https://zenodo.org/badge/455610726.svg)](https://zenodo.org/badge/latestdoi/455610726)
 [![Research Software Directory](https://img.shields.io/badge/RSD-PowerSensor3-00a3e3.svg)](https://www.research-software-directory.org/software/powersensor3)
+[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/7401/badge)](https://bestpractices.coreinfrastructure.org/projects/7401)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/77f179fdc0c84de3aa5420a99bddf84a)](https://www.codacy.com/gh/nlesc-recruit/PowerSensor3/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nlesc-recruit/PowerSensor3&amp;utm_campaign=Badge_Grade)
+[![Device workflow](https://img.shields.io/github/actions/workflow/status/nlesc-recruit/PowerSensor3/build_device.yml?label=build%20device%20firmware)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/build_device.yml)
+[![Host workflow](https://img.shields.io/github/actions/workflow/status/nlesc-recruit/PowerSensor3/build_host.yml?label=build%20host%20library)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/build_host.yml)
+[![Citation metadata](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml)
+
+
 
 ## Introduction
 PowerSensor3 is a tool that measures the instantaneous power consumption of PCIe cards and SoC development boards like GPUs, Xeon Phis, FPGAs, DSPs, and network cards, at sub-millisecond time scale. It consists of a commodity microcontroller, commodity current and voltage sensors, and (for PCIe devices) a PCIe riser card. The microcontroller reports measurements to the host via USB. A small host library allows an application to determine its own energy efficiency. The high time resolution provides much better insight into energy usage than low-resolution built-in power meters (if available at all), as PowerSensor enables analysis of individual compute kernels.
