@@ -1,5 +1,6 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/77f179fdc0c84de3aa5420a99bddf84a)](https://www.codacy.com/gh/nlesc-recruit/PowerSensor3/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nlesc-recruit/PowerSensor3&amp;utm_campaign=Badge_Grade)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3701/badge)](https://bestpractices.coreinfrastructure.org/projects/3701)
+[![Research Software Directory](https://img.shields.io/badge/RSD-PowerSensor3-00a3e3.svg)](https://www.research-software-directory.org/software/powersensor3)
 
 ## Introduction
 PowerSensor is a tool that measures the instantaneous power consumption of PCIe cards and SoC development boards like GPUs, Xeon Phis, FPGAs, DSPs, and network cards, at sub-millisecond time scale. It consists of a commodity microcontroller, commodity current and voltage sensors, and (for PCIe devices) a PCIe riser card. The microcontroller reports measurements to the host via USB. A small host library allows an application to determine its own energy efficiency. The high time resolution provides much better insight into energy usage than low-resolution built-in power meters (if available at all), as PowerSensor enables analysis of individual compute kernels.
