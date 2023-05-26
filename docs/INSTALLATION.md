@@ -2,27 +2,23 @@
 Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, get to know the device with the [user guide](USERGUIDE.md).
 
 ## Installing the PowerSensor
-Before starting, turn off and unplug the power of the host system.  An STM32F407VG is at the heart of the PowerSensor.  The microcontroller on this board collects the sensor values, interprets them, and communicates them to the host via USB. 
+Before starting, turn off and unplug the power of the host system. In the case of a GPU, a PCI-e riser card or cable is needed to be able to measure the 3.3 V and 12 V power coming from the PCI-e slot of the motherboard. 12 V power coming directly from the PSU can be connected to a PowerSensor3 sensor board. A second ATX power cable should be used to connect the PowerSensor3 sensor board to the GPU. Take care to use sensor boards with appropiate voltage and current sensors, taking into account the maximum voltage and current:
 
-PowerSensor measures currents, using external current sensors (like those from the ACS712 series).  The current sensor, in this case a Hall-effect sensor, measures the current that flows through a wire, and converts the input current to an (analogue) voltage that is directly proportional to the current.  This voltage is sampled by the built-in ADC converter of the microcontroller.  PowerSensor assumes that no current (0 Ampere) translates to a 2.5V signal.
+Connection  | Voltage (V) | Maximum power (W) | Maximum current (A)
+------------|-------------|-------------------|--------------------
+PCI-e 3.3 V | 3.3         | 10                | 3.0
+PCI-e 12 V  | 12          | 65                | 5.4
+ATX 6-pin   | 12          | 75                | 6.3
+ATX 8-pin   | 12          | 150               | 12.5
 
-![Imgur](https://i.imgur.com/K1WXNHY.jpg)
+After connecting all relevant power cable, connect the microcontroller to a USB port on the host. After making sure that everything is connected correctly, turn on the host system.
 
-To measure the power of a PCIe device, a riser cable is necessary, so that the current drawn from the PCIe slot can be measured.  An appropriate rised cable is necessary, that allows tapping the 12V and 3.3V power lines.  Also, the riser cable should be of sufficient quality, to avoid PCIe bandwidth loss due to poor signalling and to ensure PCIe gen 4 compatibility.  The [LINKUP {30 cm} Shielded Twin-axial Riser Cable](https://linkup.one/linkup-30-cm-pcie-4-0-3-0-16x-extreme-shielded-twin-axial-riser-cable-port-extension-pcie-card-90-degree-socket/) will do.  The 12V power line can provide up to 65W (5.4A), so the ACS712-20 is a suitable current sensor.  The 3.3V power line can provide up to 10W (3.0A); this can best be measured using an ACS712-5 current sensor. Because the STM32F407VG operates at 3.3 V, the current has to be inversed. So the current sensors have to be flipped when they are installed.
+## Building the firmware
+We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using either an STM32F401 or STM32F407 microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
 
-To install the sensors on the riser cable, the wires have to be cut. Below is a table indicating which line is which. The 20 A sensor needs to be connected to all the 12 V lines. Start counting the lines from the outer most side (right side in the picture above), because the riser cable has 12 wires instead of 11. The 5 A sensor needs to be connected to all the 3.3 V lines, the AUX one too.
 
-![Imgur](https://i.imgur.com/dfpgjxF.png)
+The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the [arduino-cli](https://github.com/arduino/arduino-cli) package can be installed on Linux via:
 
-A third current sensor is needed to measure the power of an external 12V power cable.  We advise to not cut the PCIe power cables of the power supply directly, but to use an extension cable and cut the 12V wires of the extension cable.  Only cut the 12V wires; the earth wires should not be cut.  Connect both ends of the cut cable to the current sensor.  If the current flows in the wrong direction, PowerSensor will measure negative power, so make sure that the cable is connected correctly.
-
-The voltage output of the current sensor should be connected to any of the ports PA0-A4. The current sensor can be powered by STM32F407VG, by connecting it to a breadboard or any other power line supplied by the board.
-
-Finally, connect the STM32F407VG's mini-USB to a USB port of the host system. Then plug in the micro-USB to the host. The mini-USB connection to the host is only required for the installing of the firmware, afterwards it only supplies the board with power. Further communication with the board is done via the micro-USB port. After making sure that everything is connected correctly, turn on the host system.
-
-## Installing the firmware
-The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the [arduino-cli](https://github.com/arduino/arduino-cli) package can be installed via:
-    
     curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
 Next, the [stm32duino](https://github.com/stm32duino/Arduino_Core_STM32) package should be installed, this ensures that STM32 boards can be used in combination with arduino. Start by updating the arduino core:
@@ -37,39 +33,66 @@ Open the configuration file in any editor and add new board manager URL to:
 
     board_manager:
       additional_urls:
-        [https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/ package_stm_index.json]
+        [https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/package_stm_index.json]
 
 Update the core again:
 
     arduino-cli core update-index
 
-If necessary, adapt `Makefile` to configure the right port.  The device typically appears as `/dev/ttyACM0` after it is connected to the host. This can be checked via either:
+Then run the following command in the device folder to build the firmware with default flags:
+
+    make device
+
+For an STM32F401 Black Pill, the fimware will we written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`
+
+### Upload the firmware
+First make sure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with either:
 
     lsusb
-    arduino-cli board list
+    dfu-util -l
 
-If this does not show which port is which, remove one of the USBs, then run the command again. Or use a third party tool like [pio](https://platformio.org/install/cli):
+The firmware can be uploaded with `dfu-util` or `arduino-cli`. The latter can only be used when compiling the firmware yourself.
+To upload with `dfu-util` run the following command:
 
-    pio device list
+    dfu-util -a 0 -i 0 -s 0x08000000:leave -D /path/to/PowerSensor3/firmware.bin
 
-Then, with the correct port run: 
+To upload with `arduino-cli`, first make sure you can build the firmware as outlined in the previous section.
+Then run the following command in the device folder, adding any flags in the same way as with the `make device` command.
 
-    make upload 
+    make upload
 
-This build and install the firmware on the STM32.  The PowerSensor will not work properly until its is configured.
+If the firmware is uploaded successfully, the device will be reset and start running the PowerSensor3 firmware.
 
-### Upload error
-Check whether there is a `{projectname}.STM32:stm32:Disco.bin` file in the sketch folder. If there is, it can be uploaded without trouble. Otherwise follow the solution described below.
+### Build customization
+There are several options available to customize the firmware build. These options can be append to the `make device` and `make upload` commands.
 
-The stm32duino library does not create a `.bin` file in the sketch folder. Which is what the CLI's upload command looks for. This can be solved by either copying the `.bin` file from its temporary location and renaming it accordingly. Another approach is to convert the `.hex` or `.elf` file to a `.bin` file in the sketch folder and name it accordingly. These options are not very smooth.
+## Target microcontroller
+We provided a flag to set whether the firmware is built for and STM32F401 (default) or STM32F407 microcontroller.
+Option name: DEV  
+Allowed values: F401, F407  
+Example:
 
-The current solution is to remove, or comment, the lines:
+    make upload DEV="F401"
 
-	recipe.output.tmp_file={build.project_name}.hex
-	recipe.output.save_file={build.project_name}.{build.variant}.hex
 
-These lines are found in:
+## Extra flags
+Defines that would usually be given to the compiler with the `-D` option can be set with `make` using the `FLAGS` option.
+Currently supported flags relate to the display:
+`-DNODISPLAY` disables the display completely. This also means that the external libraries, located in `PowerSensor/Libraries` are not used.
+`-DTFT_BLUE` changes the display type from the default green tab to a blue tab. Effectively, this only inverts the display colours.
+Multiple flags should be separated by a space.
+Example command:
 
-	$HOME/.arduino15/packages/STM32/hardware/stm32/1.8.0/platform.txt
+    make upload FLAGS="-DTFT_BLUE"
 
-This will make sure that it compiles a `.bin` file which can be uploaded to the board. Run `make upload` again and it should compile and upload the firmware correctly
+## USB buffer size
+The STM32 USB library has a default transmit buffer size that is too small to handle the high data rate used in PowerSensor3. When using the default buffer size, you will most likely see dropped data. The buffer size is set in the `cdc_queue.h` file, part of stm32duino. This file is usually located at `<Arduino folder>/packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h`
+
+We provide a patch file to increase the buffer size (tested with version 2.3.0 of stm32duino), as well as a Python script to locate the stm32duino folder. To automatically update the `cdc_queue.h` file, run something like this from the root of the PowerSensor3 repository:
+
+    REPO_ROOT=$PWD
+    STM32_DIR=$(python/get_arduino_stm32_directory.py)
+    cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
+    patch ${REPO_ROOT}/patch/cdc_queue.patch
+
+Then proceed with building the firmware with `arduino-cli` as usual.
