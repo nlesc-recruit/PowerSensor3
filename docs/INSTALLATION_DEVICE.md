@@ -67,9 +67,9 @@ If the firmware is uploaded successfully, the device will be reset and start run
 There are several options available to customize the firmware build. These options can be append to the `make device` and `make upload` commands.
 
 ## Target microcontroller
-We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.
-Option name: DEV
-Allowed values: F401, F407
+We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.  
+Option name: DEV  
+Allowed values: F401, F407  
 Example:
 
     make upload DEV="F401"

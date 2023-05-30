@@ -8,8 +8,6 @@
 [![Host workflow](https://img.shields.io/github/actions/workflow/status/nlesc-recruit/PowerSensor3/build_host.yml?label=build%20host%20library)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/build_host.yml)
 [![Citation metadata](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml)
 
-
-
 ## Introduction
 PowerSensor3 is a tool that measures the instantaneous power consumption of PCIe cards and SoC development boards like GPUs, Xeon Phis, FPGAs, DSPs, and network cards, at sub-millisecond time scale. It consists of a commodity microcontroller, commodity current and voltage sensors, and (for PCIe devices) a PCIe riser card. The microcontroller reports measurements to the host via USB. A small host library allows an application to determine its own energy efficiency. The high time resolution provides much better insight into energy usage than low-resolution built-in power meters (if available at all), as PowerSensor enables analysis of individual compute kernels.
 
@@ -25,10 +23,10 @@ You are about to modify electronic circuits.  Improperly connecting wires can be
 1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
 2. [Installation of the physical device and firwmare](docs/INSTALLATION_DEVICE.md)
 3. [Installation of the host library](docs/INSTALLATION_HOST.md)
-3. [PowerSensor use guide](docs/USERGUIDE.md)
+3. [PowerSensor user guide](docs/USERGUIDE.md)
 
 ## Further reading
-Altering the software of the device could be necessary in certain use cases. For this please refer to the following documents:
+Altering the firmware of the device could be necessary in certain use cases. For this please refer to the following documents:
 
 * [STM32F401CCU6 BlackPill overview](https://stm32-base.org/boards/STM32F401CCU6-WeAct-Black-Pill-V1.2.html)
 * [STM32F401xB/C Datasheet](https://www.st.com/resource/en/datasheet/stm32f401cc.pdf)
