@@ -16,5 +16,5 @@ target_link_libraries(pstest PowerSensor OpenMP::OpenMP_CXX)
 target_link_libraries(psrun PowerSensor OpenMP::OpenMP_CXX)
 
 install(TARGETS psconfig pstest psrun DESTINATION bin)
-install(FILES include/PowerSensor.hpp DESTINATION include)
+install(FILES include/PowerSensor.hpp include/Semaphore.hpp DESTINATION include)
 install(TARGETS PowerSensor DESTINATION lib)

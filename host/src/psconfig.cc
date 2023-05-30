@@ -3,7 +3,13 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
+#if __GNUC__ < 8
+#include <experimental/filesystem>
+#define fs std::experimental::filesystem
+#else
 #include <filesystem>
+#define fs std::filesystem
+#endif
 #include <chrono>
 #include <sstream>
 
@@ -71,8 +77,7 @@ void measureSensors(PowerSensor3::State* startState, PowerSensor3::State* stopSt
 
 void autoCalibrate() {
   // dump data to file for a second
-  std::filesystem::path dumpFile = std::filesystem::temp_directory_path() / \
-    std::filesystem::path("PowerSensorTmpFile.txt");
+  fs::path dumpFile = fs::temp_directory_path() / fs::path("PowerSensorTmpFile.txt");
   powerSensor->dump(dumpFile.string());
   std::this_thread::sleep_for(std::chrono::seconds(1));
   powerSensor->dump("");
