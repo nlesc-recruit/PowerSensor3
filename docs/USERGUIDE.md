@@ -115,3 +115,17 @@ This way, the power consumption during some time interval can be used. The `Joul
 Another way to use the PowerSensor is to produce a stream of sensor values on file (in ASCII). Simply provide the name of the file as second (optional) argument to the constructor of PowerSensor.  A separate, light-overhead thread will be started that continuously monitors the PowerSensor state. Both methods can be used at the same time.
 
 For further usage, inspect the `PowerSensor.hpp` file or have a look at the [API documentation](https://nlesc-recruit.github.io/PowerSensor3).
+
+## Python interface
+An optional Python interface is available. See [here](INSTALLATION_HOST.md#python-bindings) for installation instructions. The `PowerSensor` and `State` objects can be accessed from Python, as well as the `Joules`, `Watt`, and `seconds` functions. Example usage:
+
+```python
+import powersensor as ps
+
+sensor = ps.PowerSensor('/dev/ttyACM0')
+start = ps.read()
+< application code here>
+stop = ps.read()
+
+print(f'{ps.Joules(start, stop):.2f}J, {ps.seconds(start, stop):.2f}s, {ps.Watt(start, stop):.2f}W')
+```
