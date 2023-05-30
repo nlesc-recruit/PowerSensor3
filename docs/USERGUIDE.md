@@ -1,112 +1,115 @@
 # User guide
-Please make sure that the PowerSensor is installed correctly by completing the [installation guide](INSTALLATION.md).
+Please make sure that the PowerSensor is installed correctly by completing the [device installation guide](INSTALLATION_DEVICE.md) and [host library installation guide](INSTALLATION_HOST.md).
 
 ## Configuring PowerSensor
-`psconfig` configures PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's emulated EEPROM, so the device needs to be configured only once.
-
-There is native support for the ACS712 series current sensors.  Other sensor types may work as well (see the `-t` option below).
-
-PowerSensor supports up to 5 current sensors.  All current sensor ports must be configured, even if not all of them are used.
+`psconfig` configures PowerSensor. For each of the up to 8 connected sensors, the type and calibration values can be set. These values are stored on the device's emulated EEPROM, so configuration only needs to happend once. `psconfig` can also toggle the attached display and print the current sensor values.
 
 `psconfig` accepts the parameters as described below.  The order of parameters is important.  Further on, we give examples of full configuration commands for a typical PowerSensor setup.
 
 ```
-usage: ./bin/x86_64/psconfig [-d device] [-s sensor] [-t type] [-v volt] [-a | -n nullLevel] [-o] [-p]
+$ psconfig -h
+usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-a | -v volt] [-n sensitivity] [-o on/off] [-p] [-l]
+-h prints this help
 -d selects the device (default: /dev/ttyACM0)
--s selects the sensor (0-4)
--t selects the sensor type, (one of ACS712-5, ACS712-20, ACS712-30, or a Volt-Per-Ampere value)
--v sets the voltage level
--a auto-calibrates the null level
--n manually sets the null level (the amount of Watt to be added)
--o turns off a sensor
+-s selects the sensor (0-8)
+-t sets the sensor type. This also sets the sensitivity to the default value if the sensor is of a type known to this programme (see list at the bottom of this help).
+-v sets the reference voltage level
+-n set the sensitivity in mV/A for current sensors (even sensors) or unitless gain for voltage sensors (odd sensors)
+-o turns a sensor on (1) or off (0)
 -p prints configured values
+-l toggles device display on/off
+example: psconfig -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 -o 1 -s 1 -t voltage0 -v 0 -n 0.95 -o 1 -p
+Known current sensor types: MLX10, MLX20, MLX50, MLX75.
 ```
 
 Parameters that are not specified are left unmodified on the device.
 
-A typical configuration of the PowerSensor is to measure a PCIe device like a
-GPU, with current sensor 0 measuring the 12V PCIe slot current, sensor 1
-measuring the 3.3V PCIe slot current, and sensor 2 measuring the 12V external
-cable current.  A typically way to configure the PowerSensor is as follows:
-
-```
-./bin/x86_64/psconfig -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -n0 -s1 -tACS712-5 -v3.3 -n0 -s2 -tACS712-20 -v12 -n0 -s3 -o -s4 -o -p
-```
+<!-- This section is outdated. Needs to be updated after fixing https://github.com/nlesc-recruit/PowerSensor3/issues/68
 
 The `-n` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically:
 
 ```
-$ ./bin/x86_64/psconfig -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -a -s1 -tACS712-5 -v3.3 -a -s2 -tACS712-20 -v12 -a -s3 -o -s4 -o -p
+$ psconfig -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -a -s1 -tACS712-5 -v3.3 -a -s2 -tACS712-20 -v12 -a -s3 -o -s4 -o -p
 ```
+-->
 
 
 ## Testing the PowerSensor
 To see if the PowerSensor works correctly, one can either use the `-p` option of `psconfig`:
 ```
-$ ./bin/x86_64/psconfig -h
-sensor: 0, volt: 12 V, type: ACS712-20, null level: -1.66026 W, current usage: 11.5142 W
-sensor: 1, volt: 3.3 V, type: ACS712-5, null level: 0.0223578 W, current usage: 0.262142 W
-sensor: 2, volt: 12 V, type: ACS712-20, null level: -1.75054 W, current usage: 11.19 W
-sensor: 3, off
-sensor: 4, off
+$ psconfig -p
+sensor 0 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
+sensor 1 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
+sensor 2 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
+sensor 3 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
+sensor 4 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
+sensor 5 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
+sensor 6 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 62.5 mV/A, Status: on
+sensor 7 (voltage): type: Voltage, Vref: 0 V, Gain: 0.0883871, Status: on
+Current usage pair 0: 0 W
+Current usage pair 1: 0 W
+Current usage pair 2: 0 W
+Current usage pair 3: 28.5437 W
+Total usage: 28.5437 W
 ```
 
-Or use the `pstest` utility to measure and report energy consumption for a few seconds:
+Or use the `pstest` utility to measure and report energy consumption for a few seconds. Run `pstest -h` for more options.
 ```
-$ ./bin/x86_64/pstest
-exp. time: 0.0004 s, measured: 0.000476902 s, 0.0597194 J, 125.224 W
-exp. time: 0.0008 s, measured: 0.000911695 s, 0.0190849 J, 20.9334 W
-exp. time: 0.0016 s, measured: 0.00173528 s, 0.0387305 J, 22.3195 W
-exp. time: 0.0032 s, measured: 0.00333613 s, 0.0786753 J, 23.5828 W
-exp. time: 0.0064 s, measured: 0.00653597 s, 0.150446 J, 23.0182 W
-exp. time: 0.0128 s, measured: 0.0129376 s, 0.295892 J, 22.8707 W
-exp. time: 0.0256 s, measured: 0.0257391 s, 0.585381 J, 22.7429 W
-exp. time: 0.0512 s, measured: 0.0512283 s, 1.1743 J, 22.8738 W
-exp. time: 0.1024 s, measured: 0.102544 s, 2.36651 J, 23.078 W
-exp. time: 0.2048 s, measured: 0.204941 s, 4.70485 J, 22.9571 W
-exp. time: 0.4096 s, measured: 0.409762 s, 9.39299 J, 22.923 W
-exp. time: 0.8192 s, measured: 0.819362 s, 18.8299 J, 22.9811 W
-exp. time: 1.6384 s, measured: 1.63861 s, 37.6751 J, 22.9921 W
-exp. time: 3.2768 s, measured: 3.27695 s, 75.2596 J, 22.9663 W
+$ pstest
+exp. time: 0.0002 s, measured: 0.00571626 s, 0.00114577 J, 0.200441 W
+exp. time: 0.0004 s, measured: 0.000343234 s, 0.0112714 J, 32.8388 W
+exp. time: 0.0008 s, measured: 0.00090007 s, 0.0293691 J, 32.6298 W
+exp. time: 0.0016 s, measured: 0.00177352 s, 0.0566265 J, 31.929 W
+exp. time: 0.0032 s, measured: 0.00359161 s, 0.118366 J, 32.9563 W
+exp. time: 0.0064 s, measured: 0.00640616 s, 0.195132 J, 30.4601 W
+exp. time: 0.0128 s, measured: 0.0132216 s, 0.4025 J, 30.4427 W
+exp. time: 0.0256 s, measured: 0.0257813 s, 0.776679 J, 30.1257 W
+exp. time: 0.0512 s, measured: 0.0517088 s, 1.52741 J, 29.5387 W
+exp. time: 0.1024 s, measured: 0.10309 s, 2.97431 J, 28.8516 W
+exp. time: 0.2048 s, measured: 0.20566 s, 5.87204 J, 28.5521 W
+exp. time: 0.4096 s, measured: 0.409726 s, 11.7305 J, 28.6301 W
+exp. time: 0.8192 s, measured: 0.784317 s, 22.3385 J, 28.4815 W
+exp. time: 1.6384 s, measured: 1.67394 s, 47.6963 J, 28.4935 W
+exp. time: 3.2768 s, measured: 3.27701 s, 93.377 J, 28.4946 W
 ```
 
 ## Monitor power use of an existing application
-Adapting an application to use the library is not obligatory; the `psrun` utility can monitor the power use of a device during the execution of an application that does not use the library:
+Adapting an application to use the library is not obligatory; the `psrun` utility can monitor the power use of a device during the execution of an application that does not use the library. Run `psrun -h` for more options
 ```
-./bin/x86_64/pstest <application>
+pstest <application>
 < application output >
-24.0161 s, 5537,22 J, 230.563 W
+5.02273 s, 144.12 J, 28.6935 W
 ```
 
 ## Using the host library
 The host library is a small C++ library that can be used by applications to measure the power used by some (PCIe) device during some time interval.  The interface (declared in `PowerSensor.hpp`) looks like this:
 ```
+double Joules(const State &first, const State &second, int pairID=-1);
+double Watt(const State &first, const State &second);
+double seconds(const State &first, const State &second, int pairID=-1);
+
 class PowerSensor {
   public:
     ...
     State read();
-
-    static double Joules(const State &first, const State &second);
-    static double Watt(const State &first, const State &second);
-    static double seconds(const State &first, const State &second);
 };
 ```
 and can be used as follows:
 ```
 #include <PowerSensor.hpp>
 
-using namespace powersensor;
+using namespace PowerSensor3;
 
 int main()
 {
     PowerSensor sensor("/dev/ttyACM0");
-    PowerSensor::State start = sensor.read();
+    State start = sensor.read();
     ...
-    PowerSensor::State stop = sensor.read();
-    std::cout << "The computation took " << PowerSensor::Joules(start, stop) << 'J' << std::endl;
+    State stop = sensor.read();
+    std::cout << "The computation took " << Joules(start, stop) << 'J' << std::endl;
 }
 ```
 
-This way, the power consumption during some time interval can be used.
+This way, the power consumption during some time interval can be used. The `Joules` function gives an accurate total eneryg usage. `Watt` gives the _average_ power usage over the given time interval.
 
 Another way to use the PowerSensor is to produce a stream of sensor values on file (in ASCII). Simply provide the name of the file as second (optional) argument to the constructor of PowerSensor.  A separate, light-overhead thread will be started that continuously monitors the PowerSensor state. Both methods can be used at the same time.
