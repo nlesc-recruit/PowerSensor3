@@ -1,7 +1,8 @@
 # User guide
 Please make sure that the PowerSensor is installed correctly by completing the [installation guide](INSTALLATION.md).
-## Configuring the PowerSensor
-`psconfig` configures the PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's emulated EEPROM, so the device needs to be configured only once.
+
+## Configuring PowerSensor
+`psconfig` configures PowerSensor.  The parameters that can be set are the voltages of the lines to be measured, the type of the current sensor, and the null level of the ADC.  The parameters are stored on the device's emulated EEPROM, so the device needs to be configured only once.
 
 There is native support for the ACS712 series current sensors.  Other sensor types may work as well (see the `-t` option below).
 
@@ -78,7 +79,7 @@ Adapting an application to use the library is not obligatory; the `psrun` utilit
 ```
 
 ## Using the host library
-The host library is a small C++ library that can be used by applications to measure the power used by some (PCIe) device during some time interval.  The interface (declared in `PowerSensor.h`) looks like this:
+The host library is a small C++ library that can be used by applications to measure the power used by some (PCIe) device during some time interval.  The interface (declared in `PowerSensor.hpp`) looks like this:
 ```
 class PowerSensor {
   public:
@@ -92,7 +93,7 @@ class PowerSensor {
 ```
 and can be used as follows:
 ```
-#include <PowerSensor.h>
+#include <PowerSensor.hpp>
 
 using namespace powersensor;
 

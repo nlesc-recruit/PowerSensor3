@@ -1,5 +1,5 @@
-# Installation guide
-Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, get to know the device with the [user guide](USERGUIDE.md).
+# Device installation guide
+Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, install the host library with [this guide](INSTALLATION_HOST.md) and get to know the device with the [user guide](USERGUIDE.md).
 
 ## Installing the PowerSensor
 Before starting, turn off and unplug the power of the host system. In the case of a GPU, a PCI-e riser card or cable is needed to be able to measure the 3.3 V and 12 V power coming from the PCI-e slot of the motherboard. 12 V power coming directly from the PSU can be connected to a PowerSensor3 sensor board. A second ATX power cable should be used to connect the PowerSensor3 sensor board to the GPU. Take care to use sensor boards with appropiate voltage and current sensors, taking into account the maximum voltage and current:
@@ -45,7 +45,7 @@ Then run the following command in the device folder to build the firmware with d
 
 For an STM32F401 Black Pill, the fimware will we written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`
 
-### Upload the firmware
+### Uploading the firmware
 First make sure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with either:
 
     lsusb
@@ -67,9 +67,9 @@ If the firmware is uploaded successfully, the device will be reset and start run
 There are several options available to customize the firmware build. These options can be append to the `make device` and `make upload` commands.
 
 ## Target microcontroller
-We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.  
-Option name: DEV  
-Allowed values: F401, F407  
+We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.
+Option name: DEV
+Allowed values: F401, F407
 Example:
 
     make upload DEV="F401"
@@ -96,3 +96,6 @@ We provide a patch file to increase the buffer size (tested with version 2.3.0 o
     patch ${REPO_ROOT}/patch/cdc_queue.patch
 
 Then proceed with building the firmware with `arduino-cli` as usual.
+
+## Next steps
+After installing the device, proceed with installing the host library with [this guide](INSTALLATION_HOST.md).
