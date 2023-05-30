@@ -113,3 +113,5 @@ int main()
 This way, the power consumption during some time interval can be used. The `Joules` function gives an accurate total eneryg usage. `Watt` gives the _average_ power usage over the given time interval.
 
 Another way to use the PowerSensor is to produce a stream of sensor values on file (in ASCII). Simply provide the name of the file as second (optional) argument to the constructor of PowerSensor.  A separate, light-overhead thread will be started that continuously monitors the PowerSensor state. Both methods can be used at the same time.
+
+For further usage, inspect the `PowerSensor.hpp` file or have a look at the [API documentation](https://nlesc-recruit.github.io/PowerSensor3).
