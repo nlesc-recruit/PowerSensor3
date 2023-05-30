@@ -33,3 +33,6 @@ Altering the firmware of the device could be necessary in certain use cases. For
 * [STM32F401xB/C/D/E Reference manual](https://www.st.com/resource/en/reference_manual/rm0368-stm32f401xbc-and-stm32f401xde-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
 * [STM32F2/4/7 DMA programming manual](https://www.st.com/resource/en/application_note/dm00046011-using-the-stm32f2-stm32f4-and-stm32f7-series-dma-controller-stmicroelectronics.pdf)
 * [STM32F40x/STM3241x EEPROM emulation in flash](https://www.st.com/resource/en/application_note/an3969-eeprom-emulation-in-stm32f40xstm32f41x-microcontrollers-stmicroelectronics.pdf)
+
+## Contributing
+If you have a question, found a bug, or want to contribute to the development of PowerSensor3, please have a look at the [contribution guidelines](docs/CONTRIBUTING.md)
