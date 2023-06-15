@@ -52,7 +52,7 @@ First make sure the device is booted in DFU mode. This is typically achieved by 
     dfu-util -l
 
 The firmware can be uploaded with `dfu-util` or `arduino-cli`. The latter can only be used when compiling the firmware yourself.
-To upload with `dfu-util` run the following command:
+To upload with `dfu-util` run the following command, adapting the -a and -i options as necessary to match the output of `dfu-util -l`:
 
     dfu-util -a 0 -i 0 -s 0x08000000:leave -D /path/to/PowerSensor3/firmware.bin
 
