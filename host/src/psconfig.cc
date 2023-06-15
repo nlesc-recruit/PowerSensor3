@@ -172,6 +172,7 @@ void usage(char *argv[]) {
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
+  std::cerr << "-a automatically calibrate vref of the current sensor. The input to the sensor must be zero volt or ampere" << std::endl;
   std::cerr << "-n set the sensitivity in mV/A for current sensors (even sensors) "
                "or unitless gain for voltage sensors (odd sensors)" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
