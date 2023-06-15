@@ -14,7 +14,10 @@ release = '0.1.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = []
+extensions = ['breathe', 'exhale', 'myst_parser']
+
+source_suffix = {'.rst': 'restructuredtext',
+                 '.md': 'markdown'}
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
@@ -24,5 +27,19 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+
+breathe_projects = {'powersensor3': './_doxygen/xml'}
+breathe_default_project = 'powersensor3'
+
+exhale_args = {'containmentFolder': './api',
+               'rootFileName': 'library_root.rst',
+               'doxygenStripFromPath': '..',
+               'rootFileTitle': '',
+               'createTreeView': True,
+               'exhaleExecutesDoxygen': True,
+               'exhaleDoxygenStdin': 'INPUT = ../host/include'}
+
+primary_domain = 'cpp'
+highlight_language = 'cpp'
