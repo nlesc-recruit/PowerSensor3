@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install sphinx and related dependencies
-        run: apt install doxygen && pip install -r docs/requirements.txt
+        run: sudo apt install -y doxygen && pip install -r docs/requirements.txt
       - name: Build documentation
         run: make -C docs html
       - uses: actions/upload-artifact@v3
