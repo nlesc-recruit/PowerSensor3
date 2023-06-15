@@ -39,7 +39,7 @@ exhale_args = {'containmentFolder': './api',
                'rootFileTitle': '',
                'createTreeView': True,
                'exhaleExecutesDoxygen': True,
-               'exhaleDoxygenStdin': 'INPUT = ../host/include'}
+               'exhaleDoxygenStdin': 'INPUT = ../host/include,../host/src/PowerSensor.cc,../host/src/sensors.cc'}
 
 primary_domain = 'cpp'
 highlight_language = 'cpp'
