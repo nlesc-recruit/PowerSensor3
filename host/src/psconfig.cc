@@ -95,8 +95,8 @@ void autoCalibrate() {
     // only if the marker is S, this is valid line with sensor values
     if (marker != 'S')
       continue;
-    // read the two time values (these will be ignored)
-    ss >> value >> value;
+    // read the three time values (these will be ignored)
+    ss >> value >> value >> value;
     // now there are 3 values per sensor (current, voltage, power)
     // ignore until the correct sensor pair is reached. pair ID = sensor ID / 2
     // next value is current, ignore one more value if voltage needs to be calibrated (odd sensor ID)
@@ -120,7 +120,7 @@ void autoCalibrate() {
   float vref = powerSensor->getVref(sensor);
   float vref_new = sensitivity * value + vref;
   std::cout << "Result of autoCal for sensor " << sensor << ":"
-  " old Vref: " << vref << " new Vref: " << vref_new;
+  " old Vref: " << vref << " new Vref: " << vref_new << std::endl;
   // write new vref
   powerSensor->setVref(sensor, vref_new);
 }
@@ -172,6 +172,8 @@ void usage(char *argv[]) {
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
+  std::cerr << "-a automatically calibrate vref of the current sensor. "
+               "The input to the sensor must be zero volt or ampere" << std::endl;
   std::cerr << "-n set the sensitivity in mV/A for current sensors (even sensors) "
                "or unitless gain for voltage sensors (odd sensors)" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
