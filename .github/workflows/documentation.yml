@@ -34,7 +34,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: artifact
-          path: docs/_build
+          path: docs/_build/html
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
