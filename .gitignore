@@ -1,5 +1,7 @@
 # vs code
 .vscode/
+# Mac file
+.DS_Store
 
 # library outputs
 bin/
@@ -9,3 +11,8 @@ obj/
 
 build/
 testing/
+
+# documentation output
+_build
+_doxygen
+docs/api
