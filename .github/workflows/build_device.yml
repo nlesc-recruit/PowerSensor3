@@ -17,7 +17,7 @@ jobs:
         os: ["ubuntu-22.04", "macos-11", "windows-latest"]
         device: ["F401", "F407"]
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         submodules: "recursive"
     - name: Install arduino-cli (windows)
