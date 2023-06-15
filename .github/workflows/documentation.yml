@@ -17,7 +17,8 @@ jobs:
       - name: Install sphinx and related dependencies
         run: sudo apt install -y doxygen && pip install -r docs/requirements.txt
       - name: Build documentation
-        run: make -C docs html
+        # run build twice to fix crossrefs
+        run: make -C docs html && make -C docs html
       - uses: actions/upload-artifact@v3
         with:
           path: docs/_build/html/*
