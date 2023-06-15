@@ -17,7 +17,7 @@ void usage(char *argv[]) {
 
 
 int main(int argc, char *argv[]) {
-  std::string device = "/dev/ttyACM1";
+  std::string device = "/dev/ttyACM0";
   std::string dumpFileName;
   int sensorPair  = -1;
 

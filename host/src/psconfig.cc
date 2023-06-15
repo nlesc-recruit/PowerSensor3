@@ -95,8 +95,8 @@ void autoCalibrate() {
     // only if the marker is S, this is valid line with sensor values
     if (marker != 'S')
       continue;
-    // read the two time values (these will be ignored)
-    ss >> value >> value;
+    // read the three time values (these will be ignored)
+    ss >> value >> value >> value;
     // now there are 3 values per sensor (current, voltage, power)
     // ignore until the correct sensor pair is reached. pair ID = sensor ID / 2
     // next value is current, ignore one more value if voltage needs to be calibrated (odd sensor ID)
@@ -120,7 +120,7 @@ void autoCalibrate() {
   float vref = powerSensor->getVref(sensor);
   float vref_new = sensitivity * value + vref;
   std::cout << "Result of autoCal for sensor " << sensor << ":"
-  " old Vref: " << vref << " new Vref: " << vref_new;
+  " old Vref: " << vref << " new Vref: " << vref_new << std::endl;
   // write new vref
   powerSensor->setVref(sensor, vref_new);
 }
