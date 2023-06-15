@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1a4363b65a393b0ca493fa20d6c1e244c2:
+
+Variable vref
+=============
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: vref

@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1ab69949bfe080f3ea38645f0ff58ac91e:
+
+Variable type
+=============
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: type

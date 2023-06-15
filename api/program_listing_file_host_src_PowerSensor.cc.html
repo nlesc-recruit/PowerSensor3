@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Program Listing for File PowerSensor.cc &mdash; PowerSensor 3 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="../_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PowerSensor 3
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLATION_DEVICE.html">Device installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLATION_HOST.html">Host library installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../USERGUIDE.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CONTRIBUTING.html">Contributing guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html">Class Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="library_root.html#full-api">Full API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PowerSensor 3</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Program Listing for File PowerSensor.cc</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/program_listing_file_host_src_PowerSensor.cc.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="program-listing-for-file-powersensor-cc">
+<span id="program-listing-file-host-src-powersensor-cc"></span><h1>Program Listing for File PowerSensor.cc<a class="headerlink" href="#program-listing-for-file-powersensor-cc" title="Permalink to this heading"></a></h1>
+<p>↰ <a class="reference internal" href="file_host_src_PowerSensor.cc.html#file-host-src-powersensor-cc"><span class="std std-ref">Return to documentation for file</span></a> (<code class="docutils literal notranslate"><span class="pre">host/src/PowerSensor.cc</span></code>)</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;fcntl.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;omp.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;termios.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;unistd.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;sys/file.h&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;chrono&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;iostream&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstring&gt;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;PowerSensor.hpp&quot;</span>
+
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">PowerSensor3</span><span class="w"> </span><span class="p">{</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">checkPairID</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pairID</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="p">(</span><span class="kt">signed</span><span class="p">)</span><span class="n">MAX_PAIRS</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Invalid pairID: &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;, maximum value is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">Joules</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">firstState</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">secondState</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">checkPairID</span><span class="p">(</span><span class="n">pairID</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pairID</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">secondState</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="p">[</span><span class="n">pairID</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">firstState</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="p">[</span><span class="n">pairID</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">joules</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">consumedEnergy</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">secondState</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">joules</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">consumedEnergy</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">consumedEnergy</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">firstState</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">joules</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">consumedEnergy</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">joules</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">seconds</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">firstState</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">secondState</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">secondState</span><span class="p">.</span><span class="n">timeAtRead</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">firstState</span><span class="p">.</span><span class="n">timeAtRead</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">Watt</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">firstState</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">secondState</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">Joules</span><span class="p">(</span><span class="n">firstState</span><span class="p">,</span><span class="w"> </span><span class="n">secondState</span><span class="p">,</span><span class="w"> </span><span class="n">pairID</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">seconds</span><span class="p">(</span><span class="n">firstState</span><span class="p">,</span><span class="w"> </span><span class="n">secondState</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">PowerSensor</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">device</span><span class="p">)</span><span class="o">:</span>
+<span class="w">    </span><span class="n">fd</span><span class="p">(</span><span class="n">openDevice</span><span class="p">(</span><span class="n">device</span><span class="p">)),</span>
+<span class="w">    </span><span class="n">pipe_fd</span><span class="p">(</span><span class="n">startCleanupProcess</span><span class="p">()),</span>
+<span class="w">    </span><span class="kr">thread</span><span class="p">(</span><span class="k">nullptr</span><span class="p">),</span>
+<span class="w">    </span><span class="n">startTime</span><span class="p">(</span><span class="n">omp_get_wtime</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">readSensorsFromEEPROM</span><span class="p">();</span>
+<span class="w">      </span><span class="n">initializeSensorPairs</span><span class="p">();</span>
+<span class="w">      </span><span class="n">startIOThread</span><span class="p">();</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">PowerSensor</span><span class="o">::~</span><span class="n">PowerSensor</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">stopIOThread</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">close</span><span class="p">(</span><span class="n">pipe_fd</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;close child pipe fd&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;close device&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">State</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">read</span><span class="p">()</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">State</span><span class="w"> </span><span class="n">state</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="p">[</span><span class="n">pairID</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">consumedEnergy</span><span class="p">;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">current</span><span class="p">[</span><span class="n">pairID</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">currentAtLastMeasurement</span><span class="p">;</span>
+<span class="w">      </span><span class="n">state</span><span class="p">.</span><span class="n">voltage</span><span class="p">[</span><span class="n">pairID</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">voltageAtLastMeasurement</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// Note: timeAtLastMeasurement is the same for each _active_ sensor pair</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">state</span><span class="p">.</span><span class="n">timeAtRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">timeAtLastMeasurement</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">state</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">openDevice</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">device</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">fileDescriptor</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// opens the file specified by pathname;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">fileDescriptor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">open</span><span class="p">(</span><span class="n">device</span><span class="p">.</span><span class="n">c_str</span><span class="p">(),</span><span class="w"> </span><span class="n">O_RDWR</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="n">device</span><span class="p">.</span><span class="n">c_str</span><span class="p">());</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="c1">// block if an incompatible lock is held by another process;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">flock</span><span class="p">(</span><span class="n">fileDescriptor</span><span class="p">,</span><span class="w"> </span><span class="n">LOCK_EX</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;flock&quot;</span><span class="p">);</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// struct for configuring the port for communication with stm32;</span>
+<span class="w">    </span><span class="k">struct</span><span class="w"> </span><span class="nc">termios</span><span class="w"> </span><span class="n">terminalOptions</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// gets the current options for the port;</span>
+<span class="w">    </span><span class="n">tcgetattr</span><span class="p">(</span><span class="n">fileDescriptor</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">terminalOptions</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// set control mode flags;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cflag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cflag</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="o">~</span><span class="n">CSIZE</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">CS8</span><span class="p">;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cflag</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">CLOCAL</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">CREAD</span><span class="p">;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cflag</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="o">~</span><span class="p">(</span><span class="n">PARENB</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">PARODD</span><span class="p">);</span>
+
+
+<span class="w">    </span><span class="c1">// set input mode flags;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_iflag</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">IGNBRK</span><span class="p">;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_iflag</span><span class="w"> </span><span class="o">&amp;=</span><span class="w"> </span><span class="o">~</span><span class="p">(</span><span class="n">IXON</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">IXOFF</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">IXANY</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// clear local mode flag</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_lflag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// clear output mode flag;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_oflag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// set control characters;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cc</span><span class="p">[</span><span class="n">VMIN</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="n">terminalOptions</span><span class="p">.</span><span class="n">c_cc</span><span class="p">[</span><span class="n">VTIME</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// commit the options;</span>
+<span class="w">    </span><span class="n">tcsetattr</span><span class="p">(</span><span class="n">fileDescriptor</span><span class="p">,</span><span class="w"> </span><span class="n">TCSANOW</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">terminalOptions</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// flush anything already in the serial buffer;</span>
+<span class="w">    </span><span class="n">tcflush</span><span class="p">(</span><span class="n">fileDescriptor</span><span class="p">,</span><span class="w"> </span><span class="n">TCIFLUSH</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">fileDescriptor</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">readCharFromDevice</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">ssize_t</span><span class="w"> </span><span class="n">bytesRead</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span>
+<span class="w">    </span><span class="k">do</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">bytesRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;read&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">bytesRead</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">write</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;write device&quot;</span><span class="p">);</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">readSensorsFromEEPROM</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// signal device to send EEPROM data</span>
+<span class="w">    </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;R&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// read data per sensor</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">Sensor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sensors</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sensor</span><span class="p">.</span><span class="n">readFromEEPROM</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+<span class="w">      </span><span class="c1">// trigger device to send next sensor</span>
+<span class="w">      </span><span class="c1">// it does not matter what char is sent</span>
+<span class="w">      </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;s&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="c1">// when done, the device sends D</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">readCharFromDevice</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="sc">&#39;D&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Expected to receive &#39;D&#39; from device after reading configuration, but got &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">writeSensorsToEEPROM</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ensure no data is streaming to host</span>
+<span class="w">    </span><span class="n">stopIOThread</span><span class="p">();</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">10</span><span class="p">));</span>
+<span class="w">    </span><span class="c1">// drain any remaining incoming data</span>
+<span class="w">    </span><span class="n">tcflush</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">TCIFLUSH</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// signal device to receive EEPROM data</span>
+<span class="w">    </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;W&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="c1">// send EEPROM data</span>
+<span class="w">    </span><span class="c1">// device sends S after each sensor and D when completely done</span>
+<span class="w">    </span><span class="kt">char</span><span class="w"> </span><span class="n">buffer</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">Sensor</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">sensors</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sensor</span><span class="p">.</span><span class="n">writeToEEPROM</span><span class="p">(</span><span class="n">fd</span><span class="p">);</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">readCharFromDevice</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="sc">&#39;S&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Expected to receive S from device, but got &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">        </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">buffer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">readCharFromDevice</span><span class="p">())</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="sc">&#39;D&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Expected to receive &#39;D&#39; from device after writing configuration, but got &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">buffer</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// restart IO thread</span>
+<span class="w">    </span><span class="n">startIOThread</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">initializeSensorPairs</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">numActiveSensors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">timeAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">startTime</span><span class="p">;</span>
+<span class="w">      </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">wattAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">      </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">consumedEnergy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">      </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">currentAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">      </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">voltageAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+
+
+<span class="w">      </span><span class="kt">bool</span><span class="w"> </span><span class="n">currentSensorActive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="p">;</span>
+<span class="w">      </span><span class="kt">bool</span><span class="w"> </span><span class="n">voltageSensorActive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="o">+</span><span class="mi">1</span><span class="p">].</span><span class="n">inUse</span><span class="p">;</span>
+
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentSensorActive</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">voltageSensorActive</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="n">numActiveSensors</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">currentSensorActive</span><span class="w"> </span><span class="o">^</span><span class="w"> </span><span class="n">voltageSensorActive</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">cerr</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;Found incompatible sensor pair: current sensor (ID &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) &quot;</span>
+<span class="w">        </span><span class="s">&quot;is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">currentSensorActive</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;not &quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;active, while &quot;</span>
+<span class="w">        </span><span class="s">&quot;voltage sensor (ID &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="o">+</span><span class="mi">1</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;) is &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="p">(</span><span class="n">voltageSensorActive</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="s">&quot;not &quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;active. &quot;</span>
+<span class="w">        </span><span class="s">&quot;Please check sensor configuration.&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">readLevelFromDevice</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">sensorNumber</span><span class="p">,</span><span class="w"> </span><span class="kt">uint16_t</span><span class="o">*</span><span class="w"> </span><span class="n">level</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="o">*</span><span class="w"> </span><span class="n">marker</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="c1">// buffer for one set of sensor data (2 bytes)</span>
+<span class="w">      </span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+<span class="w">      </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">retVal</span><span class="p">,</span><span class="w"> </span><span class="n">bytesRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">      </span><span class="c1">// loop exits when a valid value has been read from the device</span>
+<span class="w">      </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="nb">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// read full buffer</span>
+<span class="w">        </span><span class="k">do</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">retVal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="k">reinterpret_cast</span><span class="o">&lt;</span><span class="kt">char</span><span class="o">*&gt;</span><span class="p">(</span><span class="o">&amp;</span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">bytesRead</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="n">buffer</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">bytesRead</span><span class="p">))</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;read&quot;</span><span class="p">);</span>
+<span class="w">            </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="p">((</span><span class="n">bytesRead</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">retVal</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="k">sizeof</span><span class="w"> </span><span class="n">buffer</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// buffer is full, check if stop was received</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0xFF</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mh">0x3F</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">return</span><span class="w"> </span><span class="nb">false</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(((</span><span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="p">((</span><span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">7</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="c1">// marker bits are ok, extract the values</span>
+<span class="w">          </span><span class="o">*</span><span class="n">sensorNumber</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x7</span><span class="p">;</span>
+<span class="w">          </span><span class="o">*</span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">((</span><span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0xF</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x3F</span><span class="p">);</span>
+<span class="w">          </span><span class="o">*</span><span class="n">marker</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="p">(</span><span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;&gt;</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="mh">0x1</span><span class="p">;</span>
+<span class="w">          </span><span class="k">return</span><span class="w"> </span><span class="nb">true</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="c1">// marker bits are wrong. Assume a byte was dropped: drop first byte and try again</span>
+<span class="w">          </span><span class="n">buffer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buffer</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">          </span><span class="n">bytesRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">mark</span><span class="p">(</span><span class="kt">char</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">markers</span><span class="p">.</span><span class="n">push</span><span class="p">(</span><span class="n">name</span><span class="p">);</span>
+<span class="w">    </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;M&#39;</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">writeMarker</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">dumpFileMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;M &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">markers</span><span class="p">.</span><span class="n">front</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="n">markers</span><span class="p">.</span><span class="n">pop</span><span class="p">();</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">mark</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">startState</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">stopState</span><span class="p">,</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">tag</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">dumpFileMutex</span><span class="p">);</span>
+<span class="w">      </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;M &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">startState</span><span class="p">.</span><span class="n">timeAtRead</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startTime</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">stopState</span><span class="p">.</span><span class="n">timeAtRead</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startTime</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span>\
+<span class="w">        </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; </span><span class="se">\&quot;</span><span class="s">&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;&quot;&#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">toggleDisplay</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;D&#39;</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">IOThread</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">threadStarted</span><span class="p">.</span><span class="n">up</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorNumber</span><span class="p">,</span><span class="w"> </span><span class="n">marker</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">sensorsRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">level</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">readLevelFromDevice</span><span class="p">(</span><span class="o">&amp;</span><span class="n">sensorNumber</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">level</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">marker</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">mutex</span><span class="p">);</span>
+
+<span class="w">      </span><span class="c1">// detect timestamp packet, value is in microseconds</span>
+<span class="w">      </span><span class="c1">// note that an actual marker can only set set for sensor zero in the device firmware</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">marker</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="p">(</span><span class="n">sensorNumber</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="p">(</span><span class="n">MAX_SENSORS</span><span class="mi">-1</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">timestamp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">level</span><span class="p">;</span>
+<span class="w">        </span><span class="n">marker</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="k">continue</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+
+<span class="w">      </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorNumber</span><span class="p">].</span><span class="n">updateLevel</span><span class="p">(</span><span class="n">level</span><span class="p">);</span>
+<span class="w">      </span><span class="n">sensorsRead</span><span class="o">++</span><span class="p">;</span>
+
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sensorsRead</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">numActiveSensors</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">sensorsRead</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">        </span><span class="n">updateSensorPairs</span><span class="p">();</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">marker</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">writeMarker</span><span class="p">();</span>
+<span class="w">            </span><span class="n">marker</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">          </span><span class="n">dumpCurrentWattToFile</span><span class="p">();</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">startIOThread</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="kr">thread</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kr">thread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="kr">thread</span><span class="p">(</span><span class="o">&amp;</span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">IOThread</span><span class="p">,</span><span class="w"> </span><span class="k">this</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;S&#39;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">threadStarted</span><span class="p">.</span><span class="n">down</span><span class="p">();</span><span class="w">  </span><span class="c1">// wait for the IOthread to run smoothly</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">stopIOThread</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="kr">thread</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;X&#39;</span><span class="p">);</span>
+<span class="w">      </span><span class="kr">thread</span><span class="o">-&gt;</span><span class="n">join</span><span class="p">();</span>
+<span class="w">      </span><span class="k">delete</span><span class="w"> </span><span class="kr">thread</span><span class="p">;</span>
+<span class="w">      </span><span class="kr">thread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">nullptr</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">dump</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">dumpFileName</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">dumpFileMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dumpFile</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="o">&gt;</span><span class="p">(</span><span class="n">dumpFileName</span><span class="p">.</span><span class="n">empty</span><span class="p">()</span><span class="w"> </span><span class="o">?</span><span class="w"> </span><span class="k">nullptr</span><span class="o">:</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">ofstream</span><span class="p">(</span><span class="n">dumpFileName</span><span class="p">));</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">dumpFileName</span><span class="p">.</span><span class="n">empty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;marker time dt_micro device_timestamp&quot;</span><span class="p">;</span>
+<span class="w">      </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="p">)</span>
+<span class="w">          </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; current&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; voltage&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; power&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">pairID</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">      </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; power_total&quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">dumpCurrentWattToFile</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">unique_lock</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">mutex</span><span class="o">&gt;</span><span class="w"> </span><span class="n">lock</span><span class="p">(</span><span class="n">dumpFileMutex</span><span class="p">);</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">totalWatt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">omp_get_wtime</span><span class="p">();</span>
+<span class="w">    </span><span class="k">static</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">previousTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">startTime</span><span class="p">;</span>
+
+<span class="w">    </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;S &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">startTime</span><span class="p">;</span>
+<span class="w">    </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="p">(</span><span class="mf">1e6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">time</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">previousTime</span><span class="p">));</span>
+<span class="w">    </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">timestamp</span><span class="p">;</span>
+<span class="w">    </span><span class="n">previousTime</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">time</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">uint8_t</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">totalWatt</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">wattAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">currentAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">voltageAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">wattAtLastMeasurement</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="o">*</span><span class="n">dumpFile</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39; &#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">totalWatt</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">updateSensorPairs</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">omp_get_wtime</span><span class="p">();</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">MAX_PAIRS</span><span class="p">;</span><span class="w"> </span><span class="n">pairID</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">inUse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Sensor</span><span class="w"> </span><span class="n">currentSensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="p">];</span>
+<span class="w">        </span><span class="n">Sensor</span><span class="w"> </span><span class="n">voltageSensor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">pairID</span><span class="o">+</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">        </span><span class="n">SensorPair</span><span class="o">&amp;</span><span class="w"> </span><span class="n">sensorPair</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">];</span>
+
+<span class="w">        </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">currentAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">currentSensor</span><span class="p">.</span><span class="n">valueAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">voltageAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">voltageSensor</span><span class="p">.</span><span class="n">valueAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">wattAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">currentSensor</span><span class="p">.</span><span class="n">valueAtLastMeasurement</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">voltageSensor</span><span class="p">.</span><span class="n">valueAtLastMeasurement</span><span class="p">;</span>
+<span class="w">        </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">consumedEnergy</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">wattAtLastMeasurement</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">now</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">timeAtLastMeasurement</span><span class="p">);</span>
+<span class="w">        </span><span class="n">sensorPair</span><span class="p">.</span><span class="n">timeAtLastMeasurement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">now</span><span class="p">;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">startCleanupProcess</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">pipe_fds</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">pipe</span><span class="p">(</span><span class="n">pipe_fds</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;pipe&quot;</span><span class="p">);</span>
+<span class="w">      </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">switch</span><span class="w"> </span><span class="p">(</span><span class="n">fork</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="mi">-1</span><span class="p">:</span>
+<span class="w">        </span><span class="n">perror</span><span class="p">(</span><span class="s">&quot;fork&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+
+<span class="w">      </span><span class="k">case</span><span class="w"> </span><span class="mi">0</span><span class="p">:</span>
+<span class="w">        </span><span class="c1">// detach from the parent process, so signals to the parent are not caught by the child</span>
+<span class="w">        </span><span class="n">setsid</span><span class="p">();</span>
+
+<span class="w">        </span><span class="c1">// close all file descriptors, except pipe read end and device fd</span>
+<span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">getdtablesize</span><span class="p">();</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">last</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">fd</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">pipe_fds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="n">close</span><span class="p">(</span><span class="n">i</span><span class="p">);</span>
+<span class="w">          </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+
+<span class="w">        </span><span class="c1">// wait until parent closes pipe_fds[1] so that read fails</span>
+<span class="w">        </span><span class="kt">char</span><span class="w"> </span><span class="n">byte</span><span class="p">;</span>
+<span class="w">        </span><span class="o">::</span><span class="n">read</span><span class="p">(</span><span class="n">pipe_fds</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">byte</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="w"> </span><span class="n">byte</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// tell device to stop sending data</span>
+<span class="w">        </span><span class="n">writeCharToDevice</span><span class="p">(</span><span class="sc">&#39;T&#39;</span><span class="p">);</span>
+
+<span class="w">        </span><span class="c1">// drain garbage</span>
+<span class="w">        </span><span class="n">std</span><span class="o">::</span><span class="n">this_thread</span><span class="o">::</span><span class="n">sleep_for</span><span class="p">(</span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">milliseconds</span><span class="p">(</span><span class="mi">100</span><span class="p">));</span>
+<span class="w">        </span><span class="n">tcflush</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="w"> </span><span class="n">TCIFLUSH</span><span class="p">);</span>
+
+<span class="w">        </span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">default</span><span class="o">:</span>
+<span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="n">pipe_fds</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">totalEnergy</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">energy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">wattAtLastMeasurement</span><span class="w"> </span><span class="o">*</span>
+<span class="w">      </span><span class="p">(</span><span class="n">omp_get_wtime</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">timeAtLastMeasurement</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sensorPairs</span><span class="p">[</span><span class="n">pairID</span><span class="p">].</span><span class="n">consumedEnergy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">energy</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">getType</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">type</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">float</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">getVref</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">vref</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">float</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">getSensitivity</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">sensitivity</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">bool</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">getInUse</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">)</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">inUse</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">setType</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="n">type</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">setType</span><span class="p">(</span><span class="n">type</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">setVref</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">vref</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">setVref</span><span class="p">(</span><span class="n">vref</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">setSensitivity</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">sensitivity</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">setSensitivity</span><span class="p">(</span><span class="n">sensitivity</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">PowerSensor</span><span class="o">::</span><span class="n">setInUse</span><span class="p">(</span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">sensorID</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">inUse</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">sensors</span><span class="p">[</span><span class="n">sensorID</span><span class="p">].</span><span class="n">setInUse</span><span class="p">(</span><span class="n">inUse</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="p">}</span><span class="w">  </span><span class="c1">// namespace PowerSensor3</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

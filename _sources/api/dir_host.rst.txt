@@ -1,0 +1,17 @@
+.. _dir_host:
+
+
+Directory host
+==============
+
+
+*Directory path:* ``host``
+
+Subdirectories
+--------------
+
+- :ref:`dir_host_include`
+- :ref:`dir_host_src`
+
+
+

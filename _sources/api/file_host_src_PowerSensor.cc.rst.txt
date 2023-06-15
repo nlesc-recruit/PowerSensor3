@@ -1,0 +1,73 @@
+
+.. _file_host_src_PowerSensor.cc:
+
+File PowerSensor.cc
+===================
+
+|exhale_lsh| :ref:`Parent directory <dir_host_src>` (``host/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``host/src/PowerSensor.cc``)
+----------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_host_src_PowerSensor.cc.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``PowerSensor.hpp`` (:ref:`file_host_include_PowerSensor.hpp`)
+
+- ``chrono``
+
+- ``cstring``
+
+- ``fcntl.h``
+
+- ``iostream``
+
+- ``omp.h``
+
+- ``sys/file.h``
+
+- ``termios.h``
+
+- ``unistd.h``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_PowerSensor3`
+
+
+Functions
+---------
+
+
+- :ref:`exhale_function_PowerSensor_8cc_1ad2274f347f0f7850aaeb575d09009619`
+
+- :ref:`exhale_function_PowerSensor_8hpp_1ae490411ea64641cf23f9ee5c17c3d31f`
+
+- :ref:`exhale_function_PowerSensor_8hpp_1ae6fc94932b6a4aef443528c842404a04`
+
+- :ref:`exhale_function_PowerSensor_8hpp_1ac2ce7d60c052fe85935d22394913de14`
+

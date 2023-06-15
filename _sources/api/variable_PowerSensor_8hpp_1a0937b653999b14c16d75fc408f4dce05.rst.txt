@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1a0937b653999b14c16d75fc408f4dce05:
+
+Variable inUse
+==============
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: inUse

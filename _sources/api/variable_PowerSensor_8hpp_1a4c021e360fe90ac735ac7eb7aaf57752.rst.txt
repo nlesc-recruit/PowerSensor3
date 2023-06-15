@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1a4c021e360fe90ac735ac7eb7aaf57752:
+
+Variable PowerSensor3::MAX_SENSORS
+==================================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: PowerSensor3::MAX_SENSORS

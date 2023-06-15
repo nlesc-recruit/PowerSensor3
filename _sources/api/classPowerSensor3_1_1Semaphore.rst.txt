@@ -1,0 +1,16 @@
+.. _exhale_class_classPowerSensor3_1_1Semaphore:
+
+Class Semaphore
+===============
+
+- Defined in :ref:`file_host_include_Semaphore.hpp`
+
+
+Class Documentation
+-------------------
+
+
+.. doxygenclass:: PowerSensor3::Semaphore
+   :members:
+   :protected-members:
+   :undoc-members:

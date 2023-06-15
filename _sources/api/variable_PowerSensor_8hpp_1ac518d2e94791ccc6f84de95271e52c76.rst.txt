@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1ac518d2e94791ccc6f84de95271e52c76:
+
+Variable sensitivity
+====================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: sensitivity

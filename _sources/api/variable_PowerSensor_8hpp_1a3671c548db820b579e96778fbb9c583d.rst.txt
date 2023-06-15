@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1a3671c548db820b579e96778fbb9c583d:
+
+Variable PowerSensor3::MAX_PAIRS
+================================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: PowerSensor3::MAX_PAIRS

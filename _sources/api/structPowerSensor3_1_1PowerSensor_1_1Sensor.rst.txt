@@ -1,0 +1,28 @@
+.. _exhale_struct_structPowerSensor3_1_1PowerSensor_1_1Sensor:
+
+Struct PowerSensor::Sensor
+==========================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Nested Relationships
+--------------------
+
+This struct is a nested type of :ref:`exhale_class_classPowerSensor3_1_1PowerSensor`.
+
+
+Nested Types
+************
+
+- :ref:`exhale_struct_structPowerSensor3_1_1PowerSensor_1_1Sensor_1_1EEPROM`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: PowerSensor3::PowerSensor::Sensor
+   :members:
+   :protected-members:
+   :undoc-members:

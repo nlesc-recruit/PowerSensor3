@@ -1,0 +1,16 @@
+.. _exhale_struct_structPowerSensor3_1_1State:
+
+Struct State
+============
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Struct Documentation
+--------------------
+
+
+.. doxygenstruct:: PowerSensor3::State
+   :members:
+   :protected-members:
+   :undoc-members:

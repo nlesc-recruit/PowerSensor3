@@ -1,0 +1,54 @@
+
+.. _file_host_src_sensors.cc:
+
+File sensors.cc
+===============
+
+|exhale_lsh| :ref:`Parent directory <dir_host_src>` (``host/src``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``host/src/sensors.cc``)
+------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_host_src_sensors.cc.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``PowerSensor.hpp`` (:ref:`file_host_include_PowerSensor.hpp`)
+
+- ``cstring``
+
+- ``iostream``
+
+- ``omp.h``
+
+- ``string.h``
+
+- ``unistd.h``
+
+
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_PowerSensor3`
+

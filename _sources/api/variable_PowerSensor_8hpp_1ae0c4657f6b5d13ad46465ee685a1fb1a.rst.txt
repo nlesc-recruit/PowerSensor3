@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1ae0c4657f6b5d13ad46465ee685a1fb1a:
+
+Variable PowerSensor3::VOLTAGE
+==============================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: PowerSensor3::VOLTAGE

@@ -1,0 +1,59 @@
+
+.. _file_host_include_Semaphore.hpp:
+
+File Semaphore.hpp
+==================
+
+|exhale_lsh| :ref:`Parent directory <dir_host_include>` (``host/include``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+.. contents:: Contents
+   :local:
+   :backlinks: none
+
+Definition (``host/include/Semaphore.hpp``)
+-------------------------------------------
+
+
+.. toctree::
+   :maxdepth: 1
+
+   program_listing_file_host_include_Semaphore.hpp.rst
+
+
+
+
+
+Includes
+--------
+
+
+- ``condition_variable``
+
+- ``mutex``
+
+
+
+Included By
+-----------
+
+
+- :ref:`file_host_include_PowerSensor.hpp`
+
+
+
+
+Namespaces
+----------
+
+
+- :ref:`namespace_PowerSensor3`
+
+
+Classes
+-------
+
+
+- :ref:`exhale_class_classPowerSensor3_1_1Semaphore`
+

@@ -1,0 +1,13 @@
+.. _exhale_function_PowerSensor_8cc_1ad2274f347f0f7850aaeb575d09009619:
+
+Function PowerSensor3::checkPairID
+==================================
+
+- Defined in :ref:`file_host_src_PowerSensor.cc`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PowerSensor3::checkPairID(int)

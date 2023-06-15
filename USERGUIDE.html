@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User guide &mdash; PowerSensor 3 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing guidelines" href="CONTRIBUTING.html" />
+    <link rel="prev" title="Host library installation guide" href="INSTALLATION_HOST.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PowerSensor 3
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="INSTALLATION_DEVICE.html">Device installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="INSTALLATION_HOST.html">Host library installation guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">User guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-powersensor">Configuring PowerSensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-the-powersensor">Testing the PowerSensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monitor-power-use-of-an-existing-application">Monitor power use of an existing application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-host-library">Using the host library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#python-interface">Python interface</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">Class Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html#full-api">Full API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PowerSensor 3</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">User guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/USERGUIDE.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="user-guide">
+<h1>User guide<a class="headerlink" href="#user-guide" title="Permalink to this heading"></a></h1>
+<p>Please make sure that the PowerSensor is installed correctly by completing the <a class="reference internal" href="INSTALLATION_DEVICE.html"><span class="std std-doc">device installation guide</span></a> and <a class="reference internal" href="INSTALLATION_HOST.html"><span class="std std-doc">host library installation guide</span></a>.</p>
+<section id="configuring-powersensor">
+<h2>Configuring PowerSensor<a class="headerlink" href="#configuring-powersensor" title="Permalink to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">psconfig</span></code> configures PowerSensor. For each of the up to 8 connected sensors, the type and calibration values can be set. These values are stored on the device’s emulated EEPROM, so configuration only needs to happend once. <code class="docutils literal notranslate"><span class="pre">psconfig</span></code> can also toggle the attached display and print the current sensor values.</p>
+<p><code class="docutils literal notranslate"><span class="pre">psconfig</span></code> accepts the parameters as described below.  The order of parameters is important.  Further on, we give examples of full configuration commands for a typical PowerSensor setup.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">$</span><span class="w"> </span><span class="n">psconfig</span><span class="w"> </span><span class="o">-</span><span class="n">h</span>
+<span class="nl">usage</span><span class="p">:</span><span class="w"> </span><span class="n">psconfig</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">device</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="w"> </span><span class="n">sensor</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">t</span><span class="w"> </span><span class="n">type</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">a</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="n">volt</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">n</span><span class="w"> </span><span class="n">sensitivity</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">on</span><span class="o">/</span><span class="n">off</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">p</span><span class="p">]</span><span class="w"> </span><span class="p">[</span><span class="o">-</span><span class="n">l</span><span class="p">]</span>
+<span class="o">-</span><span class="n">h</span><span class="w"> </span><span class="n">prints</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">help</span>
+<span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">selects</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">device</span><span class="w"> </span><span class="p">(</span><span class="k">default</span><span class="o">:</span><span class="w"> </span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">ttyACM0</span><span class="p">)</span>
+<span class="o">-</span><span class="n">s</span><span class="w"> </span><span class="n">selects</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="p">(</span><span class="mi">0-8</span><span class="p">)</span>
+<span class="o">-</span><span class="n">t</span><span class="w"> </span><span class="n">sets</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="n">type</span><span class="p">.</span><span class="w"> </span><span class="n">This</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">sets</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">sensitivity</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">known</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">programme</span><span class="w"> </span><span class="p">(</span><span class="n">see</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">bottom</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">help</span><span class="p">).</span>
+<span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="n">sets</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">reference</span><span class="w"> </span><span class="n">voltage</span><span class="w"> </span><span class="n">level</span>
+<span class="o">-</span><span class="n">n</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">sensitivity</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">mV</span><span class="o">/</span><span class="n">A</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="n">sensors</span><span class="w"> </span><span class="p">(</span><span class="n">even</span><span class="w"> </span><span class="n">sensors</span><span class="p">)</span><span class="w"> </span><span class="n">or</span><span class="w"> </span><span class="n">unitless</span><span class="w"> </span><span class="n">gain</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">voltage</span><span class="w"> </span><span class="n">sensors</span><span class="w"> </span><span class="p">(</span><span class="n">odd</span><span class="w"> </span><span class="n">sensors</span><span class="p">)</span>
+<span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">turns</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n">or</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="o">-</span><span class="n">p</span><span class="w"> </span><span class="n">prints</span><span class="w"> </span><span class="n">configured</span><span class="w"> </span><span class="n">values</span>
+<span class="o">-</span><span class="n">l</span><span class="w"> </span><span class="n">toggles</span><span class="w"> </span><span class="n">device</span><span class="w"> </span><span class="n">display</span><span class="w"> </span><span class="n">on</span><span class="o">/</span><span class="n">off</span>
+<span class="nl">example</span><span class="p">:</span><span class="w"> </span><span class="n">psconfig</span><span class="w"> </span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="o">/</span><span class="n">dev</span><span class="o">/</span><span class="n">ttyACM0</span><span class="w"> </span><span class="o">-</span><span class="n">s</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span><span class="n">t</span><span class="w"> </span><span class="n">MLX10</span><span class="w"> </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="mf">1.65</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="n">s</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="n">t</span><span class="w"> </span><span class="n">voltage0</span><span class="w"> </span><span class="o">-</span><span class="n">v</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="o">-</span><span class="n">n</span><span class="w"> </span><span class="mf">0.95</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">-</span><span class="n">p</span>
+<span class="n">Known</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="n">sensor</span><span class="w"> </span><span class="n">types</span><span class="o">:</span><span class="w"> </span><span class="n">MLX10</span><span class="p">,</span><span class="w"> </span><span class="n">MLX20</span><span class="p">,</span><span class="w"> </span><span class="n">MLX50</span><span class="p">,</span><span class="w"> </span><span class="n">MLX75</span><span class="p">.</span>
+</pre></div>
+</div>
+<p>Parameters that are not specified are left unmodified on the device.</p>
+<!-- This section is outdated. Needs to be updated after fixing https://github.com/nlesc-recruit/PowerSensor3/issues/68
+
+The `-n` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically:
+
+```
+$ psconfig -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -a -s1 -tACS712-5 -v3.3 -a -s2 -tACS712-20 -v12 -a -s3 -o -s4 -o -p
+```
+-->
+</section>
+<section id="testing-the-powersensor">
+<h2>Testing the PowerSensor<a class="headerlink" href="#testing-the-powersensor" title="Permalink to this heading"></a></h2>
+<p>To see if the PowerSensor works correctly, one can either use the <code class="docutils literal notranslate"><span class="pre">-p</span></code> option of <code class="docutils literal notranslate"><span class="pre">psconfig</span></code>:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">$</span><span class="w"> </span><span class="n">psconfig</span><span class="w"> </span><span class="o">-</span><span class="n">p</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">(</span><span class="n">current</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">MLX20</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mf">1.63871</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Sensitivity</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">mV</span><span class="o">/</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">Voltage</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Gain</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">2</span><span class="w"> </span><span class="p">(</span><span class="n">current</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">MLX20</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mf">1.63871</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Sensitivity</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">mV</span><span class="o">/</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">Voltage</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Gain</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">(</span><span class="n">current</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">MLX20</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mf">1.63871</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Sensitivity</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">mV</span><span class="o">/</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">Voltage</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Gain</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">off</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">6</span><span class="w"> </span><span class="p">(</span><span class="n">current</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">MLX20</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mf">1.63871</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Sensitivity</span><span class="o">:</span><span class="w"> </span><span class="mf">62.5</span><span class="w"> </span><span class="n">mV</span><span class="o">/</span><span class="n">A</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">on</span>
+<span class="n">sensor</span><span class="w"> </span><span class="mi">7</span><span class="w"> </span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="n">type</span><span class="o">:</span><span class="w"> </span><span class="n">Voltage</span><span class="p">,</span><span class="w"> </span><span class="n">Vref</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">V</span><span class="p">,</span><span class="w"> </span><span class="n">Gain</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0883871</span><span class="p">,</span><span class="w"> </span><span class="n">Status</span><span class="o">:</span><span class="w"> </span><span class="n">on</span>
+<span class="n">Current</span><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">0</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">W</span>
+<span class="n">Current</span><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">1</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">W</span>
+<span class="n">Current</span><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">2</span><span class="o">:</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="n">W</span>
+<span class="n">Current</span><span class="w"> </span><span class="n">usage</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="mi">3</span><span class="o">:</span><span class="w"> </span><span class="mf">28.5437</span><span class="w"> </span><span class="n">W</span>
+<span class="n">Total</span><span class="w"> </span><span class="n">usage</span><span class="o">:</span><span class="w"> </span><span class="mf">28.5437</span><span class="w"> </span><span class="n">W</span>
+</pre></div>
+</div>
+<p>Or use the <code class="docutils literal notranslate"><span class="pre">pstest</span></code> utility to measure and report energy consumption for a few seconds. Run <code class="docutils literal notranslate"><span class="pre">pstest</span> <span class="pre">-h</span></code> for more options.</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">$</span><span class="w"> </span><span class="n">pstest</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0002</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.00571626</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.00114577</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">0.200441</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0004</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.000343234</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0112714</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">32.8388</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0008</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.00090007</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0293691</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">32.6298</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0016</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.00177352</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0566265</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">31.929</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0032</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.00359161</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.118366</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">32.9563</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0064</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.00640616</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.195132</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">30.4601</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0128</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0132216</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.4025</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">30.4427</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0256</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0257813</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">0.776679</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">30.1257</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0512</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.0517088</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">1.52741</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">29.5387</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.1024</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.10309</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">2.97431</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.8516</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.2048</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.20566</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">5.87204</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.5521</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.4096</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.409726</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">11.7305</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.6301</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">0.8192</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">0.784317</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">22.3385</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.4815</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">1.6384</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">1.67394</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">47.6963</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.4935</span><span class="w"> </span><span class="n">W</span>
+<span class="n">exp</span><span class="p">.</span><span class="w"> </span><span class="n">time</span><span class="o">:</span><span class="w"> </span><span class="mf">3.2768</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="n">measured</span><span class="o">:</span><span class="w"> </span><span class="mf">3.27701</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">93.377</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.4946</span><span class="w"> </span><span class="n">W</span>
+</pre></div>
+</div>
+</section>
+<section id="monitor-power-use-of-an-existing-application">
+<h2>Monitor power use of an existing application<a class="headerlink" href="#monitor-power-use-of-an-existing-application" title="Permalink to this heading"></a></h2>
+<p>Adapting an application to use the library is not obligatory; the <code class="docutils literal notranslate"><span class="pre">psrun</span></code> utility can monitor the power use of a device during the execution of an application that does not use the library. Run <code class="docutils literal notranslate"><span class="pre">psrun</span> <span class="pre">-h</span></code> for more options</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="n">pstest</span><span class="w"> </span><span class="o">&lt;</span><span class="n">application</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="w"> </span><span class="n">application</span><span class="w"> </span><span class="n">output</span><span class="w"> </span><span class="o">&gt;</span>
+<span class="mf">5.02273</span><span class="w"> </span><span class="n">s</span><span class="p">,</span><span class="w"> </span><span class="mf">144.12</span><span class="w"> </span><span class="n">J</span><span class="p">,</span><span class="w"> </span><span class="mf">28.6935</span><span class="w"> </span><span class="n">W</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-host-library">
+<h2>Using the host library<a class="headerlink" href="#using-the-host-library" title="Permalink to this heading"></a></h2>
+<p>The host library is a small C++ library that can be used by applications to measure the power used by some (PCIe) device during some time interval.  The interface (declared in <code class="docutils literal notranslate"><span class="pre">PowerSensor.hpp</span></code>) looks like this:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="nf">Joules</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">second</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">-1</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="nf">Watt</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">second</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="nf">seconds</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">first</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">State</span><span class="w"> </span><span class="o">&amp;</span><span class="n">second</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pairID</span><span class="o">=</span><span class="mi">-1</span><span class="p">);</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PowerSensor</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="n">State</span><span class="w"> </span><span class="n">read</span><span class="p">();</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>and can be used as follows:</p>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;PowerSensor.hpp&gt;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">PowerSensor3</span><span class="p">;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PowerSensor</span><span class="w"> </span><span class="n">sensor</span><span class="p">(</span><span class="s">&quot;/dev/ttyACM0&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">State</span><span class="w"> </span><span class="n">start</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">read</span><span class="p">();</span>
+<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="n">State</span><span class="w"> </span><span class="n">stop</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sensor</span><span class="p">.</span><span class="n">read</span><span class="p">();</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">cout</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;The computation took &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">Joules</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="sc">&#39;J&#39;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>This way, the power consumption during some time interval can be used. The <code class="docutils literal notranslate"><span class="pre">Joules</span></code> function gives an accurate total eneryg usage. <code class="docutils literal notranslate"><span class="pre">Watt</span></code> gives the <em>average</em> power usage over the given time interval.</p>
+<p>Another way to use the PowerSensor is to produce a stream of sensor values on file (in ASCII). Simply provide the name of the file as second (optional) argument to the constructor of PowerSensor.  A separate, light-overhead thread will be started that continuously monitors the PowerSensor state. Both methods can be used at the same time.</p>
+<p>For further usage, inspect the <code class="docutils literal notranslate"><span class="pre">PowerSensor.hpp</span></code> file or have a look at the <a class="reference external" href="https://nlesc-recruit.github.io/PowerSensor3">API documentation</a>.</p>
+</section>
+<section id="python-interface">
+<h2>Python interface<a class="headerlink" href="#python-interface" title="Permalink to this heading"></a></h2>
+<p>An optional Python interface is available. See <a class="reference internal" href="INSTALLATION_HOST.html#python-bindings"><span class="std std-ref">here</span></a> for installation instructions. The <code class="docutils literal notranslate"><span class="pre">PowerSensor</span></code> and <code class="docutils literal notranslate"><span class="pre">State</span></code> objects can be accessed from Python, as well as the <code class="docutils literal notranslate"><span class="pre">Joules</span></code>, <code class="docutils literal notranslate"><span class="pre">Watt</span></code>, and <code class="docutils literal notranslate"><span class="pre">seconds</span></code> functions. Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">powersensor</span> <span class="k">as</span> <span class="nn">ps</span>
+
+<span class="n">sensor</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">PowerSensor</span><span class="p">(</span><span class="s1">&#39;/dev/ttyACM0&#39;</span><span class="p">)</span>
+<span class="n">start</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+<span class="o">&lt;</span> <span class="n">application</span> <span class="n">code</span> <span class="n">here</span><span class="o">&gt;</span>
+<span class="n">stop</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ps</span><span class="o">.</span><span class="n">Joules</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">J, </span><span class="si">{</span><span class="n">ps</span><span class="o">.</span><span class="n">seconds</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">s, </span><span class="si">{</span><span class="n">ps</span><span class="o">.</span><span class="n">Watt</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">stop</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1">W&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="INSTALLATION_HOST.html" class="btn btn-neutral float-left" title="Host library installation guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="CONTRIBUTING.html" class="btn btn-neutral float-right" title="Contributing guidelines" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

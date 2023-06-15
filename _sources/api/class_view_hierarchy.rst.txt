@@ -1,0 +1,18 @@
+
+Class Hierarchy
+---------------
+
+
+.. raw:: html
+
+   <ul class="treeView" id="class-treeView">
+     <li>
+       <ul class="collapsibleList">
+         <li class="lastChild">Namespace <a href="namespace_PowerSensor3.html#namespace-PowerSensor3">PowerSensor3</a><ul><li>Struct <a href="structPowerSensor3_1_1State.html#exhale-struct-structPowerSensor3-1-1State">State</a></li><li>Class <a href="classPowerSensor3_1_1PowerSensor.html#exhale-class-classPowerSensor3-1-1PowerSensor">PowerSensor</a><ul><li>Struct <a href="structPowerSensor3_1_1PowerSensor_1_1Sensor.html#exhale-struct-structPowerSensor3-1-1PowerSensor-1-1Sensor">PowerSensor::Sensor</a><ul><li class="lastChild">Struct <a href="structPowerSensor3_1_1PowerSensor_1_1Sensor_1_1EEPROM.html#exhale-struct-structPowerSensor3-1-1PowerSensor-1-1Sensor-1-1EEPROM">Sensor::EEPROM</a></li></ul></li><li class="lastChild">Struct <a href="structPowerSensor3_1_1PowerSensor_1_1SensorPair.html#exhale-struct-structPowerSensor3-1-1PowerSensor-1-1SensorPair">PowerSensor::SensorPair</a></li></ul></li><li class="lastChild">Class <a href="classPowerSensor3_1_1Semaphore.html#exhale-class-classPowerSensor3-1-1Semaphore">Semaphore</a></li></ul></li>
+       </ul>
+     </li><!-- only tree view element -->
+   </ul><!-- /treeView class-treeView -->
+
+.. end raw html for treeView
+
+

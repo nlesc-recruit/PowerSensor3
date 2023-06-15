@@ -1,0 +1,21 @@
+.. _dir_host_include:
+
+
+Directory include
+=================
+
+
+|exhale_lsh| :ref:`Parent directory <dir_host>` (``host``)
+
+.. |exhale_lsh| unicode:: U+021B0 .. UPWARDS ARROW WITH TIP LEFTWARDS
+
+*Directory path:* ``host/include``
+
+
+Files
+-----
+
+- :ref:`file_host_include_PowerSensor.hpp`
+- :ref:`file_host_include_Semaphore.hpp`
+
+

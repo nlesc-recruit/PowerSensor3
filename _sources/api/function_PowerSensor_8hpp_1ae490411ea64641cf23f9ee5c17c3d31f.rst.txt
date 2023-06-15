@@ -1,0 +1,13 @@
+.. _exhale_function_PowerSensor_8hpp_1ae490411ea64641cf23f9ee5c17c3d31f:
+
+Function PowerSensor3::Joules
+=============================
+
+- Defined in :ref:`file_host_src_PowerSensor.cc`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PowerSensor3::Joules(const State&, const State&, int)

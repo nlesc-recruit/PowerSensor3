@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Device installation guide &mdash; PowerSensor 3 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/collapsible-lists/css/tree_view.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/collapsible-lists/js/CollapsibleLists.compressed.js"></script>
+        <script src="_static/collapsible-lists/js/apply-collapsible-lists.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Host library installation guide" href="INSTALLATION_HOST.html" />
+    <link rel="prev" title="Welcome to PowerSensor 3’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            PowerSensor 3
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Device installation guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installing-the-powersensor">Installing the PowerSensor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-the-firmware">Building the firmware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#uploading-the-firmware">Uploading the firmware</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-customization">Build customization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#target-microcontroller">Target microcontroller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extra-flags">Extra flags</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usb-buffer-size">USB buffer size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="INSTALLATION_HOST.html">Host library installation guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="USERGUIDE.html">User guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CONTRIBUTING.html">Contributing guidelines</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API documentation:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html">Class Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html#file-hierarchy">File Hierarchy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/library_root.html#full-api">Full API</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PowerSensor 3</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Device installation guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/INSTALLATION_DEVICE.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="device-installation-guide">
+<h1>Device installation guide<a class="headerlink" href="#device-installation-guide" title="Permalink to this heading"></a></h1>
+<p>Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, install the host library with <a class="reference internal" href="INSTALLATION_HOST.html"><span class="std std-doc">this guide</span></a> and get to know the device with the <a class="reference internal" href="USERGUIDE.html"><span class="std std-doc">user guide</span></a>.</p>
+<section id="installing-the-powersensor">
+<h2>Installing the PowerSensor<a class="headerlink" href="#installing-the-powersensor" title="Permalink to this heading"></a></h2>
+<p>Before starting, turn off and unplug the power of the host system. In the case of a GPU, a PCI-e riser card or cable is needed to be able to measure the 3.3 V and 12 V power coming from the PCI-e slot of the motherboard. 12 V power coming directly from the PSU can be connected to a PowerSensor3 sensor board. A second ATX power cable should be used to connect the PowerSensor3 sensor board to the GPU. Take care to use sensor boards with appropiate voltage and current sensors, taking into account the maximum voltage and current:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Connection</p></th>
+<th class="head"><p>Voltage (V)</p></th>
+<th class="head"><p>Maximum power (W)</p></th>
+<th class="head"><p>Maximum current (A)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>PCI-e 3.3 V</p></td>
+<td><p>3.3</p></td>
+<td><p>10</p></td>
+<td><p>3.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>PCI-e 12 V</p></td>
+<td><p>12</p></td>
+<td><p>65</p></td>
+<td><p>5.4</p></td>
+</tr>
+<tr class="row-even"><td><p>ATX 6-pin</p></td>
+<td><p>12</p></td>
+<td><p>75</p></td>
+<td><p>6.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>ATX 8-pin</p></td>
+<td><p>12</p></td>
+<td><p>150</p></td>
+<td><p>12.5</p></td>
+</tr>
+</tbody>
+</table>
+<p>After connecting all relevant power cable, connect the microcontroller to a USB port on the host. After making sure that everything is connected correctly, turn on the host system.</p>
+</section>
+<section id="building-the-firmware">
+<h2>Building the firmware<a class="headerlink" href="#building-the-firmware" title="Permalink to this heading"></a></h2>
+<p>We provide pre-built binaries <a class="reference external" href="https://github.com/nlesc-recruit/PowerSensor3/releases">here</a> for default configurations using either an STM32F401 or STM32F407 microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the <a class="reference internal" href="#usb-buffer-size"><span class="xref myst">USB Buffer size</span></a> section.</p>
+<p>The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the <a class="reference external" href="https://github.com/arduino/arduino-cli">arduino-cli</a> package can be installed on Linux via:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+</pre></div>
+</div>
+<p>Next, the <a class="reference external" href="https://github.com/stm32duino/Arduino_Core_STM32">stm32duino</a> package should be installed, this ensures that STM32 boards can be used in combination with arduino. Start by updating the arduino core:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>arduino-cli core update-index
+</pre></div>
+</div>
+<p>Then, if there is not already a config file at <code class="docutils literal notranslate"><span class="pre">~/.arduino15/arduino-cli.yaml</span></code>, create a config file with:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>arduino-cli config init
+</pre></div>
+</div>
+<p>Open the configuration file in any editor and add new board manager URL to:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>board_manager:
+  additional_urls:
+    [https://github.com/stm32duino/BoardManagerFiles/raw/master/STM32/package_stm_index.json]
+</pre></div>
+</div>
+<p>Update the core again:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>arduino-cli core update-index
+</pre></div>
+</div>
+<p>Then run the following command in the device folder to build the firmware with default flags:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make device
+</pre></div>
+</div>
+<p>For an STM32F401 Black Pill, the fimware will we written to <code class="docutils literal notranslate"><span class="pre">PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin</span></code></p>
+<section id="uploading-the-firmware">
+<h3>Uploading the firmware<a class="headerlink" href="#uploading-the-firmware" title="Permalink to this heading"></a></h3>
+<p>First make sure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with either:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>lsusb
+dfu-util -l
+</pre></div>
+</div>
+<p>The firmware can be uploaded with <code class="docutils literal notranslate"><span class="pre">dfu-util</span></code> or <code class="docutils literal notranslate"><span class="pre">arduino-cli</span></code>. The latter can only be used when compiling the firmware yourself.
+To upload with <code class="docutils literal notranslate"><span class="pre">dfu-util</span></code> run the following command, adapting the -a and -i options as necessary to match the output of <code class="docutils literal notranslate"><span class="pre">dfu-util</span> <span class="pre">-l</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dfu-util -a 0 -i 0 -s 0x08000000:leave -D /path/to/PowerSensor3/firmware.bin
+</pre></div>
+</div>
+<p>To upload with <code class="docutils literal notranslate"><span class="pre">arduino-cli</span></code>, first make sure you can build the firmware as outlined in the previous section.
+Then run the following command in the device folder, adding any flags in the same way as with the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">device</span></code> command.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make upload
+</pre></div>
+</div>
+<p>If the firmware is uploaded successfully, the device will be reset and start running the PowerSensor3 firmware.</p>
+</section>
+<section id="build-customization">
+<h3>Build customization<a class="headerlink" href="#build-customization" title="Permalink to this heading"></a></h3>
+<p>There are several options available to customize the firmware build. These options can be append to the <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">device</span></code> and <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">upload</span></code> commands.</p>
+</section>
+</section>
+<section id="target-microcontroller">
+<h2>Target microcontroller<a class="headerlink" href="#target-microcontroller" title="Permalink to this heading"></a></h2>
+<p>We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.<br />
+Option name: DEV<br />
+Allowed values: F401, F407<br />
+Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make upload DEV=&quot;F401&quot;
+</pre></div>
+</div>
+</section>
+<section id="extra-flags">
+<h2>Extra flags<a class="headerlink" href="#extra-flags" title="Permalink to this heading"></a></h2>
+<p>Defines that would usually be given to the compiler with the <code class="docutils literal notranslate"><span class="pre">-D</span></code> option can be set with <code class="docutils literal notranslate"><span class="pre">make</span></code> using the <code class="docutils literal notranslate"><span class="pre">FLAGS</span></code> option.
+Currently supported flags relate to the display:
+<code class="docutils literal notranslate"><span class="pre">-DNODISPLAY</span></code> disables the display completely. This also means that the external libraries, located in <code class="docutils literal notranslate"><span class="pre">PowerSensor/Libraries</span></code> are not used.
+<code class="docutils literal notranslate"><span class="pre">-DTFT_BLUE</span></code> changes the display type from the default green tab to a blue tab. Effectively, this only inverts the display colours.
+Multiple flags should be separated by a space.
+Example command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>make upload FLAGS=&quot;-DTFT_BLUE&quot;
+</pre></div>
+</div>
+</section>
+<section id="usb-buffer-size">
+<h2>USB buffer size<a class="headerlink" href="#usb-buffer-size" title="Permalink to this heading"></a></h2>
+<p>The STM32 USB library has a default transmit buffer size that is too small to handle the high data rate used in PowerSensor3. When using the default buffer size, you will most likely see dropped data. The buffer size is set in the <code class="docutils literal notranslate"><span class="pre">cdc_queue.h</span></code> file, part of stm32duino. This file is usually located at <code class="docutils literal notranslate"><span class="pre">&lt;Arduino</span> <span class="pre">folder&gt;/packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h</span></code></p>
+<p>We provide a patch file to increase the buffer size (tested with version 2.3.0 of stm32duino), as well as a Python script to locate the stm32duino folder. To automatically update the <code class="docutils literal notranslate"><span class="pre">cdc_queue.h</span></code> file, run something like this from the root of the PowerSensor3 repository:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>REPO_ROOT=$PWD
+STM32_DIR=$(python/get_arduino_stm32_directory.py)
+cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
+patch ${REPO_ROOT}/patch/cdc_queue.patch
+</pre></div>
+</div>
+<p>Then proceed with building the firmware with <code class="docutils literal notranslate"><span class="pre">arduino-cli</span></code> as usual.</p>
+</section>
+<section id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this heading"></a></h2>
+<p>After installing the device, proceed with installing the host library with <a class="reference internal" href="INSTALLATION_HOST.html"><span class="std std-doc">this guide</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to PowerSensor 3’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="INSTALLATION_HOST.html" class="btn btn-neutral float-right" title="Host library installation guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

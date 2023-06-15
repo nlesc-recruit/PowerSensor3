@@ -1,0 +1,13 @@
+.. _exhale_function_PowerSensor_8hpp_1ae6fc94932b6a4aef443528c842404a04:
+
+Function PowerSensor3::seconds
+==============================
+
+- Defined in :ref:`file_host_src_PowerSensor.cc`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PowerSensor3::seconds(const State&, const State&)

@@ -1,0 +1,13 @@
+.. _exhale_function_PowerSensor_8hpp_1ac2ce7d60c052fe85935d22394913de14:
+
+Function PowerSensor3::Watt
+===========================
+
+- Defined in :ref:`file_host_src_PowerSensor.cc`
+
+
+Function Documentation
+----------------------
+
+
+.. doxygenfunction:: PowerSensor3::Watt(const State&, const State&, int)
