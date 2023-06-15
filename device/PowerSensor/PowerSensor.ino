@@ -262,9 +262,11 @@ void serialEvent() {
       // toggle display
       displayEnabled = !displayEnabled;
       if (displayEnabled) {
+        Serial.write('L');
         initDisplay();
       } else {
         deinitDisplay();
+        Serial.write('l');
       }
       break;
 #endif
@@ -371,7 +373,7 @@ void loop() {
     Serial.write(serialData, sizeof(serialData));
     sendData = false;
   }
-  // only check for serial events, sending sensor values to host is handled through interrupts
+  // check for serial events
   serialEvent();
   // update display if enabled
 #ifndef NODISPLAY
