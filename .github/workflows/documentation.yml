@@ -3,6 +3,8 @@ name: documentation
 on:
   workflow_dispatch:
   push:
+    tags:
+    - '*'
     branches:
     - main
   pull_request:
