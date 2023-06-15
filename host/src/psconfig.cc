@@ -240,9 +240,11 @@ int main(int argc, char *argv[]) {
         break;
 
       // toggle display
-      case 'l':
-        getPowerSensor(device)->toggleDisplay();
+      case 'l': {
+        bool displayStatus = getPowerSensor(device)->toggleDisplay();
+        std::cout << "Display is now " << (displayStatus ? "on" : "off") << "." << std::endl;
         break;
+      }
 
       // print
       case 'p':

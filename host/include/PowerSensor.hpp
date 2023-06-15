@@ -54,7 +54,7 @@ class PowerSensor {
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
-    void toggleDisplay();
+    bool toggleDisplay();
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
@@ -122,7 +122,6 @@ class PowerSensor {
       void setType(const std::string type);
       void setVref(const float vref);
       void setSensitivity(const float slope);
-      void setPairId(const uint8_t PairId);
       void setInUse(const bool inUse);
       double getValue() const;
       void readFromEEPROM(int fd);

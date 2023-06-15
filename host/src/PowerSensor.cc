@@ -362,9 +362,30 @@ namespace PowerSensor3 {
   /**
    * @brief Toggle device display on/off
    *
+   * @return New status of display: 1 for on, 0 for off
    */
-  void PowerSensor::toggleDisplay() {
+  bool PowerSensor::toggleDisplay() {
+    // ensure no data is streaming to host
+    stopIOThread();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // drain any remaining incoming data
+    tcflush(fd, TCIFLUSH);
+
     writeCharToDevice('D');
+    // if the display is now on, the device sends and L, else l
+    char buffer;
+    buffer = readCharFromDevice();
+    if (buffer == 'L') {
+      return true;
+    } else if (buffer == 'l') {
+      return false;
+    } else {
+      std::cerr << "Expected to receive 'l' or 'L' from device after toggling display, but got " << buffer << std::endl;
+      exit(1);
+    }
+
+    // restart IO thread
+    startIOThread();
   }
 
   /**
