@@ -46,7 +46,7 @@ Then run the following command in the device folder to build the firmware with d
 
     make device
 
-For an STM32F401 Black Pill, the fimware will we written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`
+For an STM32F401 Black Pill, the fimware will be written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`
 
 ### Uploading the firmware
 First make sure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with either:
