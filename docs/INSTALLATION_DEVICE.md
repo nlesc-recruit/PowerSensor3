@@ -96,7 +96,7 @@ We provide a patch file to increase the buffer size (tested with version 2.3.0 o
     REPO_ROOT=$PWD
     STM32_DIR=$(python/get_arduino_stm32_directory.py)
     cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
-    patch ${REPO_ROOT}/patch/cdc_queue.patch
+    patch < ${REPO_ROOT}/patch/cdc_queue.patch
 
 Then proceed with building the firmware with `arduino-cli` as usual.
 
