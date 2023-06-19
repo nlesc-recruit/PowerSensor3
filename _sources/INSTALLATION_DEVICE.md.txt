@@ -39,6 +39,9 @@ Update the core again:
 
     arduino-cli core update-index
 
+arduino-cli will automatically install the STM32 core when building the firmware.  
+**NOTE**, the current latest version (2.5.0) does not work with PowerSensor3. See [this Github issue](https://github.com/nlesc-recruit/PowerSensor3/issues/125) for details and a workaround.
+
 Then run the following command in the device folder to build the firmware with default flags:
 
     make device
@@ -93,7 +96,7 @@ We provide a patch file to increase the buffer size (tested with version 2.3.0 o
     REPO_ROOT=$PWD
     STM32_DIR=$(python/get_arduino_stm32_directory.py)
     cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
-    patch ${REPO_ROOT}/patch/cdc_queue.patch
+    patch < ${REPO_ROOT}/patch/cdc_queue.patch
 
 Then proceed with building the firmware with `arduino-cli` as usual.
 
