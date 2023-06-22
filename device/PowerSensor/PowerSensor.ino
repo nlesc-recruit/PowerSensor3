@@ -37,7 +37,7 @@
 #include <EEPROM.h>
 
 #ifndef NODISPLAY
-#define UPDATE_INVERVAL 2000  // ms
+#define UPDATE_INVERVAL 500  // ms
 #define VOLTAGE 3.3
 #define MAX_LEVEL 1023
 #include "display.hpp"
@@ -326,13 +326,15 @@ void updateDisplay() {
     static unsigned int sensor_pair = 0;
 
     previousMillis = millis();
+    // select next active sensor pair
+    do {
+      sensor_pair = (sensor_pair + 1) % PAIRS;
+    } while (!(eeprom.sensors[2 * sensor_pair].inUse & eeprom.sensors[2 * sensor_pair + 1].inUse));
+
     // update the values, then write to display
-    sensor_pair = (sensor_pair + 1) % PAIRS;
     updateCalibratedSensorValues();
-    if (eeprom.sensors[2 * sensor_pair].inUse & eeprom.sensors[2 * sensor_pair + 1].inUse) {
-      displaySensor(sensor_pair, currentValues[sensor_pair],
-        voltageValues[sensor_pair], powerValues[sensor_pair], totalPower);
-    }
+    displaySensor(sensor_pair, currentValues[sensor_pair], voltageValues[sensor_pair], powerValues[sensor_pair],
+      totalPower);
   }
 }
 #endif
