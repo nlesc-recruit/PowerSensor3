@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    name: Build device code with arduino-cli, ${{ matrix.os }}
+    name: Build ${{ matrix.device }} device, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
