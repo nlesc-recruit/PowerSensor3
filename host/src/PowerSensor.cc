@@ -391,9 +391,12 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::IOThread() {
-    threadStarted.up();
     unsigned int sensorNumber, marker = 0, sensorsRead = 0;
     uint16_t level;
+
+    // wait until we can read values from the device
+    readLevelFromDevice(&sensorNumber, &level, &marker);
+    threadStarted.up();
 
     while (readLevelFromDevice(&sensorNumber, &level, &marker)) {
       std::unique_lock<std::mutex> lock(mutex);
