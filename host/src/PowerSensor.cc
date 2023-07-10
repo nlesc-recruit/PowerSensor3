@@ -258,7 +258,6 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::initializeSensorPairs() {
-    numActiveSensors = 0;
     for (uint8_t pairID = 0; pairID < MAX_PAIRS; pairID++) {
       sensorPairs[pairID].timeAtLastMeasurement = startTime;
       sensorPairs[pairID].wattAtLastMeasurement = 0;
@@ -272,7 +271,6 @@ namespace PowerSensor3 {
 
       if (currentSensorActive && voltageSensorActive) {
         sensorPairs[pairID].inUse = true;
-        numActiveSensors += 2;
       } else if (currentSensorActive ^ voltageSensorActive) {
         std::cerr << "Found incompatible sensor pair: current sensor (ID " << 2*pairID << ") "
         "is " << (currentSensorActive ? "" : "not ") << "active, while "
@@ -411,7 +409,7 @@ namespace PowerSensor3 {
       sensors[sensorNumber].updateLevel(level);
       sensorsRead++;
 
-      if (sensorsRead >= numActiveSensors) {
+      if (sensorsRead >= MAX_SENSORS) {
         sensorsRead = 0;
         updateSensorPairs();
 
