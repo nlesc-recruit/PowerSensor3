@@ -9,6 +9,8 @@
 
 #ifdef STM32F401xC
 #define VERSION "F401-1.1.0"
+#elif defined STM32F411xE
+#define VERSION "F411-1.1.0"
 #elif defined STM32F407xx
 #define VERSION "F407-1.1.0"
 #else
@@ -19,13 +21,16 @@
  * Start of system memory is 0x1FFF 0000, see Table 3 in the uC reference manual
  * at boot the first word contains the initial value of the stack pointer.
  * To be safe we put the stack at the end of the first RAM block.
- * RAM starts at 0x2000 0000 and is either 12 KB (F401CC) or 64 KB (F407VG) in size
+ * RAM starts at 0x2000 0000 and is either 64 KB (F401CC), 128 KB (F411CE),
+ * or 112 KB (F407VG first RAM block) in size.
  * the second word stores the address at which code execution should start,
  * this is where we jump to to run the bootloader
  */
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
 #ifdef STM32F401xC
 #define BOOTLOADER_STACK_POINTER       0x2000FFFF
+#elif defined STM32F411xE
+#define BOOTLOADER_STACK_POINTER       0x20020000
 #elif defined STM32F407xx
 #define BOOTLOADER_STACK_POINTER       0x2001BFFF
 #endif
@@ -63,7 +68,7 @@ const uint32_t ADC_CHANNELS[] = {LL_ADC_CHANNEL_0, LL_ADC_CHANNEL_1, LL_ADC_CHAN
 const uint32_t GPIO_PINS[] = {LL_GPIO_PIN_0, LL_GPIO_PIN_1, LL_GPIO_PIN_2, LL_GPIO_PIN_3,
                               LL_GPIO_PIN_4, LL_GPIO_PIN_5, LL_GPIO_PIN_6, LL_GPIO_PIN_7};
 
-#ifdef STM32F401xC
+#if defined STM32F401xC || defined STM32F411xE
 const int numSampleToAverage = 6;  // number of samples to average
 __IO uint16_t dmaBuffer[SENSORS];  // 16b per sensor
 uint16_t avgBuffer[SENSORS][numSampleToAverage];
@@ -79,8 +84,8 @@ bool sendSingleValue = false;
 bool sendMarkerNext = false;
 
 // include device-specific code for setting up the ADC and DMA
-#ifdef STM32F401xC
-#include "device_specific/BLACKPILL_F401CC.hpp"
+#if defined STM32F401xC || defined STM32F411xE
+#include "device_specific/BLACKPILL_F401CC_F411CE.hpp"
 #elif defined STM32F407xx
 #include "device_specific/DISCO_F407VG.hpp"
 #endif
@@ -282,7 +287,7 @@ void configureDevice() {
   configureGPIO();
   configureDMA();
   configureADCCommon();
-#ifdef STM32F401xC
+#if defined STM32F401xC || defined STM32F411xE
   configureADC();
   configureADCChannels();
 #elif defined STM32F407xx
@@ -343,7 +348,7 @@ void updateDisplay() {
 void setup() {
   Serial.begin();
   pinMode(LED_BUILTIN, OUTPUT);
-#ifdef STM32F401xC
+#if defined STM32F401xC || defined STM32F411xE
   digitalWrite(LED_BUILTIN, LOW);
 #elif defined STM32F407xx
   digitalWrite(LED_BUILTIN, HIGH);  // HIGH is off on F407

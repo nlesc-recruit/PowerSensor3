@@ -6,13 +6,18 @@ ifeq ($(DEV), F401)
 BOARD =        BLACKPILL_F401CC
 DEVICE =       STMicroelectronics:stm32:GenF4
 FQBN =	       $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,opt=o3std
+else ifeq ($(DEV), F411)
+# Black Pill F411CEU6
+BOARD =        BLACKPILL_F411CE
+DEVICE =       STMicroelectronics:stm32:GenF4
+FQBN =	       $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,opt=o3std
 else ifeq ($(DEV), F407)
 # Discovery F407
 BOARD =			DISCO_F407VG
 DEVICE =        STMicroelectronics:stm32:Disco
 FQBN =          $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,xusb=FS,opt=o3std
 else
-$(error Unknown device $(DEV), allowed devices are F401 (default) and F407)
+$(error Unknown device $(DEV), allowed devices are F401 (default), F411, and F407)
 endif
 
 
