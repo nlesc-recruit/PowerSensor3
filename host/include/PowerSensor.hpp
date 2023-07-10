@@ -76,7 +76,6 @@ class PowerSensor {
     std::queue<char> markers;
     void writeMarker();
 
-    unsigned int numActiveSensors;
     void initializeSensorPairs();
     void updateSensorPairs();
 
