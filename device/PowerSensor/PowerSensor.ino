@@ -51,7 +51,7 @@ float voltageValues[PAIRS];
 float currentValues[PAIRS];
 float powerValues[PAIRS];
 float totalPower;
-bool displayEnabled = true;
+bool displayPaused = false;
 #endif
 
 const uint32_t ADC_SCANMODES[] = {LL_ADC_REG_SEQ_SCAN_DISABLE, LL_ADC_REG_SEQ_SCAN_ENABLE_2RANKS,
@@ -226,16 +226,28 @@ void serialEvent() {
       sendSingleValue = true;
       break;
     case 'S':
-      // Enable streaming of data
+      // Enable streaming of data and pause display
+#ifndef NODISPLAY
+      displayPaused = true;
+      displayMeasurementInProgress();
+#endif
       counter = 0;
       streamValues = true;
       break;
     case 'T':
-      // Disable streaming of data
+      // Disable streaming of data and unpause display
       streamValues = false;
+#ifndef NODISPLAY
+      displayPaused = false;
+      displayInitialValues();
+#endif
       break;
     case 'X':
-      // Shutdown, shuts off IO thread on host
+      // Shutdown and unpause display, shuts off IO thread on host
+#ifndef NODISPLAY
+      displayPaused = false;
+      displayInitialValues();
+#endif
       streamValues = false;
       delay(100);  // on an RPi host the stop does not arrive at the host properly unless there is a delay here
       Serial.write((const uint8_t[]) { 0xFF, 0x3F}, 2);
@@ -262,19 +274,6 @@ void serialEvent() {
       // Reset device to bootloader, enables DFU mode
       JumpToBootloader();
       break;
-#ifndef NODISPLAY
-    case 'D':
-      // toggle display
-      displayEnabled = !displayEnabled;
-      if (displayEnabled) {
-        Serial.write('L');
-        initDisplay();
-      } else {
-        deinitDisplay();
-        Serial.write('l');
-      }
-      break;
-#endif
     }
   }
 }
@@ -368,9 +367,7 @@ void setup() {
   // configure hardware (GPIO, DMA, ADC)
   configureDevice();
 #ifndef NODISPLAY
-  if (displayEnabled) {
     initDisplay();
-  }
 #endif
   Blink(1);
 }
@@ -384,7 +381,7 @@ void loop() {
   serialEvent();
   // update display if enabled
 #ifndef NODISPLAY
-  if (displayEnabled) {
+  if (!displayPaused) {
     updateDisplay();
   }
 #endif

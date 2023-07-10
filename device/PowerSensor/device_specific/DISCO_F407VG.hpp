@@ -115,10 +115,8 @@ extern "C" void DMA2_Stream0_IRQHandler() {
       level = __LL_ADC_MULTI_CONV_DATA_MASTER_SLAVE(LL_ADC_MULTI_SLAVE, dmaBuffer[i/2]);
     }
 #ifndef NODISPLAY
-    if (displayEnabled) {
-      // store in sensorValues for display purposes
-      sensorLevels[i] = level;
-    }
+    // store in sensorValues for display purposes
+    sensorLevels[i] = level;
 #endif
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa

@@ -21,6 +21,7 @@
 #define OFFSET 24  // vertical offset: pixel 0 is outside of the screen
 #define OFFSET_MAIN (OFFSET + 10)
 #define OFFSET_BOTTOM (OFFSET + 65)
+#define OFFSET_PAUSE_TEXT (OFFSET + 15)
 
 #include <STM32F4_SPI_DMA.h>
 
@@ -42,8 +43,10 @@ void initDisplay() {
 #endif
   clearDisplay();
   analogWrite(TFT_BLK, 120);
+
   displayInitialValues();
 }
+
 void deinitDisplay() {
   clearDisplay();
   analogWrite(TFT_BLK, 0);
@@ -116,4 +119,16 @@ void displaySensor(const int sensorPairName, const float amp, const float volt,
   tft.setTextColor(ST77XX_YELLOW);
   dtostrf(watt, 5, 1, buf);
   tft.drawFastNumber(buf, 5);
+}
+
+void displayMeasurementInProgress() {
+  clearDisplay();
+
+  tft.setTextColor(ST77XX_YELLOW);
+  tft.setTextSize(2);
+
+  tft.setCursor(0, OFFSET_PAUSE_TEXT);
+  tft.println("Measurement");
+  tft.println("in");
+  tft.println("progress");
 }
