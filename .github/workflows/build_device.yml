@@ -14,8 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04", "macos-11", "windows-latest"]
-        device: ["F401", "F407"]
+        os: ["ubuntu-22.04"]
+        device: ["F401", "F411", "F407"]
+        # test other OS for one device type
+        include:
+          - os: "macos-11"
+            device: "F401"
+          - os: "windows-latest"
+            device: "F401"
     steps:
     - uses: actions/checkout@v3
       with:

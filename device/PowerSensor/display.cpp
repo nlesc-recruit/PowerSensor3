@@ -1,4 +1,4 @@
-#ifdef STM32F401xC
+#if defined STM32F401xC || defined STM32F411xE
 #define TFT_SCLK PB3
 #define TFT_MISO PB4  // unused, but needs to be defined in SPI setup
 #define TFT_MOSI PB5
