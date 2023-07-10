@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   std::string dumpFileName;
   int sensorPair  = -1;
 
+  std::cout << "psrun version " <<  PowerSensor3::POWERSENSOR_VERSION << std::endl << std::endl;
   for (int opt; (opt = getopt(argc, argv, "d:f:s:")) >= 0;) {
     switch (opt) {
       case 'd':

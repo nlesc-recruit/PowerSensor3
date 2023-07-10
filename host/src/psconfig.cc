@@ -190,6 +190,7 @@ int main(int argc, char *argv[]) {
   bool doWriteConfig = false;
   bool doPrint = false;
 
+  std::cout << "psconfig version " <<  PowerSensor3::POWERSENSOR_VERSION << std::endl << std::endl;
   for (int opt; (opt = getopt(argc, argv, "d:s:i:t:av:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
