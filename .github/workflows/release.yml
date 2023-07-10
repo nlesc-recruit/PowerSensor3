@@ -16,6 +16,8 @@ jobs:
         include:
           - device: "F401"
             device_id: "STMicroelectronics.stm32.GenF4"
+          - device: "F411"
+            device_id: "STMicroelectronics.stm32.GenF4"
           - device: "F407"
             device_id: "STMicroelectronics.stm32.Disco"
     steps:
