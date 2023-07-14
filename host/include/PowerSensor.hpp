@@ -17,7 +17,7 @@ static const unsigned MAX_SENSORS = 8;
 static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
 static const float VOLTAGE = 3.3;
 static const unsigned MAX_LEVEL = 1023;
-static const std::string POWERSENSOR_VERSION = "1.2.0";
+static const std::string POWERSENSOR_VERSION = "1.3.0";
 
 /**
  * @brief Struct containing values of all active sensors at a single point in time

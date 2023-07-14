@@ -1,7 +1,7 @@
 # This CITATION.cff file was generated with cffinit.
 # Visit https://bit.ly/cffinit to generate yours today!
 
-cff-version: 1.2.0
+cff-version: 1.3.0
 title: PowerSensor3
 message: >-
   If you use this software, please cite it using the
@@ -9,7 +9,7 @@ message: >-
 type: software
 repository-code: "https://github.com/nlesc-recruit/PowerSensor3"
 license: Apache-2.0
-version: 1.2.0
+version: 1.3.0
 authors:
   - given-names: Leon
     family-names: Oostrum
