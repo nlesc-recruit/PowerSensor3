@@ -76,7 +76,7 @@ namespace PowerSensor3 {
   /**
    * @brief Construct a new Power Sensor:: Power Sensor object
    *
-   * @param device path to device, e.g. /dev/ttyACM1
+   * @param device path to device, e.g. /dev/ttyACM0
    */
   PowerSensor::PowerSensor(std::string device):
     fd(openDevice(device)),
@@ -128,7 +128,7 @@ namespace PowerSensor3 {
   /**
    * @brief Connect to PowerSensor device
    *
-   * @param device path to device, e.g. /dev/ttyACM1
+   * @param device path to device, e.g. /dev/ttyACM0
    * @return int file descriptor
    */
   int PowerSensor::openDevice(std::string device) {
