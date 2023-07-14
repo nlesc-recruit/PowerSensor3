@@ -28,9 +28,9 @@ You are about to modify electronic circuits.  Improperly connecting wires can be
 ## Further reading
 Altering the firmware of the device could be necessary in certain use cases. For this please refer to the following documents:
 
-* [STM32F401CCU6 BlackPill overview](https://stm32-base.org/boards/STM32F411CEU6-WeAct-Black-Pill-V2.0)
-* [STM32F401xB/C Datasheet](https://www.st.com/resource/en/datasheet/stm32f411ce.pdf)
-* [STM32F401xB/C/D/E Reference manual](https://www.st.com/resource/en/reference_manual/rm0383-stm32f411xce-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
+* [STM32F411CE BlackPill overview](https://stm32-base.org/boards/STM32F411CEU6-WeAct-Black-Pill-V2.0)
+* [STM32F411CE Datasheet](https://www.st.com/resource/en/datasheet/stm32f411ce.pdf)
+* [STM32F411CE Reference manual](https://www.st.com/resource/en/reference_manual/rm0383-stm32f411xce-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
 * [STM32F2/4/7 DMA programming manual](https://www.st.com/resource/en/application_note/dm00046011-using-the-stm32f2-stm32f4-and-stm32f7-series-dma-controller-stmicroelectronics.pdf)
 * [STM32F40x/STM3241x EEPROM emulation in flash](https://www.st.com/resource/en/application_note/an3969-eeprom-emulation-in-stm32f40xstm32f41x-microcontrollers-stmicroelectronics.pdf)
 
