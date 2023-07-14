@@ -29,6 +29,7 @@ Program Listing for File PowerSensor.hpp
    static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
    static const float VOLTAGE = 3.3;
    static const unsigned MAX_LEVEL = 1023;
+   static const std::string POWERSENSOR_VERSION = "1.3.0";
    
    struct State {
      std::array<double, MAX_PAIRS> consumedEnergy;
@@ -51,7 +52,6 @@ Program Listing for File PowerSensor.hpp
        void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
        void mark(char name);
        void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
-       bool toggleDisplay();
    
        void writeSensorsToEEPROM();
        void setType(unsigned int sensorID, const std::string type);
@@ -73,7 +73,6 @@ Program Listing for File PowerSensor.hpp
        std::queue<char> markers;
        void writeMarker();
    
-       unsigned int numActiveSensors;
        void initializeSensorPairs();
        void updateSensorPairs();
    

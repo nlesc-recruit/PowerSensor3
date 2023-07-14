@@ -96,6 +96,11 @@ Variables
 .. toctree::
    :maxdepth: 5
 
+   variable_PowerSensor_8hpp_1af9abdd8d4a87b5a2eb33f1f06a147056.rst
+
+.. toctree::
+   :maxdepth: 5
+
    variable_PowerSensor_8hpp_1ae0c4657f6b5d13ad46465ee685a1fb1a.rst
 
 .. toctree::
