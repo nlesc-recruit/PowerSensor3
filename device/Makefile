@@ -1,5 +1,5 @@
 # Makefile for device code
-DEV ?= F401
+DEV ?= F411
 
 ifeq ($(DEV), F401)
 # BLack Pill F401CCU6

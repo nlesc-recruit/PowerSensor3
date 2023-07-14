@@ -16,12 +16,12 @@ jobs:
       matrix:
         os: ["ubuntu-22.04"]
         device: ["F401", "F411", "F407"]
-        # test other OS for one device type
+        # test other OS for default device type
         include:
           - os: "macos-11"
-            device: "F401"
+            device: "F411"
           - os: "windows-latest"
-            device: "F401"
+            device: "F411"
     steps:
     - uses: actions/checkout@v3
       with:

@@ -14,7 +14,7 @@ ATX 8-pin   | 12          | 150               | 12.5
 After connecting all relevant power cable, connect the microcontroller to a USB port on the host. After making sure that everything is connected correctly, turn on the host system.
 
 ## Building the firmware
-We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using either an STM32F401 or STM32F407 microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
+We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using either any of the supported microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
 
 
 The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the [arduino-cli](https://github.com/arduino/arduino-cli) package can be installed on Linux via:
@@ -46,7 +46,7 @@ Then run the following command in the device folder to build the firmware with d
 
     make device
 
-For an STM32F401 Black Pill, the fimware will be written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`
+For an STM32F401 or STM32F411 Black Pill, the fimware will be written to `PowerSensor/build/STMicroelectronics.stm32.GenF4/PowerSensor.ino.bin`, for the STM32F407 Discovery, the file location is `PowerSensor/build/STMicroelectronics.stm32.Disco/PowerSensor.ino.bin`.
 
 ### Uploading the firmware
 First make sure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with either:
@@ -70,9 +70,9 @@ If the firmware is uploaded successfully, the device will be reset and start run
 There are several options available to customize the firmware build. These options can be append to the `make device` and `make upload` commands.
 
 ## Target microcontroller
-We provided a flag to set whether the firmware is built for an STM32F401 (default) or STM32F407 microcontroller.  
+A flag is provided to set whether the firmware is built for an STM32F401, STM32F411 (default) or STM32F407 microcontroller.  
 Option name: DEV  
-Allowed values: F401, F407  
+Allowed values: F401, F411, F407  
 Example:
 
     make upload DEV="F401"
