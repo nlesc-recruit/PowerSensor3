@@ -562,6 +562,16 @@ namespace PowerSensor3 {
   }
 
   /**
+   * @brief Get sensor pair name of given sensor
+   *
+   * @param sensorID
+   * @return std::string
+   */
+  std::string PowerSensor::getPairName(unsigned int sensorID) const {
+    return sensors[sensorID].pairName;
+  }
+
+  /**
    * @brief Get reference voltage (V) of given sensor
    *
    * @param sensorID
@@ -599,6 +609,16 @@ namespace PowerSensor3 {
    */
   void PowerSensor::setType(unsigned int sensorID, const std::string type) {
     sensors[sensorID].setType(type);
+  }
+
+  /**
+   * @brief Set sensor pair name of given sensor
+   *
+   * @param sensorID
+   * @param pairName
+   */
+  void PowerSensor::setPairName(unsigned int sensorID, const std::string pairName) {
+    sensors[sensorID].setPairName(pairName);
   }
 
   /**

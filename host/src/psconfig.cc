@@ -148,6 +148,7 @@ void print() {
 
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
       "type: " << powerSensor->getType(sensor) << ", "
+      "name: " << powerSensor->getPairName(sensor) << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, " <<
       sensitivityName << ": " << factor * powerSensor->getSensitivity(sensor) << unit << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
@@ -171,6 +172,7 @@ void usage(char *argv[]) {
   std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
+  std::cerr << "-m sets the sensor pair name." << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
   std::cerr << "-a automatically calibrate vref of the current sensor. "
                "The input to the sensor must be zero volt or ampere" << std::endl;
@@ -191,7 +193,7 @@ int main(int argc, char *argv[]) {
   bool doPrint = false;
 
   std::cout << "psconfig version " <<  PowerSensor3::POWERSENSOR_VERSION << std::endl << std::endl;
-  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:av:n:o:ph")) >= 0;) {
+  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:m:av:n:o:ph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
@@ -213,6 +215,11 @@ int main(int argc, char *argv[]) {
         doWriteConfig = true;
         break;
       }
+
+      // sensor pair name
+      case 'm':
+        getPowerSensor(device)->setPairName(sensor, optarg);
+        break;
 
       // sensor auto calibration of reference voltage
       case 'a':
