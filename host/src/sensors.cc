@@ -27,11 +27,19 @@ void PowerSensor::Sensor::readFromEEPROM(int fd) {
   // If EEPROM is corrupted, type name may be too long. Avoid unrecoverable situation by changing type if that happens
   std::string type = eeprom.type;
   if (type.length() >= MAX_TYPE_LENGTH) {
-    std::cerr << "Read invalid type from device, EEPROM data may be corrupt" << std::endl;
+    std::cerr << "Read invalid sensor type from device, EEPROM data may be corrupt" << std::endl;
     type = "INVALID";
   }
 
+  // Same check as for type name
+  std::string pairName = eeprom.pairName;
+  if (pairName.length() >= MAX_PAIRNAME_LENGTH) {
+    std::cerr << "Read invalid sensor pair name from device, EEPROM data may be corrupt" << std::endl;
+    pairName = "INVALID";
+  }
+
   setType(type);
+  setPairName(pairName);
   setVref(eeprom.vref);
   setSensitivity(eeprom.sensitivity);
   setInUse(eeprom.inUse);
@@ -48,6 +56,7 @@ void PowerSensor::Sensor::writeToEEPROM(int fd) const {
   EEPROM eeprom;
 
   strncpy(eeprom.type, type.c_str(), type.length() + 1);  // plus one for null termination character
+  strncpy(eeprom.pairName, pairName.c_str(), pairName.length() + 1);  // plus one for null termination character
   eeprom.vref = vref;
   eeprom.sensitivity = sensitivity;
   eeprom.inUse = inUse;
@@ -102,6 +111,22 @@ void PowerSensor::Sensor::setType(const std::string type) {
     this->type = type;
   }
 }
+
+/**
+ * @brief Set name of sensor pair
+ *
+ * @param pairName
+ */
+void PowerSensor::Sensor::setPairName(const std::string pairName) {
+  if (pairName.length() >= MAX_PAIRNAME_LENGTH) {
+    // MAX_PAIRNAME_LENGTH includes null termination character
+    std::cerr << "Sensor pair name can be at most " << MAX_PAIRNAME_LENGTH - 1 << " characters" << std::endl;
+    exit(1);
+  } else {
+    this->pairName = pairName;
+  }
+}
+
 
 /**
  * @brief Set reference voltage of sensor

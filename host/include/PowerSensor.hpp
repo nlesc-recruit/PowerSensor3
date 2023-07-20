@@ -58,17 +58,20 @@ class PowerSensor {
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
+    void setPairName(unsigned int sensorID, const std::string pairName);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
 
     std::string getType(unsigned int sensorID) const;
+    std::string getPairName(unsigned int sensorID) const;
     float getVref(unsigned int sensorID) const;
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
 
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;
+    static const unsigned MAX_PAIRNAME_LENGTH = 16;
 
     int fd;
     int pipe_fd;
@@ -104,6 +107,8 @@ class PowerSensor {
       struct EEPROM {
         /** @brief Sensor type */
         char type[MAX_TYPE_LENGTH];
+        /** @brief Sensor pair name */
+        char pairName[MAX_PAIRNAME_LENGTH];
         /** @brief Sensor reference voltage */
         float vref;
         /** @brief Sensor sensitivity (V/A for current sensors, unitless gain for voltage sensors) */
@@ -113,12 +118,14 @@ class PowerSensor {
       } __attribute__((packed));
 
       std::string type;
+      std::string pairName;
       float vref;
       float sensitivity;
       bool inUse;
       uint16_t level;
       double valueAtLastMeasurement;
       void setType(const std::string type);
+      void setPairName(const std::string pairName);
       void setVref(const float vref);
       void setSensitivity(const float slope);
       void setInUse(const bool inUse);

@@ -92,6 +92,7 @@ bool sendMarkerNext = false;
 
 struct Sensor {
   char type[16];
+  char pairName[16];
   float vref;
   float sensitivity;
   bool inUse;
