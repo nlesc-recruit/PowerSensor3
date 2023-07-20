@@ -219,6 +219,12 @@ int main(int argc, char *argv[]) {
       // sensor pair name
       case 'm':
         getPowerSensor(device)->setPairName(sensor, optarg);
+        // ensure to set same pair name for both the current and voltage sensor
+        if ((sensor % 2) == 0) {
+          getPowerSensor(device)->setPairName(sensor + 1, optarg);
+        } else {
+          getPowerSensor(device)->setPairName(sensor - 1, optarg);
+        }
         break;
 
       // sensor auto calibration of reference voltage
