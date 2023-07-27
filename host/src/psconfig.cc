@@ -146,9 +146,13 @@ void print() {
       factor = 1;
     }
 
+    // get string values before printing the output so any warnings are readable
+    std::string type = powerSensor->getType(sensor);
+    std::string pairName = powerSensor->getPairName(sensor / 2);  // div by 2 to convert to pair ID
+
     std::cout << "sensor " << sensor << " (" << sensorType << "): "
-      "type: " << powerSensor->getType(sensor) << ", "
-      "name: " << powerSensor->getPairName(sensor) << ", "
+      "type: " << type << ", "
+      "name: " << pairName << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, " <<
       sensitivityName << ": " << factor * powerSensor->getSensitivity(sensor) << unit << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
@@ -172,7 +176,8 @@ void usage(char *argv[]) {
   std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;
   std::cerr << "-t sets the sensor type. This also sets the sensitivity to the default value if "
                "the sensor is of a type known to this programme (see list at the bottom of this help)." << std::endl;
-  std::cerr << "-m sets the sensor pair name." << std::endl;
+  std::cerr << "-m sets the sensor pair name. Setting this for either of the sensors of a pair "
+               "sets the same pair name for both sensors" << std::endl;
   std::cerr << "-v sets the reference voltage level" << std::endl;
   std::cerr << "-a automatically calibrate vref of the current sensor. "
                "The input to the sensor must be zero volt or ampere" << std::endl;
@@ -218,13 +223,9 @@ int main(int argc, char *argv[]) {
 
       // sensor pair name
       case 'm':
-        getPowerSensor(device)->setPairName(sensor, optarg);
-        // ensure to set same pair name for both the current and voltage sensor
-        if ((sensor % 2) == 0) {
-          getPowerSensor(device)->setPairName(sensor + 1, optarg);
-        } else {
-          getPowerSensor(device)->setPairName(sensor - 1, optarg);
-        }
+        // sensor / 2 corresponds to the index of the sensor _pair_
+        getPowerSensor(device)->setPairName(sensor / 2, optarg);
+        doWriteConfig = true;
         break;
 
       // sensor auto calibration of reference voltage
