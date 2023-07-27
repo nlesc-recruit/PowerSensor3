@@ -30,5 +30,6 @@ PYBIND11_MODULE(powersensor, m) {
       "Total energy consumption (J), counted from initialization of PowerSensor device")
     .def_readonly("current", &PowerSensor3::State::current, "Current current (A)")
     .def_readonly("voltage", &PowerSensor3::State::voltage, "Current voltage (V)")
+    .def_readonly("name", &PowerSensor3::State::name, "Name")
     .def_readonly("time_at_read", &PowerSensor3::State::timeAtRead, "Current time (s)");
 }

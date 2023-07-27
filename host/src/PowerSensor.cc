@@ -117,6 +117,7 @@ namespace PowerSensor3 {
       state.consumedEnergy[pairID] = sensorPairs[pairID].consumedEnergy;
       state.current[pairID] = sensorPairs[pairID].currentAtLastMeasurement;
       state.voltage[pairID] = sensorPairs[pairID].voltageAtLastMeasurement;
+      state.name[pairID] = sensorPairs[pairID].name;
       // Note: timeAtLastMeasurement is the same for each _active_ sensor pair
       if (sensorPairs[pairID].inUse) {
         state.timeAtRead = sensorPairs[pairID].timeAtLastMeasurement;
@@ -264,7 +265,7 @@ namespace PowerSensor3 {
       sensorPairs[pairID].consumedEnergy = 0;
       sensorPairs[pairID].currentAtLastMeasurement = 0;
       sensorPairs[pairID].voltageAtLastMeasurement = 0;
-
+      sensorPairs[pairID].name = getPairName(pairID);
 
       bool currentSensorActive = sensors[2*pairID].inUse;
       bool voltageSensorActive = sensors[2*pairID+1].inUse;

@@ -30,6 +30,8 @@ struct State {
   std::array<double, MAX_PAIRS> current;
   /** @brief Voltage, per sensor */
   std::array<double, MAX_PAIRS> voltage;
+  /** @brief Name, per sensor */
+  std::array<std::string, MAX_PAIRS> name;
   /** @brief Timestamp */
   double timeAtRead;
 };
@@ -143,6 +145,7 @@ class PowerSensor {
       double timeAtLastMeasurement;
       double consumedEnergy;
       bool inUse;
+      std::string name;
     } sensorPairs[MAX_PAIRS];
 };
 
