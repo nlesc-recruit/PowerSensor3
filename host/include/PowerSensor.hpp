@@ -58,13 +58,13 @@ class PowerSensor {
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
-    void setPairName(unsigned int sensorID, const std::string pairName);
+    void setPairName(unsigned int pairID, const std::string pairName);
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
 
     std::string getType(unsigned int sensorID) const;
-    std::string getPairName(unsigned int sensorID) const;
+    std::string getPairName(unsigned int pairID) const;
     float getVref(unsigned int sensorID) const;
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;

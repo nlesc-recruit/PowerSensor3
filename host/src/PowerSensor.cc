@@ -562,13 +562,19 @@ namespace PowerSensor3 {
   }
 
   /**
-   * @brief Get sensor pair name of given sensor
+   * @brief Get name of given sensor pair
    *
-   * @param sensorID
+   * @param pairID
    * @return std::string
    */
-  std::string PowerSensor::getPairName(unsigned int sensorID) const {
-    return sensors[sensorID].pairName;
+  std::string PowerSensor::getPairName(unsigned int pairID) const {
+    checkPairID(pairID);
+    // warn if sensor pair names of the two sensors are not equal
+    if (sensors[2 * pairID].pairName != sensors[2 * pairID + 1].pairName) {
+      std::cerr << "Sensor pair names of pair " << pairID << " do not match, use psconfig to correct the values. "
+        "Returning value of first sensor" << std::endl;
+    }
+    return sensors[2 * pairID].pairName;
   }
 
   /**
@@ -612,13 +618,16 @@ namespace PowerSensor3 {
   }
 
   /**
-   * @brief Set sensor pair name of given sensor
+   * @brief Set sensor pair name of given sensor pair
    *
-   * @param sensorID
+   * @param pairID
    * @param pairName
    */
-  void PowerSensor::setPairName(unsigned int sensorID, const std::string pairName) {
-    sensors[sensorID].setPairName(pairName);
+  void PowerSensor::setPairName(unsigned int pairID, const std::string pairName) {
+    checkPairID(pairID);
+    // set name of both sensors of the pair
+    sensors[2 * pairID].setPairName(pairName);
+    sensors[2 * pairID + 1].setPairName(pairName);
   }
 
   /**
