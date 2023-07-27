@@ -443,6 +443,10 @@ Program Listing for File PowerSensor.cc
        return sensors[sensorID].type;
      }
    
+     std::string PowerSensor::getPairName(unsigned int sensorID) const {
+       return sensors[sensorID].pairName;
+     }
+   
      float PowerSensor::getVref(unsigned int sensorID) const {
        return sensors[sensorID].vref;
      }
@@ -457,6 +461,10 @@ Program Listing for File PowerSensor.cc
    
      void PowerSensor::setType(unsigned int sensorID, const std::string type) {
        sensors[sensorID].setType(type);
+     }
+   
+     void PowerSensor::setPairName(unsigned int sensorID, const std::string pairName) {
+       sensors[sensorID].setPairName(pairName);
      }
    
      void PowerSensor::setVref(unsigned int sensorID, const float vref) {

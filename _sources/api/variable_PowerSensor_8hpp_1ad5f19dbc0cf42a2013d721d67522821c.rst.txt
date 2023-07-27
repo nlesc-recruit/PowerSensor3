@@ -1,0 +1,13 @@
+.. _exhale_variable_PowerSensor_8hpp_1ad5f19dbc0cf42a2013d721d67522821c:
+
+Variable pairName
+=================
+
+- Defined in :ref:`file_host_include_PowerSensor.hpp`
+
+
+Variable Documentation
+----------------------
+
+
+.. doxygenvariable:: pairName

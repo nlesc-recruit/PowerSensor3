@@ -97,6 +97,8 @@ Variables
 
 - :ref:`exhale_variable_PowerSensor_8hpp_1a0937b653999b14c16d75fc408f4dce05`
 
+- :ref:`exhale_variable_PowerSensor_8hpp_1ad5f19dbc0cf42a2013d721d67522821c`
+
 - :ref:`exhale_variable_PowerSensor_8hpp_1adfbb9cfc8c3d695ba1444d7048257ee4`
 
 - :ref:`exhale_variable_PowerSensor_8hpp_1a3671c548db820b579e96778fbb9c583d`
