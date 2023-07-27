@@ -9,7 +9,7 @@
 project = 'PowerSensor 3'
 copyright = '2023, Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt'
 author = 'Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt'
-release = '1.3.0'
+release = '1.3.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
