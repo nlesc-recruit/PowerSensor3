@@ -336,7 +336,7 @@ void updateDisplay() {
   static unsigned long previousMillis = 0;
   unsigned long interval = (unsigned long)(millis() - previousMillis);
 
-  if (interval > UPDATE_INVERVAL) {   
+  if (interval > UPDATE_INVERVAL) {
     static unsigned int sensor_pair = 0;
 
     previousMillis = millis();
