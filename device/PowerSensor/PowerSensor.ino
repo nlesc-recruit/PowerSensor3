@@ -82,6 +82,7 @@ bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
 bool sendMarkerNext = false;
+bool allSensorsInactive = false;
 
 // include device-specific code for setting up the ADC and DMA
 #if defined STM32F401xC || defined STM32F411xE
@@ -302,6 +303,14 @@ void configureDevice() {
   LL_ADC_Enable(ADC2);
 #endif
   LL_ADC_REG_StartConversionSWStart(ADC1);
+  checkActiveSensors();
+}
+
+void checkActiveSensors() {
+  allSensorsInactive = true;
+  for (int pair=0; pair < PAIRS; pair++) {
+    allSensorsInactive &= !(eeprom.sensors[2 * pair].inUse & eeprom.sensors[2 * pair + 1].inUse);
+  }
 }
 
 
@@ -382,7 +391,7 @@ void loop() {
   serialEvent();
   // update display if enabled
 #ifndef NODISPLAY
-  if (!displayPaused) {
+  if (!displayPaused && !allSensorsInactive) {
     updateDisplay();
   }
 #endif
