@@ -13,7 +13,7 @@ jobs:
   cpplint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
     - run: pip install cpplint
     - run: cpplint --recursive --quiet --extensions cpp,cc,ino host device python
