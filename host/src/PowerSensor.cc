@@ -594,7 +594,9 @@ namespace PowerSensor3 {
    * @return float
    */
   float PowerSensor::getSensitivity(unsigned int sensorID) const {
-    return sensors[sensorID].sensitivity;
+    // negative sensitivity corresponds to inverted polarity
+    // polarity is considered a separate variable instead so we return the abs value here
+    return std::abs(sensors[sensorID].sensitivity);
   }
 
   /**
@@ -605,6 +607,22 @@ namespace PowerSensor3 {
    */
   bool PowerSensor::getInUse(unsigned int sensorID) const {
     return sensors[sensorID].inUse;
+  }
+
+  /**
+   * @brief Get polarity of given sensor
+   *
+   * @param sensorID
+   * @return int (-1 or 1)
+   */
+  int PowerSensor::getPolarity(unsigned int sensorID) const {
+    int polarity;
+    if (sensors[sensorID].sensitivity >= 0) {
+      polarity = 1;
+    } else {
+      polarity = -1;
+    }
+    return polarity;
   }
 
   /**
@@ -658,6 +676,16 @@ namespace PowerSensor3 {
    */
   void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
     sensors[sensorID].setInUse(inUse);
+  }
+
+  /**
+   * @brief Set polarity of given sensor
+   *
+   * @param sensorID
+   * @param polarity (-1 or 1)
+   */
+  void PowerSensor::setPolarity(unsigned int sensorID, const int polarity) {
+    sensors[sensorID].setPolarity(polarity);
   }
 
 }  // namespace PowerSensor3

@@ -156,6 +156,7 @@ void print() {
       "name: " << pairName << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, " <<
       sensitivityName << ": " << factor * powerSensor->getSensitivity(sensor) << unit << ", "
+      "polarity: " << powerSensor->getPolarity(sensor) << ", "
       "Status: " << (powerSensor->getInUse(sensor) ? "on" : "off") << std::endl;
   }
 
@@ -172,7 +173,7 @@ void print() {
 
 void usage(char *argv[]) {
   std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] "
-    "[-m name] [-a | -v volt] [-n sensitivity] [-o on/off] [-p] [-l]" << std::endl;
+    "[-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p] [-l]" << std::endl;
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
   std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;
@@ -185,6 +186,7 @@ void usage(char *argv[]) {
                "The input to the sensor must be zero volt or ampere" << std::endl;
   std::cerr << "-n set the sensitivity in mV/A for current sensors (even sensors) "
                "or unitless gain for voltage sensors (odd sensors)" << std::endl;
+  std::cerr << "-x sets the polarity of a sensor. 1 for normal, -1 for inverted" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 "
@@ -200,7 +202,7 @@ int main(int argc, char *argv[]) {
   bool doPrint = false;
 
   std::cout << "psconfig version " <<  PowerSensor3::POWERSENSOR_VERSION << std::endl << std::endl;
-  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:m:av:n:o:ph")) >= 0;) {
+  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:m:av:n:x:o:ph")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
@@ -248,6 +250,13 @@ int main(int argc, char *argv[]) {
         // sensitivity is given in mV/A for current sensors (even sensors) and should be scaled by a factor 1000
         // this is not necessary for voltage sensors (odd sensors)
         getPowerSensor(device)->setSensitivity(sensor, (sensor % 2) == 0 ? atof(optarg) / 1000: atof(optarg));
+        doWriteConfig = true;
+        break;
+
+      // sensor polarity
+      case 'x':
+        // set the polarity of a sensor. 1 for normal, -1 for inverted
+        getPowerSensor(device)->setPolarity(sensor, atoi(optarg));
         doWriteConfig = true;
         break;
 
