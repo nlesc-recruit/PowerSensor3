@@ -76,7 +76,7 @@ exp. time: 3.2768 s, measured: 3.27701 s, 93.377 J, 28.4946 W
 ## Monitor power use of an existing application
 Adapting an application to use the library is not obligatory; the `psrun` utility can monitor the power use of a device during the execution of an application that does not use the library. Run `psrun -h` for more options
 ```
-pstest <application>
+psrun <application>
 < application output >
 5.02273 s, 144.12 J, 28.6935 W
 ```
