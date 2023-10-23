@@ -148,9 +148,10 @@ void print() {
 
     // get string values before printing the output so any warnings are readable
     std::string type = powerSensor->getType(sensor);
-    std::string pairName = powerSensor->getPairName(sensor / 2);  // div by 2 to convert to pair ID
+    int pair = sensor / 2;  // there are 2 sensors per pair
+    std::string pairName = powerSensor->getPairName(pair);
 
-    std::cout << "sensor " << sensor << " (" << sensorType << "): "
+    std::cout << "sensor " << sensor << ", pair " << pair << " (" << sensorType << "): "
       "type: " << type << ", "
       "name: " << pairName << ", "
       "Vref: " << powerSensor->getVref(sensor) << " V, " <<
@@ -162,7 +163,8 @@ void print() {
   for (unsigned int pair = 0; pair < PowerSensor3::MAX_PAIRS; pair++) {
       double usage = Watt(startState, stopState, pair);
       totalUsage += usage;
-      std::cout << "Current usage pair " << pair << ": " << usage << " W" << std::endl;
+      std::cout << "Current usage pair " << pair << " (sensors " << 2 * pair << ", ";
+      std::cout << 2 * pair + 1<< "): " << usage << " W" << std::endl;
   }
   std::cout << "Total usage: " << totalUsage << " W" << std::endl;
 }
