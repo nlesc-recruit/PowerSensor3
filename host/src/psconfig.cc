@@ -163,7 +163,8 @@ void print() {
   for (unsigned int pair = 0; pair < PowerSensor3::MAX_PAIRS; pair++) {
       double usage = Watt(startState, stopState, pair);
       totalUsage += usage;
-      std::cout << "Current usage pair " << pair << " (sensors " << 2 * pair << ", " << 2 * pair + 1<< "): " << usage << " W" << std::endl;
+      std::cout << "Current usage pair " << pair << " (sensors " << 2 * pair << ", ";
+      std::cout << 2 * pair + 1<< "): " << usage << " W" << std::endl;
   }
   std::cout << "Total usage: " << totalUsage << " W" << std::endl;
 }
