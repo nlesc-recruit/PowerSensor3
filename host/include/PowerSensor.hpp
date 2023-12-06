@@ -62,12 +62,14 @@ class PowerSensor {
     void setVref(unsigned int sensorID, const float vref);
     void setSensitivity(unsigned int sensorID, const float slope);
     void setInUse(unsigned int sensorID, const bool inUse);
+    void setPolarity(unsigned int sensorID, const int polarity);
 
     std::string getType(unsigned int sensorID) const;
     std::string getPairName(unsigned int pairID) const;
     float getVref(unsigned int sensorID) const;
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
+    int getPolarity(unsigned int sensorID) const;
 
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;
@@ -129,6 +131,7 @@ class PowerSensor {
       void setVref(const float vref);
       void setSensitivity(const float slope);
       void setInUse(const bool inUse);
+      void setPolarity(const int polarity);
       double getValue() const;
       void readFromEEPROM(int fd);
       void writeToEEPROM(int fd) const;

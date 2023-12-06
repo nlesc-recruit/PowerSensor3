@@ -155,4 +155,20 @@ void PowerSensor::Sensor::setInUse(const bool inUse) {
   this->inUse = inUse;
 }
 
+/**
+ * @brief Set polarity of sensor
+ *
+ * @param polarity (-1 or 1)
+ */
+void PowerSensor::Sensor::setPolarity(const int polarity) {
+  if (polarity == 1) {
+    this->sensitivity = std::abs(this->sensitivity);
+  } else if (polarity == -1) {
+    this->sensitivity = -std::abs(this->sensitivity);
+  } else {
+    std::cerr << "Polarity must be -1 or 1, got " << polarity << std::endl;
+    exit(1);
+  }
+}
+
 }  // namespace PowerSensor3
