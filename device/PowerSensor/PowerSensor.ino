@@ -8,11 +8,11 @@
 #define PAIRS 4
 
 #ifdef STM32F401xC
-#define VERSION "F401-1.3.2"
+#define VERSION "F401-1.3.3"
 #elif defined STM32F411xE
-#define VERSION "F411-1.3.2"
+#define VERSION "F411-1.3.3"
 #elif defined STM32F407xx
-#define VERSION "F407-1.3.2"
+#define VERSION "F407-1.3.3"
 #else
 #error "Unsupported device"
 #endif
