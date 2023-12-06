@@ -458,11 +458,23 @@ Program Listing for File PowerSensor.cc
      }
    
      float PowerSensor::getSensitivity(unsigned int sensorID) const {
-       return sensors[sensorID].sensitivity;
+       // negative sensitivity corresponds to inverted polarity
+       // polarity is considered a separate variable instead so we return the abs value here
+       return std::abs(sensors[sensorID].sensitivity);
      }
    
      bool PowerSensor::getInUse(unsigned int sensorID) const {
        return sensors[sensorID].inUse;
+     }
+   
+     int PowerSensor::getPolarity(unsigned int sensorID) const {
+       int polarity;
+       if (sensors[sensorID].sensitivity >= 0) {
+         polarity = 1;
+       } else {
+         polarity = -1;
+       }
+       return polarity;
      }
    
      void PowerSensor::setType(unsigned int sensorID, const std::string type) {
@@ -486,6 +498,10 @@ Program Listing for File PowerSensor.cc
    
      void PowerSensor::setInUse(unsigned int sensorID, const bool inUse) {
        sensors[sensorID].setInUse(inUse);
+     }
+   
+     void PowerSensor::setPolarity(unsigned int sensorID, const int polarity) {
+       sensors[sensorID].setPolarity(polarity);
      }
    
    }  // namespace PowerSensor3
