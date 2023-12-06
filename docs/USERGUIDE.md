@@ -8,54 +8,59 @@ Please make sure that the PowerSensor is installed correctly by completing the [
 
 ```
 $ psconfig -h
-usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-a | -v volt] [-n sensitivity] [-o on/off] [-p] [-l]
+usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p] [-l]
 -h prints this help
 -d selects the device (default: /dev/ttyACM0)
 -s selects the sensor (0-8)
 -t sets the sensor type. This also sets the sensitivity to the default value if the sensor is of a type known to this programme (see list at the bottom of this help).
+-m sets the sensor pair name. Setting this for either of the sensors of a pair sets the same pair name for both sensors
 -v sets the reference voltage level
+-a automatically calibrate vref of the current sensor. The input to the sensor must be zero volt or ampere
 -n set the sensitivity in mV/A for current sensors (even sensors) or unitless gain for voltage sensors (odd sensors)
+-x sets the polarity of a sensor. 1 for normal, -1 for inverted
 -o turns a sensor on (1) or off (0)
 -p prints configured values
--l toggles device display on/off
 example: psconfig -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 -o 1 -s 1 -t voltage0 -v 0 -n 0.95 -o 1 -p
 Known current sensor types: MLX10, MLX20, MLX50, MLX75.
 ```
 
 Parameters that are not specified are left unmodified on the device.
 
-<!-- This section is outdated. Needs to be updated after fixing https://github.com/nlesc-recruit/PowerSensor3/issues/68
-
-The `-n` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically:
+The `-v` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically. Example when four sensors are connected:
 
 ```
-$ psconfig -d/dev/ttyACM0 -s0 -tACS712-20 -v12 -a -s1 -tACS712-5 -v3.3 -a -s2 -tACS712-20 -v12 -a -s3 -o -s4 -o -p
+$ psconfig -d/dev/ttyACM0 -s 0 -a -s 1 -a -s2 -a -s 3 -a
 ```
--->
+
+This feature is especially useful for the current sensors. For voltage sensors, the reference voltage is typically (very close to) zero.
 
 
 ## Testing the PowerSensor
 To see if the PowerSensor works correctly, one can either use the `-p` option of `psconfig`:
 ```
 $ psconfig -p
-sensor 0 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
-sensor 1 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
-sensor 2 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
-sensor 3 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
-sensor 4 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 0 mV/A, Status: off
-sensor 5 (voltage): type: Voltage, Vref: 0 V, Gain: 0, Status: off
-sensor 6 (current): type: MLX20, Vref: 1.63871 V, Sensitivity: 62.5 mV/A, Status: on
-sensor 7 (voltage): type: Voltage, Vref: 0 V, Gain: 0.0883871, Status: on
-Current usage pair 0: 0 W
-Current usage pair 1: 0 W
-Current usage pair 2: 0 W
-Current usage pair 3: 28.5437 W
-Total usage: 28.5437 W
+psconfig version 1.3.2
+
+sensor 0, pair 0 (current): type: MLX10, name: NA, Vref: 1.636 V, Sensitivity: 120 mV/A, polarity: 1, Status: off
+sensor 1, pair 0 (voltage): type: voltage, name: NA, Vref: 0 V, Gain: 0.091, polarity: 1, Status: off
+sensor 2, pair 1 (current): type: NA, name: NA, Vref: 0 V, Sensitivity: 0 mV/A, polarity: 1, Status: off
+sensor 3, pair 1 (voltage): type: NA, name: NA, Vref: 0 V, Gain: 0, polarity: 1, Status: off
+sensor 4, pair 2 (current): type: NA, name: NA, Vref: 0 V, Sensitivity: 0 mV/A, polarity: 1, Status: off
+sensor 5, pair 2 (voltage): type: NA, name: NA, Vref: 0 V, Gain: 0, polarity: 1, Status: off
+sensor 6, pair 3 (current): type: MLX10, name: Jetson, Vref: 1.62247 V, Sensitivity: 120 mV/A, polarity: 1, Status: on
+sensor 7, pair 3 (voltage): type: voltage, name: Jetson, Vref: 0 V, Gain: 0.0877, polarity: 1, Status: on
+Current usage pair 0 (sensors 0, 1): 0 W
+Current usage pair 1 (sensors 2, 3): 0 W
+Current usage pair 2 (sensors 4, 5): 0 W
+Current usage pair 3 (sensors 6, 7): 0.0175141 W
+Total usage: 0.0175141 W
 ```
 
 Or use the `pstest` utility to measure and report energy consumption for a few seconds. Run `pstest -h` for more options.
 ```
 $ pstest
+pstest version 1.3.2
+
 exp. time: 0.0002 s, measured: 0.00571626 s, 0.00114577 J, 0.200441 W
 exp. time: 0.0004 s, measured: 0.000343234 s, 0.0112714 J, 32.8388 W
 exp. time: 0.0008 s, measured: 0.00090007 s, 0.0293691 J, 32.6298 W
@@ -77,6 +82,8 @@ exp. time: 3.2768 s, measured: 3.27701 s, 93.377 J, 28.4946 W
 Adapting an application to use the library is not obligatory; the `psrun` utility can monitor the power use of a device during the execution of an application that does not use the library. Run `psrun -h` for more options
 ```
 psrun <application>
+psrun version 1.3.2
+
 < application output >
 5.02273 s, 144.12 J, 28.6935 W
 ```
