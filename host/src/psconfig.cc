@@ -173,7 +173,7 @@ void print() {
 
 void usage(char *argv[]) {
   std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] "
-    "[-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p] [-l]" << std::endl;
+    "[-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p]" << std::endl;
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
   std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;

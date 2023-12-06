@@ -8,7 +8,7 @@ Please make sure that the PowerSensor is installed correctly by completing the [
 
 ```
 $ psconfig -h
-usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p] [-l]
+usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p]
 -h prints this help
 -d selects the device (default: /dev/ttyACM0)
 -s selects the sensor (0-8)
