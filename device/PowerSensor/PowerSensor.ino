@@ -131,9 +131,10 @@ void JumpToBootloader() {
 inline void wait_for_host(int nbytes) {
   unsigned long tstart = millis();
   while (Serial.read() < nbytes) {
-      if ((millis() - tstart) > TIMEOUT);
-      // host is taking too long, assume connection broken and reset device
-      NVIC_SystemReset();
+      if ((millis() - tstart) > TIMEOUT) {
+        // host is taking too long, assume connection broken and reset device
+        NVIC_SystemReset();
+      }
     }
 }
 
