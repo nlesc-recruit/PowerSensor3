@@ -70,7 +70,7 @@ void Adafruit_ST7735_DMA::writeFastChar(int16_t x, int16_t y, unsigned char c,
       break;
     default:
       // other font sizes not supported
-      break;
+      return;
   }
 
   setAddrWindow(x, y, FONT_NCOL * size, FONT_NROW * size);
