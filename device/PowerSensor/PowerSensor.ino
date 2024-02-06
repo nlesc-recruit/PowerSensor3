@@ -6,6 +6,7 @@
 #define USE_FULL_LL_DRIVER
 #define SENSORS 8  // limited by number of bits used for sensor id
 #define PAIRS 4
+#define TIMEOUT  2000  // ms
 
 #ifdef STM32F401xC
 #define VERSION "F401-1.3.3"
@@ -116,7 +117,7 @@ void JumpToBootloader() {
 #endif
   LL_DMA_DeInit(DMA2, LL_DMA_STREAM_0);
 
-  // function starting at to whatever address is stored in the reset vector
+  // function starting at whatever address is stored in the reset vector
   void (*SysMemBootJump)(void) = (void (*)(void)) (*(reinterpret_cast<uint32_t *>(SYSMEM_RESET_VECTOR)));
   HAL_DeInit();
   HAL_RCC_DeInit();
@@ -127,14 +128,22 @@ void JumpToBootloader() {
   SysMemBootJump();
 }
 
+inline void wait_for_host(int nbytes) {
+  unsigned long tstart = millis();
+  while (Serial.read() < nbytes) {
+      if ((millis() - tstart) > TIMEOUT);
+      // host is taking too long, assume connection broken and reset device
+      NVIC_SystemReset();
+    }
+}
+
 void readConfig() {
   // send config in virtual EEPROM to host in chunks per sensor
   // after each chunk, any character should be sent to the device to
   // trigger sending the next chunk. D is sent when done
   for (int s=0; s < SENSORS; s++) {
     Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
-    while (Serial.read() < 0) {
-    }
+    wait_for_host(0);
   }
   Serial.write('D');
 }
@@ -146,8 +155,7 @@ void writeConfig() {
   uint8_t* p_eeprom = reinterpret_cast<uint8_t*>(&eeprom);
   for (int s=0; s < SENSORS; s++) {
     // wait for entire sensor chunk to be available
-    while (Serial.available() < sizeof(Sensor)) {
-    }
+    wait_for_host(sizeof(Sensor));
     // write sensor bytes into eeprom struct
     for (int b=0; b < sizeof(Sensor); b++) {
       *p_eeprom++ = Serial.read();
