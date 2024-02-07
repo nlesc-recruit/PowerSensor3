@@ -10,7 +10,7 @@ type: software
 repository-code: "https://github.com/nlesc-recruit/PowerSensor3"
 license: Apache-2.0
 #software version
-version: 1.3.3
+version: 1.3.4
 authors:
   - given-names: Leon
     family-names: Oostrum

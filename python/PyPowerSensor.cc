@@ -6,7 +6,7 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(powersensor, m) {
-  m.attr("__version__") = "1.3.3";
+  m.attr("__version__") = "1.3.4";
 
   m.attr("MAX_PAIRS") = py::int_(PowerSensor3::MAX_PAIRS);
 
