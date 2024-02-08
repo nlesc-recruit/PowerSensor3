@@ -23,15 +23,17 @@
  * at boot the first word contains the initial value of the stack pointer.
  * To be safe we put the stack at the end of the first RAM block.
  * RAM starts at 0x2000 0000 and is either 64 KB (F401CC), 128 KB (F411CE),
- * or 112 KB (F407VG first RAM block) in size.
- * the second word stores the address at which code execution should start,
+ * or 112 KB (F407VG first RAM block) in size. NOTE: on the F411CE, the
+ * device won't reboot to DFU mode properly when the stack is at the end of RAM
+ * Experimentally, it was found that it must be at least 32B before the end.
+ * The second word stores the address at which code execution should start,
  * this is where we jump to to run the bootloader
  */
 #define SYSMEM_RESET_VECTOR            0x1FFF0004
 #ifdef STM32F401xC
 #define BOOTLOADER_STACK_POINTER       0x2000FFFF
 #elif defined STM32F411xE
-#define BOOTLOADER_STACK_POINTER       0x20020000
+#define BOOTLOADER_STACK_POINTER       0x2001FFE0
 #elif defined STM32F407xx
 #define BOOTLOADER_STACK_POINTER       0x2001BFFF
 #endif
