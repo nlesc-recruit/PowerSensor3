@@ -17,7 +17,7 @@ static const unsigned MAX_SENSORS = 8;
 static const unsigned MAX_PAIRS = MAX_SENSORS / 2;
 static const float VOLTAGE = 3.3;
 static const unsigned MAX_LEVEL = 1023;
-static const std::string POWERSENSOR_VERSION = "1.3.6";
+static const std::string POWERSENSOR_VERSION = "1.4.0";
 
 /**
  * @brief Struct containing values of all active sensors at a single point in time
@@ -55,6 +55,7 @@ class PowerSensor {
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
+    void reset(bool dfuMode);
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
@@ -70,6 +71,7 @@ class PowerSensor {
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
     int getPolarity(unsigned int sensorID) const;
+    std::string getVersion();
 
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;

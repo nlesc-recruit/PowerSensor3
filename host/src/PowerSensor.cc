@@ -552,6 +552,42 @@ namespace PowerSensor3 {
   }
 
   /**
+   * @brief Reset device, either normally or to DFU mode for firmware upload
+   *
+   * @param dfuMode
+   */
+  void PowerSensor::reset(bool dfuMode) {
+    stopIOThread();  // to avoid writing to device _after_ reset
+    if (dfuMode) {
+        writeCharToDevice('Y');
+    } else {
+        writeCharToDevice('Z');
+    }
+  }
+
+  /**
+   * @brief Get the firmware version
+   *
+   * @return std::string
+   */
+  std::string PowerSensor::getVersion() {
+    std::string version;
+    stopIOThread();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    // drain any remaining incoming data
+    tcflush(fd, TCIFLUSH);
+    writeCharToDevice('V');
+    char c = readCharFromDevice();
+    version += c;
+    while (c != '\n') {
+        c = readCharFromDevice();
+        version += c;
+    }
+    startIOThread();
+    return version;
+  }
+
+  /**
    * @brief Get type of given sensor
    *
    * @param sensorID

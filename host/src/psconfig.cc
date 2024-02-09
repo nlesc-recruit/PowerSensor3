@@ -127,6 +127,9 @@ void autoCalibrate() {
 
 
 void print() {
+  // firmware version
+  std::cout << powerSensor->getVersion() << std::endl;
+
   PowerSensor3::State startState, stopState;
 
   measureSensors(&startState, &stopState);
@@ -173,7 +176,7 @@ void print() {
 
 void usage(char *argv[]) {
   std::cerr << "usage: " << argv[0] << " [-h] [-d device] [-s sensor] [-t type] "
-    "[-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p]" << std::endl;
+    "[-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p] [-r] [-f]" << std::endl;
   std::cerr << "-h prints this help" << std::endl;
   std::cerr << "-d selects the device (default: /dev/ttyACM0)" << std::endl;
   std::cerr << "-s selects the sensor (0-" << PowerSensor3::MAX_SENSORS << ")" << std::endl;
@@ -189,6 +192,8 @@ void usage(char *argv[]) {
   std::cerr << "-x sets the polarity of a sensor. 1 for normal, -1 for inverted" << std::endl;
   std::cerr << "-o turns a sensor on (1) or off (0)" << std::endl;
   std::cerr << "-p prints configured values" << std::endl;
+  std::cerr << "-r reboots the device" << std::endl;
+  std::cerr << "-f reboots the device to DFU mode" << std::endl;
   std::cerr << "example: " << argv[0] << " -d /dev/ttyACM0 -s 0 -t MLX10 -v 1.65 "
                "-o 1 -s 1 -t voltage0 -v 0 -n 0.95 -o 1 -p" << std::endl;
   std::cerr << "Known current sensor types: MLX10, MLX20, MLX50, MLX75." << std::endl;
@@ -202,7 +207,7 @@ int main(int argc, char *argv[]) {
   bool doPrint = false;
 
   std::cout << "psconfig version " <<  PowerSensor3::POWERSENSOR_VERSION << std::endl << std::endl;
-  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:m:av:n:x:o:ph")) >= 0;) {
+  for (int opt; (opt = getopt(argc, argv, "d:s:i:t:m:av:n:x:o:phrf")) >= 0;) {
     switch (opt) {
       // device select
       case 'd':
@@ -270,6 +275,18 @@ int main(int argc, char *argv[]) {
       case 'p':
         doPrint = true;
         break;
+
+      // reboot device
+      case 'r':
+          std::cout << "Rebooting device, ignorning any config changes" << std::endl;
+          getPowerSensor(device)->reset(false);
+          exit(0);  // disconnect after a reset
+
+      // reboot device to DFU mode
+      case 'f':
+          std::cout << "Rebooting device to DFU mode, ignoring any config changes" << std::endl;
+          getPowerSensor(device)->reset(true);
+          return 0;  // disconnect after a reset
 
       // help
       case 'h':
