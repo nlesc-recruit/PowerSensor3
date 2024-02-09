@@ -439,6 +439,32 @@ Program Listing for File PowerSensor.cc
        return sensorPairs[pairID].consumedEnergy + energy;
      }
    
+     void PowerSensor::reset(bool dfuMode) {
+       stopIOThread();  // to avoid writing to device _after_ reset
+       if (dfuMode) {
+           writeCharToDevice('Y');
+       } else {
+           writeCharToDevice('Z');
+       }
+     }
+   
+     std::string PowerSensor::getVersion() {
+       std::string version;
+       stopIOThread();
+       std::this_thread::sleep_for(std::chrono::milliseconds(10));
+       // drain any remaining incoming data
+       tcflush(fd, TCIFLUSH);
+       writeCharToDevice('V');
+       char c = readCharFromDevice();
+       version += c;
+       while (c != '\n') {
+           c = readCharFromDevice();
+           version += c;
+       }
+       startIOThread();
+       return version;
+     }
+   
      std::string PowerSensor::getType(unsigned int sensorID) const {
        return sensors[sensorID].type;
      }
