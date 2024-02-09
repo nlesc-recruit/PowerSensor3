@@ -132,7 +132,7 @@ void JumpToBootloader() {
 
 inline void wait_for_host(int nbytes) {
   unsigned long tstart = millis();
-  while (Serial.read() < nbytes) {
+  while (Serial.available() < nbytes) {
       if ((millis() - tstart) > TIMEOUT) {
         // host is taking too long, assume connection broken and reset device
         NVIC_SystemReset();
@@ -146,7 +146,8 @@ void readConfig() {
   // trigger sending the next chunk. D is sent when done
   for (int s=0; s < SENSORS; s++) {
     Serial.write((const uint8_t*) &eeprom.sensors[s], sizeof(Sensor));
-    wait_for_host(0);
+    wait_for_host(1);
+    Serial.read();
   }
   Serial.write('D');
 }
