@@ -70,6 +70,7 @@ class PowerSensor {
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
     int getPolarity(unsigned int sensorID) const;
+    void reset(bool dfuMode);
 
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;

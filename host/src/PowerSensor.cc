@@ -552,6 +552,21 @@ namespace PowerSensor3 {
   }
 
   /**
+   * @brief Reset device, either normally or to DFU mode for firmware upload
+   *
+   * @param dfuMode
+   */
+  void PowerSensor::reset(bool dfuMode) {
+    stopIOThread(); // to avoid writing to device _after_ reset
+    if (dfuMode) {
+        writeCharToDevice('Y');
+    }
+    else {
+        writeCharToDevice('Z');
+    }
+  }
+
+  /**
    * @brief Get type of given sensor
    *
    * @param sensorID
