@@ -557,11 +557,10 @@ namespace PowerSensor3 {
    * @param dfuMode
    */
   void PowerSensor::reset(bool dfuMode) {
-    stopIOThread(); // to avoid writing to device _after_ reset
+    stopIOThread();  // to avoid writing to device _after_ reset
     if (dfuMode) {
         writeCharToDevice('Y');
-    }
-    else {
+    } else {
         writeCharToDevice('Z');
     }
   }
