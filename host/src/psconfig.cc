@@ -127,6 +127,9 @@ void autoCalibrate() {
 
 
 void print() {
+  // firmware version
+  std::cout << powerSensor->getVersion() << std::endl;
+
   PowerSensor3::State startState, stopState;
 
   measureSensors(&startState, &stopState);

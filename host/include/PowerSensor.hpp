@@ -55,6 +55,7 @@ class PowerSensor {
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
+    void reset(bool dfuMode);
 
     void writeSensorsToEEPROM();
     void setType(unsigned int sensorID, const std::string type);
@@ -70,7 +71,7 @@ class PowerSensor {
     float getSensitivity(unsigned int sensorID) const;
     bool getInUse(unsigned int sensorID) const;
     int getPolarity(unsigned int sensorID) const;
-    void reset(bool dfuMode);
+    std::string getVersion();
 
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;
