@@ -6,3 +6,4 @@ pybind11_add_module(powersensor PyPowerSensor.cc)
 
 include_directories(../host/include)
 target_link_libraries(powersensor PRIVATE PowerSensor OpenMP::OpenMP_CXX)
+install(TARGETS powersensor DESTINATION lib/python)

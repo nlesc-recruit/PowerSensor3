@@ -449,25 +449,31 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::dumpCurrentWattToFile() {
-    std::unique_lock<std::mutex> lock(dumpFileMutex);
-    double totalWatt = 0;
-    double time = omp_get_wtime();
-    static double previousTime = startTime;
+    static int niter = 10;
+    static int iteration = 0;
 
-    *dumpFile << "S " << time - startTime;
-    *dumpFile << ' ' << static_cast<int>(1e6 * (time - previousTime));
-    *dumpFile << ' ' << timestamp;
-    previousTime = time;
+    if (iteration==0) {
+	    double totalWatt = 0;
+	    double time = omp_get_wtime();
+	    static double previousTime = startTime;
 
-    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
-      if (sensorPairs[pairID].inUse) {
-        totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
-        *dumpFile << ' ' << sensorPairs[pairID].currentAtLastMeasurement;
-        *dumpFile << ' ' << sensorPairs[pairID].voltageAtLastMeasurement;
-        *dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
-      }
+	    std::unique_lock<std::mutex> lock(dumpFileMutex);
+	    *dumpFile << "S " << time - startTime;
+	    *dumpFile << ' ' << static_cast<int>(1e6 * (time - previousTime));
+	    *dumpFile << ' ' << timestamp;
+	    previousTime = time;
+
+	    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
+	      if (sensorPairs[pairID].inUse) {
+		totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
+		*dumpFile << ' ' << sensorPairs[pairID].currentAtLastMeasurement;
+		*dumpFile << ' ' << sensorPairs[pairID].voltageAtLastMeasurement;
+		*dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
+	      }
+	    }
+	    *dumpFile << ' ' << totalWatt << std::endl;
     }
-    *dumpFile << ' ' << totalWatt << std::endl;
+    iteration = (iteration + 1) % niter;
   }
 
   /**
