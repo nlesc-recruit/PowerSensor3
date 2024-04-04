@@ -449,31 +449,58 @@ namespace PowerSensor3 {
    *
    */
   void PowerSensor::dumpCurrentWattToFile() {
-    static int niter = 10;
+    const int niter = 2000;
     static int iteration = 0;
 
-    if (iteration==0) {
-	    double totalWatt = 0;
-	    double time = omp_get_wtime();
-	    static double previousTime = startTime;
+    static double totalWatt = 0;
+    static double time = 0;
+    static double timestamps = 0;
+    static double current[MAX_PAIRS];
+    static double voltage[MAX_PAIRS];
+    static double watt[MAX_PAIRS];
 
-	    std::unique_lock<std::mutex> lock(dumpFileMutex);
-	    *dumpFile << "S " << time - startTime;
-	    *dumpFile << ' ' << static_cast<int>(1e6 * (time - previousTime));
-	    *dumpFile << ' ' << timestamp;
-	    previousTime = time;
+    static double previousTime = startTime;
 
-	    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
-	      if (sensorPairs[pairID].inUse) {
-		totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
-		*dumpFile << ' ' << sensorPairs[pairID].currentAtLastMeasurement;
-		*dumpFile << ' ' << sensorPairs[pairID].voltageAtLastMeasurement;
-		*dumpFile << ' ' << sensorPairs[pairID].wattAtLastMeasurement;
-	      }
-	    }
-	    *dumpFile << ' ' << totalWatt << std::endl;
+    // update time stamps
+    time += omp_get_wtime();
+    timestamps += timestamp;
+
+    for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
+      if (sensorPairs[pairID].inUse) {
+        current[pairID] += sensorPairs[pairID].currentAtLastMeasurement;
+	voltage[pairID] += sensorPairs[pairID].voltageAtLastMeasurement;
+	watt[pairID] += sensorPairs[pairID].wattAtLastMeasurement;
+	totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
+      }
+    }
+
+    if (iteration == niter-1) {
+      std::unique_lock<std::mutex> lock(dumpFileMutex);
+      *dumpFile << "S " << time/niter - startTime;
+      *dumpFile << ' ' << static_cast<int>(1e6 * (time/niter - previousTime));
+      *dumpFile << ' ' << timestamps/niter;
+      previousTime = time/niter;
+
+      time = 0;
+      timestamps = 0;
+
+      for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
+        if (sensorPairs[pairID].inUse) {
+          *dumpFile << ' ' << current[pairID]/niter;
+          *dumpFile << ' ' << voltage[pairID]/niter;
+          *dumpFile << ' ' << watt[pairID]/niter;
+
+	  current[pairID] = 0;
+	  voltage[pairID] = 0;
+	  watt[pairID] = 0;
+        }
+      }
+
+      *dumpFile << ' ' << totalWatt/niter << std::endl;
+      totalWatt = 0;
     }
     iteration = (iteration + 1) % niter;
+
   }
 
   /**
