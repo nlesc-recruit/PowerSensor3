@@ -461,20 +461,31 @@ namespace PowerSensor3 {
     static double voltage[MAX_PAIRS];
     static double watt[MAX_PAIRS];
 
+    static double wattMax = 0;
+    static double wattMin = 999999;
+
     static double previousTime = startTime;
 
     // update time stamps
     time += omp_get_wtime();
     timestamps += timestamp;
 
+    double currentTotalWatt = 0;
     for (uint8_t pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse) {
         current[pairID] += sensorPairs[pairID].currentAtLastMeasurement;
 	voltage[pairID] += sensorPairs[pairID].voltageAtLastMeasurement;
 	watt[pairID] += sensorPairs[pairID].wattAtLastMeasurement;
 	totalWatt += sensorPairs[pairID].wattAtLastMeasurement;
+	currentTotalWatt += sensorPairs[pairID].wattAtLastMeasurement;
       }
     }
+
+    // keep track of max/min
+    if (currentTotalWatt > wattMax)
+      wattMax = currentTotalWatt;
+    if (currentTotalWatt < wattMin)
+      wattMin = currentTotalWatt;
 
     if (iteration == niter-1) {
       std::unique_lock<std::mutex> lock(dumpFileMutex);
@@ -517,9 +528,13 @@ namespace PowerSensor3 {
       *dumpFile << ' ' << tegra_cpu;
       *dumpFile << ' ' << tegra_gpu;
       *dumpFile << ' ' << freq;
-      *dumpFile << ' ' << load << std::endl;
+      *dumpFile << ' ' << load;
+      *dumpFile << ' ' << wattMin;
+      *dumpFile << ' ' << wattMax << std::endl;
 
       totalWatt = 0;
+      wattMax = 0;
+      wattMin = 999999;
     }
     iteration = (iteration + 1) % niter;
 
