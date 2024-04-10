@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "pmt.h"
 #include "Semaphore.hpp"
 
 namespace PowerSensor3 {
@@ -76,6 +77,7 @@ class PowerSensor {
  private:
     static const unsigned MAX_TYPE_LENGTH = 16;
     static const unsigned MAX_PAIRNAME_LENGTH = 16;
+    std::unique_ptr<pmt::PMT> tegra;
 
     int fd;
     int pipe_fd;

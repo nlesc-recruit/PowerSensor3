@@ -83,6 +83,8 @@ namespace PowerSensor3 {
     pipe_fd(startCleanupProcess()),
     thread(nullptr),
     startTime(omp_get_wtime()) {
+      tegra = pmt::Create("tegra"),
+      tegra->Read();  // work around : first read fails
       readSensorsFromEEPROM();
       initializeSensorPairs();
       startIOThread();
@@ -440,7 +442,7 @@ namespace PowerSensor3 {
         if (sensorPairs[pairID].inUse)
           *dumpFile << " current" << pairID << " voltage" << pairID << " power" << pairID;
       }
-      *dumpFile << " power_total" << std::endl;
+      *dumpFile << " power_total tegra_cpu tegra_gpu freq load" << std::endl;
     }
   }
 
@@ -496,7 +498,27 @@ namespace PowerSensor3 {
         }
       }
 
-      *dumpFile << ' ' << totalWatt/niter << std::endl;
+      pmt::State state = tegra->Read();
+      state = tegra->Read();
+
+      float tegra_cpu = state.watts(3);
+      float tegra_gpu = state.watts(2);
+      float freq, load;
+
+      std::fstream fn_freq("/sys/class/devfreq/57000000.gpu/cur_freq", std::ios_base::in);
+      fn_freq >> freq;
+      freq /= 1000000;  // convert to MHz
+
+      std::fstream fn_load("/sys/class/devfreq/57000000.gpu/device/load", std::ios_base::in);
+      fn_load >> load;
+      load /= 10;  // convert to %
+
+      *dumpFile << ' ' << totalWatt/niter;
+      *dumpFile << ' ' << tegra_cpu;
+      *dumpFile << ' ' << tegra_gpu;
+      *dumpFile << ' ' << freq;
+      *dumpFile << ' ' << load << std::endl;
+
       totalWatt = 0;
     }
     iteration = (iteration + 1) % niter;
