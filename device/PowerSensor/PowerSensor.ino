@@ -240,8 +240,8 @@ void serialEvent() {
       sendSingleValue = true;
       break;
     case 'S':
-      // Enable streaming of data and pause display
-#ifndef NODISPLAY
+      // Enable streaming of data and pause display if not in demo mode
+#if !defined NODISPLAY && !defined DEMO
       displayPaused = true;
       displayMeasurementInProgress();
 #endif
@@ -250,8 +250,9 @@ void serialEvent() {
       break;
     case 'T':
       // Disable streaming of data and unpause display
+      // in demo mode the display is always enabled so no need to reinitialize it here
       streamValues = false;
-#ifndef NODISPLAY
+#if !defined NODISPLAY && !defined DEMO
       displayPaused = false;
       displayInitialValues();
 #endif
@@ -278,7 +279,12 @@ void serialEvent() {
     case 'V':
       // Send firmware version in human-readable format
       Serial.print("Firmware version: ");
+#ifdef DEMO
+      Serial.print(VERSION);
+      Serial.println("-DEMO");
+#else
       Serial.println(VERSION);
+#endif
       break;
     case 'Z':
       // Reset device
