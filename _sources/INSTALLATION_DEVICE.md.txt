@@ -83,6 +83,7 @@ Defines that would usually be given to the compiler with the `-D` option can be 
 Currently supported flags relate to the display:
 `-DNODISPLAY` disables the display completely. This also means that the external libraries, located in `PowerSensor/Libraries` are not used.
 `-DTFT_BLUE` changes the display type from the default green tab to a blue tab. Effectively, this only inverts the display colours.
+`-DDEMO` enables updating the display during measurements, meant for demos. Updating the display interferes with the measurement interval, so this mode should not be used when accurate measurements are required.
 Multiple flags should be separated by a space.
 Example command:
 
