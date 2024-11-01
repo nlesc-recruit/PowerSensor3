@@ -46,7 +46,7 @@ jobs:
     - name: Patch cdc_queue.h
       shell: bash
       run: |
-        pip3 install pyyaml pathlib  # required on MacOS/Windows runners
+        pip3 install --break-system-packages pyyaml pathlib  # required on MacOS/Windows runners
         REPO_ROOT=$PWD
         STM32_DIR=$(python/get_arduino_stm32_directory.py)
         echo "STM32_DIR = ${STM32_DIR}"
