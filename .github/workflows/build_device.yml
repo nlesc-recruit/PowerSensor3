@@ -44,7 +44,7 @@ jobs:
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32@2.3.0
     - name: Install python packages (mac, windows)
-      if: "!startsWith(runner.os, 'ubuntu')"
+      if: "!startsWith(runner.os, 'linux')"
       run: |
         pip3 install --break-system-packages pyyaml pathlib  # required on MacOS/Windows runners
     - name: Patch cdc_queue.h
