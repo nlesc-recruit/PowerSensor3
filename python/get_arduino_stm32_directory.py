@@ -13,12 +13,9 @@ if __name__ == '__main__':
     if arduino_cli is None:
         raise ValueError("arduino-cli not found")
 
-    raw_config = subprocess.Popen([arduino_cli, 'config', 'dump'], stdout=subprocess.PIPE).communicate()[0]
-    config = yaml.safe_load(raw_config)
-    try:
-        data_dir = Path(config['directories']['data'])
-    except KeyError:
-        raise KeyError("Arduino data directory not found in arduino-cli config file")
+    data_dir = Path(subprocess.Popen([arduino_cli, 'config', 'get', 'directories.data'], stdout=subprocess.PIPE).communicate()[0].decode().strip())
+    if not data_dir.is_dir():
+        raise ValueError(f"Arduino data directory ({data_dir})) does not exist")
 
     stm32_dir = data_dir / 'packages' / 'STMicroelectronics' / 'hardware' / 'stm32'
     if not stm32_dir.is_dir():
