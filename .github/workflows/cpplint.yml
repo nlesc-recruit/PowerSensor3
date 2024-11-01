@@ -15,5 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
-    - run: pip install cpplint
+      with:
+        python-version: "3.10"
+    - run: pip install cpplint<2
     - run: cpplint --recursive --quiet --extensions cpp,cc,ino host device python
