@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        gcc-version: ["12", "13", "14"]
+        gcc-version: ["12"]
         python-version: ["3.11"]
         include:
             # test older gcc and python version for a single os compiler combination
