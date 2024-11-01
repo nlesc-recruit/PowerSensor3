@@ -29,7 +29,8 @@ You are about to modify electronic circuits.  Improperly connecting wires can be
 1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
 2. [Installation of the physical device and firwmare](docs/INSTALLATION_DEVICE.md)
 3. [Installation of the host library](docs/INSTALLATION_HOST.md)
-3. [PowerSensor user guide](docs/USERGUIDE.md)
+4. [PowerSensor configuration](docs/CONFIGURATION.md)
+5. [PowerSensor user guide](docs/USERGUIDE.md)
 
 ## Further reading
 
