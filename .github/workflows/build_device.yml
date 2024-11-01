@@ -14,11 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04"]
+        os: ["ubuntu-latest"]
         device: ["F401", "F411", "F407"]
         # test other OS for default device type
         include:
-          - os: "macos-11"
+          - os: "macos-latest"
             device: "F411"
           - os: "windows-latest"
             device: "F411"

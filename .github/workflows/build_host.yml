@@ -14,17 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ['ubuntu-22.04', 'macos-11']
-        gcc-version: ['10', '11', '12']
-        python-version: ['3.10']
+        os: ["ubuntu-latest", "macos-latest"]
+        gcc-version: ["10", "11", "12"]
+        python-version: ["3.11"]
         # test on multiple python versions for a single os compiler combination
         include:
-          - os: 'ubuntu-22.04'
-            gcc-version: '12'
-            python-version: '3.8'
-          - os: 'ubuntu-22.04'
-            gcc-version: '12'
-            python-version: '3.9'
+          - os: "ubuntu-latest"
+            gcc-version: "12"
+            python-version: "3.10"
     steps:
     - uses: actions/checkout@v4
     - name: Setup python ${{ matrix.python-version }}
