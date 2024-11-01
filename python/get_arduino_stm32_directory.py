@@ -15,7 +15,10 @@ if __name__ == '__main__':
 
     raw_config = subprocess.Popen([arduino_cli, 'config', 'dump'], stdout=subprocess.PIPE).communicate()[0]
     config = yaml.safe_load(raw_config)
-    data_dir = Path(config['directories']['data'])
+    try:
+        data_dir = Path(config['directories']['data'])
+    except KeyError:
+        raise KeyError("Arduino data directory not found in arduino-cli config file")
 
     stm32_dir = data_dir / 'packages' / 'STMicroelectronics' / 'hardware' / 'stm32'
     if not stm32_dir.is_dir():

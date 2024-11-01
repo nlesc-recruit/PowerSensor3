@@ -43,6 +43,7 @@ jobs:
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32@2.3.0
+        arduino-cli config dump
     - name: Patch cdc_queue.h
       shell: bash
       run: |
