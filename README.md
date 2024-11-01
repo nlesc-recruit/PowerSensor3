@@ -9,23 +9,28 @@
 [![Citation metadata](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml/badge.svg)](https://github.com/nlesc-recruit/PowerSensor3/actions/workflows/cffconvert.yml)
 
 ## Introduction
+
 PowerSensor3 is a tool that measures the instantaneous power consumption of PCIe cards and SoC development boards like GPUs, Xeon Phis, FPGAs, DSPs, and network cards, at sub-millisecond time scale. It consists of a commodity microcontroller, commodity current and voltage sensors, and (for PCIe devices) a PCIe riser card. The microcontroller reports measurements to the host via USB. A small host library allows an application to determine its own energy efficiency. The high time resolution provides much better insight into energy usage than low-resolution built-in power meters (if available at all), as PowerSensor enables analysis of individual compute kernels.
 
 ## Hardware
+
 PowerSensor3 uses a modular hardware design with a base PCB containing a microcontroller and optionally a display, and up to four plug-in sensor boards. The PCB design, developed using KiCAD, is openly available [here](https://git.astron.nl/RD/powersensor3).
 
 The default configuration of PowerSensor3 is an STM32F411 Black Pill microcontroller with SPI-based display, and up to four pairs of voltage and current sensors. Typical usage with a GPU is to measure both the 3.3 V and 12 V power through the PCIe slot, and up to two ATX 12 V connections directly from the power supply to the GPU. The microcontroller interprets the sensor data and reports the power measurements via USB to the host.
 
 ## Disclaimer
+
 You are about to modify electronic circuits.  Improperly connecting wires can be dangerous and may damage computer equipment.  We are not responsible for any harm or damage that might occur.  Make sure that you understand very well how all cables should be connected.  Do not install this tool if you are not absolutely sure what you are doing.
 
 ## Getting started
+
 1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
 2. [Installation of the physical device and firwmare](docs/INSTALLATION_DEVICE.md)
 3. [Installation of the host library](docs/INSTALLATION_HOST.md)
 3. [PowerSensor user guide](docs/USERGUIDE.md)
 
 ## Further reading
+
 Altering the firmware of the device could be necessary in certain use cases. For this please refer to the following documents:
 
 * [STM32F411CE BlackPill overview](https://stm32-base.org/boards/STM32F411CEU6-WeAct-Black-Pill-V2.0)
@@ -35,4 +40,5 @@ Altering the firmware of the device could be necessary in certain use cases. For
 * [STM32F40x/STM3241x EEPROM emulation in flash](https://www.st.com/resource/en/application_note/an3969-eeprom-emulation-in-stm32f40xstm32f41x-microcontrollers-stmicroelectronics.pdf)
 
 ## Contributing
+
 If you have a question, found a bug, or want to contribute to the development of PowerSensor3, please have a look at the [contribution guidelines](docs/CONTRIBUTING.md)
