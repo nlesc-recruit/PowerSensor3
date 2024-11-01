@@ -18,4 +18,4 @@ Python bindings were created with Pybind11. To use these, make sure you have a r
 To compile the PowerSensor Python bindings, add `-DPYTHON_BINDINGS=ON` to the cmake command. You may need to point cmake to the Pybind11 directory with `-Dpybind11_DIR=$(pybind11-config --cmakedir)`. This generates a shared library under `build/python`, which you can copy to any folder where Python can find it, or you can add the folder with the library to `PYTHONPATH`.
 
 ## Next steps
-To test your installation and get familiar with using PowerSensor have a look at the [user guide](USERGUIDE.md).
+To test your installation calibrate the device, have a look at the [configuration guide](CONFIGURATION.md).

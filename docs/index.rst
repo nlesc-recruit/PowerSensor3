@@ -12,6 +12,7 @@ Welcome to PowerSensor 3's documentation!
 
    INSTALLATION_DEVICE.md
    INSTALLATION_HOST.md
+   CONFIGURATION.md
    USERGUIDE.md
    CONTRIBUTING.md
 

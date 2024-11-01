@@ -14,11 +14,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04"]
+        os: ["ubuntu-latest"]
         device: ["F401", "F411", "F407"]
         # test other OS for default device type
         include:
-          - os: "macos-11"
+          - os: "macos-latest"
             device: "F411"
           - os: "windows-latest"
             device: "F411"
@@ -43,10 +43,13 @@ jobs:
         arduino-cli config add board_manager.additional_urls https://github.com/stm32duino/BoardManagerFiles/raw/main/package_stmicroelectronics_index.json
         arduino-cli core update-index
         arduino-cli core install STMicroelectronics:stm32@2.3.0
+    - name: Install python packages (mac, windows)
+      if: "!startsWith(runner.os, 'linux')"
+      run: |
+        pip3 install --break-system-packages pyyaml pathlib  # required on MacOS/Windows runners
     - name: Patch cdc_queue.h
       shell: bash
       run: |
-        pip3 install pyyaml pathlib  # required on MacOS/Windows runners
         REPO_ROOT=$PWD
         STM32_DIR=$(python/get_arduino_stm32_directory.py)
         echo "STM32_DIR = ${STM32_DIR}"
