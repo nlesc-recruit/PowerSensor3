@@ -1,3 +1,5 @@
+# PowerSensor3
+
 [![github url](https://img.shields.io/badge/github-url-000.svg?logo=github&labelColor=gray&color=blue)](https://github.com/nlesc-recruit/PowerSensor3)
 [![License](https://img.shields.io/github/license/nlesc-recruit/PowerSensor3)](https://github.com/nlesc-recruit/PowerSensor3)
 [![DOI](https://zenodo.org/badge/455610726.svg)](https://zenodo.org/badge/latestdoi/455610726)
