@@ -11,7 +11,7 @@ PCI-e 12 V  | 12          | 65                | 5.4
 ATX 6-pin   | 12          | 75                | 6.3
 ATX 8-pin   | 12          | 150               | 12.5
 
-After connecting all relevant power cable, connect the microcontroller to a USB port on the host. After making sure that everything is connected correctly, turn on the host system.
+After connecting all relevant power cables, connect the microcontroller to a USB port on the host. Make sure that everything is connected correctly, then turn on the host system.
 
 ## Building the firmware
 We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using either any of the supported microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
@@ -40,7 +40,7 @@ Update the core again:
     arduino-cli core update-index
 
 arduino-cli will automatically install the STM32 core when building the firmware.  
-**NOTE**, the current latest version (2.5.0) does not work with PowerSensor3. See [this Github issue](https://github.com/nlesc-recruit/PowerSensor3/issues/125) for details and a workaround.
+**NOTE**, stm32duino version 2.5.0 and later do not work with PowerSensor3. See [this Github issue](https://github.com/nlesc-recruit/PowerSensor3/issues/125) for details and a workaround.
 
 Then run the following command in the device folder to build the firmware with default flags:
 
