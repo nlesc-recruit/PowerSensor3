@@ -1,12 +1,14 @@
 # Configuration
+
 Please make sure that the PowerSensor is installed correctly by completing the [device installation guide](INSTALLATION_DEVICE.md) and [host library installation guide](INSTALLATION_HOST.md).
 
 ## Configuring PowerSensor
+
 `psconfig` configures PowerSensor. For each of the up to 8 connected sensors, the type and calibration values can be set. These values are stored on the device's emulated EEPROM, so configuration only needs to happend once. `psconfig` can also toggle the attached display and print the current sensor values.
 
 `psconfig` accepts the parameters as described below.  The order of parameters is important.  Further on, we give examples of full configuration commands for a typical PowerSensor setup.
 
-```
+```bash
 $ psconfig -h
 usage: psconfig [-h] [-d device] [-s sensor] [-t type] [-m name] [-a | -v volt] [-n sensitivity] [-x polarity] [-o on/off] [-p]
 -h prints this help
@@ -28,16 +30,17 @@ Parameters that are not specified are left unmodified on the device.
 
 The `-v` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically. Example when four sensors are connected:
 
-```
+```bash
 $ psconfig -d/dev/ttyACM0 -s 0 -a -s 1 -a -s2 -a -s 3 -a
 ```
 
 This feature is especially useful for the current sensors. For voltage sensors, the reference voltage is typically (very close to) zero.
 
-
 ## Testing the PowerSensor
+
 To see if the PowerSensor works correctly, one can either use the `-p` option of `psconfig`:
-```
+
+```bash
 $ psconfig -p
 psconfig version 1.3.2
 
@@ -57,7 +60,8 @@ Total usage: 0.0175141 W
 ```
 
 Or use the `pstest` utility to measure and report energy consumption for a few seconds. Run `pstest -h` for more options.
-```
+
+```bash
 $ pstest
 pstest version 1.3.2
 
@@ -79,4 +83,5 @@ exp. time: 3.2768 s, measured: 3.27701 s, 93.377 J, 28.4946 W
 ```
 
 ## Next steps
+
 Usage of the PowerSensor is described in [this guide](USERGUIDE.md).
