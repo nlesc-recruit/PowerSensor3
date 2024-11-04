@@ -1,5 +1,8 @@
 # User guide
 
+## Device location and permissions
+PowerSensor3 is detected as a serial device, under Linux typically as `/dev/ttyACM0`. By default, users need to be added to the `dialout` group to be able to access the device.
+
 ## Monitor power use of an existing application
 Adapting an application to use the library is not obligatory; the `psrun` utility can monitor the power use of a device during the execution of an application that does not use the library. Run `psrun -h` for more options
 ```
