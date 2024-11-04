@@ -15,7 +15,7 @@ After connecting all relevant power cables, connect the microcontroller to a USB
 
 ## Uploading the firmware
 Pre-built firmware can be downloaded from the [PowerSensor3 Github page](https://github.com/nlesc-recruit/PowerSensor3/releases). Alternatively, see the next section for building the firwmare from source.  
-Before uploading the firwmare, ensure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with one of the following commands:
+Before uploading the firmware, ensure the device is booted in DFU mode. This is typically achieved by holding down the BOOT0 button and pressing the RESET button. Confirm that the device has entered DFU mode with one of the following commands:
 
     lsusb
     dfu-util -l
@@ -30,8 +30,11 @@ Then run the following command in the device folder, adding any flags in the sam
 
     make upload
 
+### Sensor calibration values
+The sensor calibration values are stored in the microcontroller flash memory. In most cases, these values remain in place during a firmware update. This is guaranteed only when updating to a firmware with the same minor version. It is advised to make a backup of the calibration values before reflashing the firwmare.
+
 ## Building the firmware
-We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using either any of the supported microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
+We provide pre-built binaries [here](https://github.com/nlesc-recruit/PowerSensor3/releases) for default configurations using any of the supported microcontrollers. For non-default settings or other customizations, the firmware can be built with the Arduino toolkit as outlined in this section. Note that the pre-built binaries use a modified USB transmit buffer size, see the [USB Buffer size](#usb-buffer-size) section.
 
 
 The firmware is dependent on a few Arduino tools, these should be installed before continueing. First the [arduino-cli](https://github.com/arduino/arduino-cli) package can be installed on Linux via:
@@ -68,7 +71,7 @@ For an STM32F401 or STM32F411 Black Pill, the fimware will be written to `PowerS
 If the firmware is uploaded successfully, the device will be reset and start running the PowerSensor3 firmware.
 
 ### Build customization
-There are several options available to customize the firmware build. These options can be append to the `make device` and `make upload` commands.
+There are several options available to customize the firmware build. These options can be appended to the `make device` and `make upload` commands.
 
 ### Target microcontroller
 A flag is provided to set whether the firmware is built for an STM32F401, STM32F411 (default) or STM32F407 microcontroller.  
@@ -88,7 +91,7 @@ Currently supported flags relate to the display:
 Multiple flags should be separated by a space.
 Example command:
 
-    make upload FLAGS="-DTFT_BLUE"
+    make upload FLAGS="-DTFT_BLUE -DDEMO"
 
 ### USB buffer size
 The STM32 USB library has a default transmit buffer size that is too small to handle the high data rate used in PowerSensor3. When using the default buffer size, you will most likely see dropped data. The buffer size is set in the `cdc_queue.h` file, part of stm32duino. This file is usually located at `<Arduino folder>/packages/STMicroelectronics/hardware/stm32/2.3.0/cores/arduino/stm32/usb/cdc/cdc_queue.h`
