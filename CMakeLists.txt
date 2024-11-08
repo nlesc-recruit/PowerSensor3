@@ -7,6 +7,7 @@ set(CMAKE_CXX_FLAGS "-Wall")
 
 option(PYTHON_BINDINGS "Generate python bindings." OFF)
 
+include(GNUInstallDirs)
 add_subdirectory(host)
 
 if(PYTHON_BINDINGS)
