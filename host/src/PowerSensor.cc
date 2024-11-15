@@ -20,7 +20,7 @@ double elapsedSeconds(const std::chrono::time_point<std::chrono::high_resolution
                       const std::chrono::time_point<std::chrono::high_resolution_clock> &tend) {
     return std::chrono::duration_cast<std::chrono::seconds>(tend - tstart).count();
     }
-}
+}  // namespace
 
 
 namespace PowerSensor3 {
@@ -364,7 +364,8 @@ void PowerSensor::writeMarker() {
 void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
   if (dumpFile != nullptr) {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
-    *dumpFile << "M " << elapsedSeconds(startTime, startState.timeAtRead) << ' ' << elapsedSeconds(startTime, stopState.timeAtRead) << ' ' \
+    *dumpFile << "M " << elapsedSeconds(startTime, startState.timeAtRead) << ' ' \
+      << elapsedSeconds(startTime, stopState.timeAtRead) << ' ' \
       << tag << " \"" << name << '"' << std::endl;
   }
 }
@@ -497,7 +498,8 @@ void PowerSensor::updateSensorPairs() {
       sensorPair.currentAtLastMeasurement = currentSensor.valueAtLastMeasurement;
       sensorPair.voltageAtLastMeasurement = voltageSensor.valueAtLastMeasurement;
       sensorPair.wattAtLastMeasurement = currentSensor.valueAtLastMeasurement * voltageSensor.valueAtLastMeasurement;
-      sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement * elapsedSeconds(sensorPair.timeAtLastMeasurement, now);
+      sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement *
+        elapsedSeconds(sensorPair.timeAtLastMeasurement, now);
       sensorPair.timeAtLastMeasurement = now;
     }
   }
