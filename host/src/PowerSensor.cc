@@ -18,7 +18,7 @@ namespace {
  */
 double elapsedSeconds(const std::chrono::time_point<std::chrono::high_resolution_clock> &tstart,
                       const std::chrono::time_point<std::chrono::high_resolution_clock> &tend) {
-    return std::chrono::duration_cast<std::chrono::seconds>(tend - tstart).count();
+    return (std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count()) / 1e9;
     }
 }  // namespace
 
