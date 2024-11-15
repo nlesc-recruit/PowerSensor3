@@ -82,6 +82,7 @@ class PowerSensor {
     int openDevice(std::string device);
     std::queue<char> markers;
     void writeMarker();
+    void waitForMarkers(int timeout=500);
 
     void initializeSensorPairs();
     void updateSensorPairs();
