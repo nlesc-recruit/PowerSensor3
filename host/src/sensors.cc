@@ -1,4 +1,3 @@
-#include <omp.h>
 #include <unistd.h>
 #include <string.h>
 

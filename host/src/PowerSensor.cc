@@ -1,5 +1,4 @@
 #include <fcntl.h>
-#include <omp.h>
 #include <termios.h>
 #include <unistd.h>
 #include <sys/file.h>
@@ -9,6 +8,19 @@
 #include <iostream>
 
 #include "PowerSensor.hpp"
+
+namespace {
+/**
+ * @brief Helper function to get seconds between two chrono time points
+ *
+ * @param tstart
+ * @param tend
+ */
+double elapsedSeconds(const std::chrono::time_point<std::chrono::high_resolution_clock> &tstart,
+                      const std::chrono::time_point<std::chrono::high_resolution_clock> &tend) {
+    return (std::chrono::duration_cast<std::chrono::nanoseconds>(tend - tstart).count()) / 1e9;
+    }
+}  // namespace
 
 
 namespace PowerSensor3 {
@@ -57,7 +69,7 @@ double Joules(const State &firstState, const State &secondState, int pairID) {
  * @return double
  */
 double seconds(const State &firstState, const State &secondState) {
-  return secondState.timeAtRead - firstState.timeAtRead;
+  return elapsedSeconds(firstState.timeAtRead, secondState.timeAtRead);
 }
 
 /**
@@ -81,7 +93,7 @@ PowerSensor::PowerSensor(std::string device):
   fd(openDevice(device)),
   pipe_fd(startCleanupProcess()),
   thread(nullptr),
-  startTime(omp_get_wtime()) {
+  startTime(std::chrono::high_resolution_clock::now()) {
     readSensorsFromEEPROM();
     initializeSensorPairs();
     startIOThread();
@@ -352,7 +364,8 @@ void PowerSensor::writeMarker() {
 void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
   if (dumpFile != nullptr) {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
-    *dumpFile << "M " << startState.timeAtRead - startTime << ' ' << stopState.timeAtRead - startTime << ' ' \
+    *dumpFile << "M " << elapsedSeconds(startTime, startState.timeAtRead) << ' ' \
+      << elapsedSeconds(startTime, stopState.timeAtRead) << ' ' \
       << tag << " \"" << name << '"' << std::endl;
   }
 }
@@ -451,11 +464,11 @@ void PowerSensor::dump(std::string dumpFileName) {
 void PowerSensor::dumpCurrentWattToFile() {
   std::unique_lock<std::mutex> lock(dumpFileMutex);
   double totalWatt = 0;
-  double time = omp_get_wtime();
-  static double previousTime = startTime;
+  auto time = std::chrono::high_resolution_clock::now();
+  static auto previousTime = startTime;
 
-  *dumpFile << "S " << time - startTime;
-  *dumpFile << ' ' << static_cast<int>(1e6 * (time - previousTime));
+  *dumpFile << "S " << elapsedSeconds(startTime, time);
+  *dumpFile << ' ' << static_cast<int>(1e6 * elapsedSeconds(previousTime, time));
   *dumpFile << ' ' << timestamp;
   previousTime = time;
 
@@ -475,7 +488,7 @@ void PowerSensor::dumpCurrentWattToFile() {
  *
  */
 void PowerSensor::updateSensorPairs() {
-  double now = omp_get_wtime();
+  auto now = std::chrono::high_resolution_clock::now();
   for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
     if (sensorPairs[pairID].inUse) {
       Sensor currentSensor = sensors[2*pairID];
@@ -485,7 +498,8 @@ void PowerSensor::updateSensorPairs() {
       sensorPair.currentAtLastMeasurement = currentSensor.valueAtLastMeasurement;
       sensorPair.voltageAtLastMeasurement = voltageSensor.valueAtLastMeasurement;
       sensorPair.wattAtLastMeasurement = currentSensor.valueAtLastMeasurement * voltageSensor.valueAtLastMeasurement;
-      sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement * (now - sensorPair.timeAtLastMeasurement);
+      sensorPair.consumedEnergy += sensorPair.wattAtLastMeasurement *
+        elapsedSeconds(sensorPair.timeAtLastMeasurement, now);
       sensorPair.timeAtLastMeasurement = now;
     }
   }
@@ -546,8 +560,7 @@ int PowerSensor::startCleanupProcess() {
  */
 double PowerSensor::totalEnergy(unsigned int pairID) const {
   double energy = sensorPairs[pairID].wattAtLastMeasurement *
-    (omp_get_wtime() - sensorPairs[pairID].timeAtLastMeasurement);
-
+    elapsedSeconds(sensorPairs[pairID].timeAtLastMeasurement, std::chrono::high_resolution_clock::now());
   return sensorPairs[pairID].consumedEnergy + energy;
 }
 

@@ -3,6 +3,7 @@
 #include <inttypes.h>
 
 #include <array>
+#include <chrono>
 #include <thread>
 #include <fstream>
 #include <queue>
@@ -31,7 +32,7 @@ struct State {
   /** @brief Voltage, per sensor */
   std::array<double, MAX_PAIRS> voltage;
   /** @brief Timestamp */
-  double timeAtRead;
+  std::chrono::time_point<std::chrono::high_resolution_clock> timeAtRead;
 };
 
 double Joules(const State &firstState, const State &secondState, int pairID = -1 /* default: all sensor pairs */);
@@ -97,7 +98,7 @@ class PowerSensor {
     Semaphore threadStarted;
     std::thread* thread;
     mutable std::mutex mutex, dumpFileMutex;
-    double startTime;
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime;
     unsigned int timestamp;
     void IOThread();
     void startIOThread();
@@ -145,7 +146,7 @@ class PowerSensor {
       double currentAtLastMeasurement;
       double voltageAtLastMeasurement;
       double wattAtLastMeasurement;
-      double timeAtLastMeasurement;
+      std::chrono::time_point<std::chrono::high_resolution_clock> timeAtLastMeasurement;
       double consumedEnergy;
       bool inUse;
     } sensorPairs[MAX_PAIRS];
