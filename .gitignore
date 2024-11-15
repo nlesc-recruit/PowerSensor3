@@ -9,7 +9,7 @@ lib/
 obj/
 *.so*
 
-build/
+build*/
 testing/
 
 # documentation output
