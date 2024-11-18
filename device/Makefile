@@ -17,7 +17,7 @@ BOARD =			DISCO_F407VG
 DEVICE =        STMicroelectronics:stm32:Disco
 FQBN =          $(DEVICE):pnum=$(BOARD),usb=CDCgen,upload_method=dfuMethod,xusb=FS,opt=o3std
 else
-$(error Unknown device $(DEV), allowed devices are F401 (default), F411, and F407)
+$(error Unknown device $(DEV), allowed devices are F401, F411 (default), and F407)
 endif
 
 
