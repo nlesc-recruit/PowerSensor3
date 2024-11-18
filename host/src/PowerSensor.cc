@@ -596,6 +596,8 @@ std::string PowerSensor::getVersion() {
       c = readCharFromDevice();
       version += c;
   }
+  // remove newline from version string
+  version.pop_back();
   startIOThread();
   return version;
 }
