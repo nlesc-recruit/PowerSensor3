@@ -251,6 +251,11 @@ void serialEvent() {
     case 'T':
       // Disable streaming of data and unpause display
       // in demo mode the display is always enabled so no need to reinitialize it here
+      // if streaming was enabled, first wait until all markers are sent
+      if (streamValues) {
+        while(sendMarkers > 0) delay(1);
+        while(!sendData) delay(1);
+      }
       streamValues = false;
 #if !defined NODISPLAY && !defined DEMO
       displayPaused = false;
@@ -259,6 +264,11 @@ void serialEvent() {
       break;
     case 'X':
       // Shutdown and unpause display, shuts off IO thread on host
+      // if streaming was enabled, first wait until all markers are sent
+      if (streamValues) {
+        while(sendMarkers > 0) delay(1);
+        while(!sendData) delay(1);
+      }
 #ifndef NODISPLAY
       displayPaused = false;
       displayInitialValues();
