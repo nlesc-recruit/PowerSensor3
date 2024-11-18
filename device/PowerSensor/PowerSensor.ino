@@ -278,9 +278,11 @@ void serialEvent() {
       break;
     case 'V':
       // Send firmware version in human-readable format
-      Serial.print(VERSION);
 #ifdef DEMO
-      Serial.print("-DEMO");
+      Serial.print(VERSION);
+      Serial.println("-DEMO");
+#else
+      Serial.println(VERSION);
 #endif
       break;
     case 'Z':
