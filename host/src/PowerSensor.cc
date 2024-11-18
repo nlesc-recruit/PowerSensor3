@@ -378,16 +378,14 @@ void PowerSensor::mark(const State &startState, const State &stopState, std::str
  * @param timeout maximum waiting time in milliseconds
  */
 void PowerSensor::waitForMarkers(int timeout) {
-  std::chrono::duration<double, std::milli> elapsed;
   auto tstart = std::chrono::high_resolution_clock::now();
   while (markers.size() != 0) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    elapsed = std::chrono::high_resolution_clock::now() - tstart;
+    auto elapsed = std::chrono::high_resolution_clock::now() - tstart;
     if (elapsed.count() > timeout) {
         break;
     }
   }
-  std::cout << "Marker waiting time: " << elapsed.count() << std::endl;
 }
 
 /**
