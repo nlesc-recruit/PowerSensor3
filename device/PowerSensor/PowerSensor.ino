@@ -84,7 +84,7 @@ uint8_t serialData[(SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
 bool sendData = false;
 bool streamValues = false;
 bool sendSingleValue = false;
-bool sendMarkerNext = false;
+uint32_t sendMarkers = 0;
 bool allSensorsInactive = false;
 
 // include device-specific code for setting up the ADC and DMA
@@ -233,7 +233,7 @@ void serialEvent() {
       break;
     case 'M':
       // marker character, places a marker in the output file
-      sendMarkerNext = true;
+      sendMarkers++;
       break;
     case 'I':
       // Send single set of sensor values. does nothing if streaming is enabled

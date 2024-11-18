@@ -124,6 +124,12 @@ extern "C" void DMA2_Stream0_IRQHandler() {
       // store in sensorValues for display purposes
       sensorLevels[i] = level;
 #endif
+      // determine whether or not to send marker
+      // marker is always sent with sensor 0
+      bool sendMarkerNext = (i == 0) && (sendMarkers > 0);
+      if (sendMarkerNext) {
+        sendMarkers--;
+      }
       // add metadata to remaining bits: 2 bytes available with 10b sensor value
       // First byte: 1 iii aaaa
       // where iii is the sensor id, a are the upper 4 bits of the level
