@@ -356,23 +356,6 @@ void PowerSensor::writeMarker() {
 }
 
 /**
- * @brief Write custom marker to dump file
- *
- * @param startState State used to get start time
- * @param stopState State used to get end time
- * @param name name of the marker (string)
- * @param tag id of the marker (int)
- */
-void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
-  if (dumpFile != nullptr) {
-    std::unique_lock<std::mutex> lock(dumpFileMutex);
-    *dumpFile << "M " << elapsedSeconds(startTime, startState.timeAtRead) << ' ' \
-      << elapsedSeconds(startTime, stopState.timeAtRead) << ' ' \
-      << tag << " \"" << name << '"' << std::endl;
-  }
-}
-
-/**
  * @brief Wait for all markers to be written to the dump file
  *
  * @param timeout maximum waiting time in milliseconds
