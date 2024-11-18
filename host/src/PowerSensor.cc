@@ -348,25 +348,26 @@ void PowerSensor::mark(char name) {
  *
  */
 void PowerSensor::writeMarker() {
-  std::unique_lock<std::mutex> lock(dumpFileMutex);
-  *dumpFile << "M " << markers.front() << std::endl;
-  markers.pop();
+  if (dumpFile != nullptr) {
+    std::unique_lock<std::mutex> lock(dumpFileMutex);
+    *dumpFile << "M " << markers.front() << std::endl;
+    markers.pop();
+  }
 }
 
 /**
- * @brief Write custom marker to dump file
+ * @brief Wait for all markers to be written to the dump file
  *
- * @param startState State used to get start time
- * @param stopState State used to get end time
- * @param name name of the marker (string)
- * @param tag id of the marker (int)
+ * @param timeout maximum waiting time in milliseconds
  */
-void PowerSensor::mark(const State &startState, const State &stopState, std::string name, unsigned int tag) const {
-  if (dumpFile != nullptr) {
-    std::unique_lock<std::mutex> lock(dumpFileMutex);
-    *dumpFile << "M " << elapsedSeconds(startTime, startState.timeAtRead) << ' ' \
-      << elapsedSeconds(startTime, stopState.timeAtRead) << ' ' \
-      << tag << " \"" << name << '"' << std::endl;
+void PowerSensor::waitForMarkers(int timeout) {
+  auto tstart = std::chrono::high_resolution_clock::now();
+  while (markers.size() != 0) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    auto elapsed = std::chrono::high_resolution_clock::now() - tstart;
+    if (elapsed.count() > timeout) {
+        break;
+    }
   }
 }
 
@@ -431,6 +432,8 @@ void PowerSensor::startIOThread() {
  *
  */
 void PowerSensor::stopIOThread() {
+  // first ensure there are no markers still to be sent from the device
+  waitForMarkers();
   if (thread != nullptr) {
     writeCharToDevice('X');
     thread->join();
@@ -445,6 +448,11 @@ void PowerSensor::stopIOThread() {
  * @param dumpFileName
  */
 void PowerSensor::dump(std::string dumpFileName) {
+  // if dumping should be stopped, first wait until all markers are written
+  if (dumpFileName.empty()) {
+    waitForMarkers();
+  }
+
   std::unique_lock<std::mutex> lock(dumpFileMutex);
   dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
   if (!dumpFileName.empty()) {
@@ -462,6 +470,9 @@ void PowerSensor::dump(std::string dumpFileName) {
  *
  */
 void PowerSensor::dumpCurrentWattToFile() {
+  if (dumpFile == nullptr) {
+    return;
+  }
   std::unique_lock<std::mutex> lock(dumpFileMutex);
   double totalWatt = 0;
   auto time = std::chrono::high_resolution_clock::now();

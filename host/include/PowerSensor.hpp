@@ -55,7 +55,6 @@ class PowerSensor {
 
     void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
-    void mark(const State &startState, const State &stopState, const std::string name = 0, unsigned int tag = 0) const;
     void reset(bool dfuMode);
 
     void writeSensorsToEEPROM();
@@ -83,6 +82,7 @@ class PowerSensor {
     int openDevice(std::string device);
     std::queue<char> markers;
     void writeMarker();
+    void waitForMarkers(int timeout=500);
 
     void initializeSensorPairs();
     void updateSensorPairs();
