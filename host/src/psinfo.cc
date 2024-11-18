@@ -18,8 +18,7 @@ void getPowerSensor(std::string device) {
 
 
 void printInfo() {
-  // firmware version
-  std::cout << powerSensor->getVersion() << std::endl;
+  std::cout << "Device firmware version: " << powerSensor->getVersion() << std::endl;
 
   PowerSensor3::State state = powerSensor->read();
 
