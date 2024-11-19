@@ -35,10 +35,11 @@ void printInfo() {
         std::cout << "\tName: " << pairName << std::endl;
         std::cout << "\tLatest measured power: " << state.current[pair] * state.voltage[pair] << " W" << std::endl;
         std::cout << "\tCurrent sensor details:" << std::endl;
-	      std::cout << "\t\tSensor: " << sensor_current << std::endl;
-     	std::cout << "\t\tConfiguration:" << std::endl;
+        std::cout << "\t\tSensor: " << sensor_current << std::endl;
+        std::cout << "\t\tConfiguration:" << std::endl;
         std::cout << "\t\t\tVref: " << powerSensor->getVref(sensor_current) << " V" << std::endl;
-        std::cout << "\t\t\tSensitivity: " << 1000 * powerSensor->getSensitivity(sensor_current) << " mV/A" << std::endl;
+        std::cout << "\t\t\tSensitivity: "
+          << 1000 * powerSensor->getSensitivity(sensor_current) << " mV/A" << std::endl;
         std::cout << "\t\t\tPolarity: " << powerSensor->getPolarity(sensor_current) << std::endl;
         std::cout << "\t\tLatest value: " << state.current[pair] << " A" << std::endl;
         std::cout << "\tVoltage sensor details:" << std::endl;
