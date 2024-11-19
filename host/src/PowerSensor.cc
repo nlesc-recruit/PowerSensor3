@@ -366,7 +366,11 @@ void PowerSensor::waitForMarkers(int timeout) {
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     auto elapsed = std::chrono::high_resolution_clock::now() - tstart;
     if (elapsed.count() > timeout) {
-        break;
+      // clear any remaining markers
+      while (!markers.empty()) {
+        markers.pop();
+      }
+      break;
     }
   }
 }
@@ -448,8 +452,8 @@ void PowerSensor::stopIOThread() {
  * @param dumpFileName
  */
 void PowerSensor::dump(std::string dumpFileName) {
-  // if dumping should be stopped, first wait until all markers are written
-  if (dumpFileName.empty()) {
+  // if dumping to a new file or dumping should be stopped, first wait until all markers are written
+  if (dumpFile != nullptr || dumpFileName.empty()) {
     waitForMarkers();
   }
 
