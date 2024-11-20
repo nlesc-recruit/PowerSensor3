@@ -348,8 +348,8 @@ void PowerSensor::mark(char name) {
  *
  */
 void PowerSensor::writeMarker() {
+  std::unique_lock<std::mutex> lock(dumpFileMutex);
   if (dumpFile != nullptr) {
-    std::unique_lock<std::mutex> lock(dumpFileMutex);
     *dumpFile << "M " << markers.front() << std::endl;
   }
   markers.pop();
@@ -474,10 +474,10 @@ void PowerSensor::dump(std::string dumpFileName) {
  *
  */
 void PowerSensor::dumpCurrentWattToFile() {
+  std::unique_lock<std::mutex> lock(dumpFileMutex);
   if (dumpFile == nullptr) {
     return;
   }
-  std::unique_lock<std::mutex> lock(dumpFileMutex);
   double totalWatt = 0;
   auto time = std::chrono::high_resolution_clock::now();
   static auto previousTime = startTime;
