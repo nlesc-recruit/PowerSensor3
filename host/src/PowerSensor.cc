@@ -351,8 +351,8 @@ void PowerSensor::writeMarker() {
   if (dumpFile != nullptr) {
     std::unique_lock<std::mutex> lock(dumpFileMutex);
     *dumpFile << "M " << markers.front() << std::endl;
-    markers.pop();
   }
+  markers.pop();
 }
 
 /**
