@@ -99,7 +99,7 @@ extern "C" void DMA2_Stream0_IRQHandler() {
    * can only be set for sensor 0
    * so the timestamp packets are
    * 1 111 TTTT, where T are the upper 4 bits of the timestamp
-   * 0 1 TTTTTT, where T are the lower 4 bits of the timestamp
+   * 0 1 TTTTTT, where T are the lower 6 bits of the timestamp
    */
   uint16_t t = micros();
   serialData[0] = (0b1111 << 4) | ((t & 0x3C0) >> 6);
@@ -118,19 +118,14 @@ extern "C" void DMA2_Stream0_IRQHandler() {
     // store in sensorValues for display purposes
     sensorLevels[i] = level;
 #endif
-    // determine whether or not to send marker
-    // marker is always sent with sensor 0
-    bool sendMarkerNext = (i == 0) && (sendMarkers > 0);
-    if (sendMarkerNext) {
-      sendMarkers--;
-    }
     // add metadata to remaining bits: 2 bytes available with 10b sensor value
     // First byte: 1 iii aaaa
     // where iii is the sensor id, a are the upper 4 bits of the level
     serialData[2*i + 2] = ((i & 0x7) << 4) | ((level & 0x3C0) >> 6) | (1 << 7);
     // Second byte: 0 m bbbbbb
     // where m is the marker bit, b are the lower 6 bits of the level
-    serialData[2*i + 3] = ((sendMarkerNext << 6) | (level & 0x3F)) & ~(1 << 7);
+    // the marker bit is set by the main loop, always zero here
+    serialData[2*i + 3] = (level & 0x3F) & ~(1 << 7);
     counter++;
     sendMarkerNext = false;
   }
