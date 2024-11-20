@@ -412,7 +412,7 @@ void setup() {
 void loop() {
   if (sendData) {
     // copy serialData to avoid overwrite by next values in IRQ handler
-    uint8_t serialDataToSend[(SENSORS + 1) * 2];  // 16b per sensor and 16b for timestamp
+    uint8_t serialDataToSend[sizeof(SerialData)];
     memcpy(serialDataToSend, serialData, sizeof(serialData));
     if (sendMarkers > 0) {
       // set marker bit in sensor data of sensor 0. First 2 bytes are timestamp
