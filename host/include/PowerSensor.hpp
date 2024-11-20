@@ -81,7 +81,6 @@ class PowerSensor {
     int pipe_fd;
     int openDevice(std::string device);
     std::queue<char> markers;
-    void writeMarker();
     void waitForMarkers(int timeout=500);
 
     void initializeSensorPairs();
@@ -93,7 +92,7 @@ class PowerSensor {
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
     std::unique_ptr<std::ofstream> dumpFile;
-    void dumpCurrentWattToFile();
+    void dumpCurrentWattToFile(const char markerChar);
 
     Semaphore threadStarted;
     std::thread* thread;

@@ -344,18 +344,6 @@ void PowerSensor::mark(char name) {
 }
 
 /**
- * @brief Write marker character to output file
- *
- */
-void PowerSensor::writeMarker() {
-  std::unique_lock<std::mutex> lock(dumpFileMutex);
-  if (dumpFile != nullptr) {
-    *dumpFile << "M " << markers.front() << std::endl;
-  }
-  markers.pop();
-}
-
-/**
  * @brief Wait for all markers to be written to the dump file
  *
  * @param timeout maximum waiting time in milliseconds
@@ -405,12 +393,14 @@ void PowerSensor::IOThread() {
       sensorsRead = 0;
       updateSensorPairs();
 
+      char markerChar = 'S';
+      if (marker != 0) {
+        markerChar = markers.front();
+        markers.pop();
+        marker = 0;
+      }
       if (dumpFile != nullptr) {
-        if (marker != 0) {
-          writeMarker();
-          marker = 0;
-        }
-        dumpCurrentWattToFile();
+        dumpCurrentWattToFile(markerChar);
       }
     }
   }
@@ -473,7 +463,7 @@ void PowerSensor::dump(std::string dumpFileName) {
  * @brief Write sensor values to the output file
  *
  */
-void PowerSensor::dumpCurrentWattToFile() {
+void PowerSensor::dumpCurrentWattToFile(const char markerChar) {
   std::unique_lock<std::mutex> lock(dumpFileMutex);
   if (dumpFile == nullptr) {
     return;
@@ -482,7 +472,7 @@ void PowerSensor::dumpCurrentWattToFile() {
   auto time = std::chrono::high_resolution_clock::now();
   static auto previousTime = startTime;
 
-  *dumpFile << "S " << elapsedSeconds(startTime, time);
+  *dumpFile << markerChar << " " << elapsedSeconds(startTime, time);
   *dumpFile << ' ' << static_cast<int>(1e6 * elapsedSeconds(previousTime, time));
   *dumpFile << ' ' << timestamp;
   previousTime = time;
