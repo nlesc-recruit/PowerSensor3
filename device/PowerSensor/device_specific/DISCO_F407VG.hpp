@@ -127,7 +127,6 @@ extern "C" void DMA2_Stream0_IRQHandler() {
     // the marker bit is set by the main loop, always zero here
     serialData[2*i + 3] = (level & 0x3F) & ~(1 << 7);
     counter++;
-    sendMarkerNext = false;
   }
 
   // trigger sending data to host if enabled
