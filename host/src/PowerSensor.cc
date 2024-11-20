@@ -472,7 +472,7 @@ void PowerSensor::dumpCurrentWattToFile(const char markerChar) {
   auto time = std::chrono::high_resolution_clock::now();
   static auto previousTime = startTime;
 
-  *dumpFile << markerChar << " " << elapsedSeconds(startTime, time);
+  *dumpFile << markerChar << ' ' << elapsedSeconds(startTime, time);
   *dumpFile << ' ' << static_cast<int>(1e6 * elapsedSeconds(previousTime, time));
   *dumpFile << ' ' << timestamp;
   previousTime = time;
