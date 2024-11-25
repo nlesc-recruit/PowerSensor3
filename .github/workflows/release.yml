@@ -44,7 +44,7 @@ jobs:
         STM32_DIR=$(python/get_arduino_stm32_directory.py)
         echo "STM32_DIR = ${STM32_DIR}"
         cd ${STM32_DIR}/cores/arduino/stm32/usb/cdc
-        patch ${REPO_ROOT}/patch/cdc_queue.patch
+        patch < ${REPO_ROOT}/patch/cdc_queue.patch
     - name: Compile ${{ matrix.device }} device code
       run: |
         cd device
