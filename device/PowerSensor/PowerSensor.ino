@@ -411,7 +411,16 @@ void setup() {
 
 void loop() {
   if (sendData) {
-    Serial.write(serialData, sizeof(serialData));
+    // copy serialData to avoid overwrite by next values in IRQ handler
+    uint8_t serialDataToSend[sizeof(serialData)];
+    memcpy(serialDataToSend, serialData, sizeof(serialData));
+    if (sendMarkers > 0) {
+      // set marker bit in sensor data of sensor 0. First 2 bytes are timestamp
+      // marker bit is 6th bit from the right in second byte of sensor data
+      serialDataToSend[3] |= 1 << 6;
+      sendMarkers--;
+    }
+    Serial.write(serialDataToSend, sizeof(serialDataToSend));
     sendData = false;
   }
   // check for serial events
