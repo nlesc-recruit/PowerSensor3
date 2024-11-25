@@ -25,12 +25,13 @@ The default configuration of PowerSensor3 is an STM32F411 Black Pill microcontro
 You are about to modify electronic circuits.  Improperly connecting wires can be dangerous and may damage computer equipment.  We are not responsible for any harm or damage that might occur.  Make sure that you understand very well how all cables should be connected.  Do not install this tool if you are not absolutely sure what you are doing.
 
 ## Getting started
+Full documentation is available [here](https://powersensor3.readthedocs.io/). To get started:
 
 1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
-2. [Installation of the physical device and firwmare](docs/INSTALLATION_DEVICE.md)
-3. [Installation of the host library](docs/INSTALLATION_HOST.md)
-4. [PowerSensor configuration](docs/CONFIGURATION.md)
-5. [PowerSensor user guide](docs/USERGUIDE.md)
+2. [Installation of the physical device and firwmare](https://powersensor3.readthedocs.io/en/latest/INSTALLATION_DEVICE.html)
+3. [Installation of the host library](https://powersensor3.readthedocs.io/en/latest/INSTALLATION_HOST.html)
+4. [PowerSensor configuration](https://powersensor3.readthedocs.io/en/latest/CONFIGURATION.html)
+5. [PowerSensor user guide](https://powersensor3.readthedocs.io/en/latest/USERGUIDE.html)
 
 ## Further reading
 
@@ -44,4 +45,4 @@ Altering the firmware of the device could be necessary in certain use cases. For
 
 ## Contributing
 
-If you have a question, found a bug, or want to contribute to the development of PowerSensor3, please have a look at the [contribution guidelines](docs/CONTRIBUTING.md)
+If you have a question, found a bug, or want to contribute to the development of PowerSensor3, please have a look at the [contribution guidelines](https://powersensor3.readthedocs.io/en/latest/CONTRIBUTING.html)
