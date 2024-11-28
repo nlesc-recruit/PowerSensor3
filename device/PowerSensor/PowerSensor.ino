@@ -411,6 +411,7 @@ void setup() {
 
 void loop() {
   if (sendData) {
+    sendData = false;
     // copy serialData to avoid overwrite by next values in IRQ handler
     uint8_t serialDataToSend[sizeof(serialData)];
     memcpy(serialDataToSend, serialData, sizeof(serialData));
@@ -421,7 +422,6 @@ void loop() {
       sendMarkers--;
     }
     Serial.write(serialDataToSend, sizeof(serialDataToSend));
-    sendData = false;
   }
   // check for serial events
   serialEvent();
