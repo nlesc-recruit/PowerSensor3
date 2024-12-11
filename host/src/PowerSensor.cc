@@ -477,7 +477,8 @@ void PowerSensor::dumpCurrentWattToFile(const char markerChar) {
 
   *dumpFile << markerChar << ' ';
   if (useAbsoluteTimestamp) {
-    *dumpFile << std::fixed << std::setprecision(6) << std::chrono::duration_cast<std::chrono::microseconds>(time.time_since_epoch()).count() / 1.0e6;
+    *dumpFile << std::fixed << std::setprecision(6) << \
+        std::chrono::duration_cast<std::chrono::microseconds>(time.time_since_epoch()).count() / 1.0e6;
   } else {
     *dumpFile << elapsedSeconds(startTime, time);
   }
