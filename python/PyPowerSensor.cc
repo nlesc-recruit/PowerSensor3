@@ -22,7 +22,8 @@ PYBIND11_MODULE(powersensor, m) {
     .def(py::init<const char*>())
     .def("read", &PowerSensor3::PowerSensor::read, "Read current sensor values")
     .def("dump", &PowerSensor3::PowerSensor::dump,
-      "Dump sensor values to file. Set filename to empty string to stop dumping", py::arg("filename"), py::arg("use_absolute_timestamp"))
+      "Dump sensor values to file. Set filename to empty string to stop dumping",
+      py::arg("filename"), py::arg("use_absolute_timestamp"))
     .def("mark", static_cast<void (PowerSensor3::PowerSensor::*)(char)>(&PowerSensor3::PowerSensor::mark),
       "Add given marker character to dump file", py::arg("marker"))
     .def("get_name", &PowerSensor3::PowerSensor::getPairName, "Get sensor pair name", py::arg("pair_id"));
