@@ -53,7 +53,7 @@ class PowerSensor {
 
     State read() const;
 
-    void dump(const std::string dumpFileName);  // dumpFileName == 0 --> stop dumping
+    void dump(const std::string dumpFileName, bool useAbsoluteTimestamp=false);  // dumpFileName == 0 --> stop dumping
     void mark(char name);
     void reset(bool dfuMode);
 
@@ -92,6 +92,7 @@ class PowerSensor {
     bool readLevelFromDevice(unsigned int* sensorNumber, uint16_t* level, unsigned int* marker);
 
     std::unique_ptr<std::ofstream> dumpFile;
+    bool useAbsoluteTimestamp;
     void dumpCurrentWattToFile(const char markerChar);
 
     Semaphore threadStarted;
