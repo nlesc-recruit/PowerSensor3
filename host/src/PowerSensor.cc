@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <iomanip>
 
 #include "PowerSensor.hpp"
 
@@ -440,8 +441,9 @@ void PowerSensor::stopIOThread() {
  * @brief Enable dumping of sensor values to the given output file.
  *
  * @param dumpFileName
+ * @param useAbsoluteTimestamp
  */
-void PowerSensor::dump(std::string dumpFileName) {
+void PowerSensor::dump(std::string dumpFileName, bool useAbsoluteTimestamp) {
   // if dumping to a new file or dumping should be stopped, first wait until all markers are written
   if (dumpFile != nullptr || dumpFileName.empty()) {
     waitForMarkers();
@@ -450,6 +452,7 @@ void PowerSensor::dump(std::string dumpFileName) {
   std::unique_lock<std::mutex> lock(dumpFileMutex);
   dumpFile = std::unique_ptr<std::ofstream>(dumpFileName.empty() ? nullptr: new std::ofstream(dumpFileName));
   if (!dumpFileName.empty()) {
+    this->useAbsoluteTimestamp = useAbsoluteTimestamp;
     *dumpFile << "marker time dt_micro device_timestamp";
     for (unsigned int pairID=0; pairID < MAX_PAIRS; pairID++) {
       if (sensorPairs[pairID].inUse)
@@ -472,7 +475,13 @@ void PowerSensor::dumpCurrentWattToFile(const char markerChar) {
   auto time = std::chrono::high_resolution_clock::now();
   static auto previousTime = startTime;
 
-  *dumpFile << markerChar << ' ' << elapsedSeconds(startTime, time);
+  *dumpFile << markerChar << ' ';
+  if (useAbsoluteTimestamp) {
+    *dumpFile << std::fixed << std::setprecision(6) << \
+        std::chrono::duration_cast<std::chrono::microseconds>(time.time_since_epoch()).count() / 1.0e6;
+  } else {
+    *dumpFile << elapsedSeconds(startTime, time);
+  }
   *dumpFile << ' ' << static_cast<int>(1e6 * elapsedSeconds(previousTime, time));
   *dumpFile << ' ' << timestamp;
   previousTime = time;
