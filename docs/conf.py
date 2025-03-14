@@ -11,7 +11,7 @@ project = 'PowerSensor 3'
 current_year = datetime.now().year
 author = 'Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt'
 copyright = f'{current_year}, {author}'
-release = '1.5.0'
+release = '1.6.1'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
