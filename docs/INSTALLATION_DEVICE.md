@@ -105,5 +105,14 @@ We provide a patch file to increase the buffer size (tested with version 2.3.0 o
 
 Then proceed with building the firmware with `arduino-cli` as usual.
 
+## Device path and access customization
+By default, PowerSensor3 shows up as a serial device, on Linux as `/dev/ttyACM0`. It is only accesible by `root` and members of the `dialout` group. It is possible to customize the path and accessibility using `udev` rules. To do this, first determine the product and vendor ID of the microcontroller. This is possible using `dfu-util -l`, which prints output starting with `Found DFU: [0483:5740]`. In this case, the vendor ID is 0483 and the product ID is 5740. Create a file `/etc/udev/rules.d/99-powersensor.rules` with the following content:
+
+```
+SUBSYSTEM=="tty", ATTRS{idProduct}=="5740", ATTRS{idVendor}=="0483", SYMLINK+="PowerSensor0", MODE="0666"
+SUBSYSTEM=="usb", ATTRS{idProduct}=="5740", ATTRS{idVendor}=="0483", MODE="0666"
+```
+Then new udev rule with `sudo udevadm trigger` or reboot the system. This example creates a symlink to the device at `/dev/PowerSensor0` and gives every user access (equivalent to `chmod 0666`). The second line also gives every user access to the device in DFU mode, used for uploading new firmware.
+
 ## Next steps
 After installing the device, proceed with installing the host library with [this guide](INSTALLATION_HOST.md).
