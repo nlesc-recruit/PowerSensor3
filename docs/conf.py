@@ -5,10 +5,12 @@
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
+from datetime import datetime
 
 project = 'PowerSensor 3'
-copyright = '2024, Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt'
+current_year = datetime.now().year
 author = 'Leon Oostrum, John Romein, Ben van Werkhoven, Quinten Twisk, Gijs Schoonderbeek, Steven van der Vlugt'
+copyright = f'{current_year}, {author}'
 release = '1.5.0'
 
 # -- General configuration ---------------------------------------------------
