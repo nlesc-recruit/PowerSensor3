@@ -42,11 +42,20 @@ int main()
 }
 ```
 
-This way, the power consumption during some time interval can be used. The `Joules` function gives an accurate total eneryg usage. `Watt` gives the _average_ power usage over the given time interval.
+This way, the power consumption during some time interval can be used. The `Joules` function gives an accurate total energy usage. `Watt` gives the _average_ power usage over the given time interval.
 
-Another way to use the PowerSensor is to produce a stream of sensor values on file (in ASCII). Simply provide the name of the file as second (optional) argument to the constructor of PowerSensor.  A separate, light-overhead thread will be started that continuously monitors the PowerSensor state. Both methods can be used at the same time.
+For further usage, inspect the `PowerSensor.hpp` file or have a look at the [API documentation](https://powersensor3.readthedocs.io/en/latest/api/library_root.html#full-api).
 
-For further usage, inspect the `PowerSensor.hpp` file or have a look at the [API documentation](https://nlesc-recruit.github.io/PowerSensor3).
+### Using a dump file
+The PowerSensor executables accept a `-f` parameter, used to write output to a file. This dump file will contain the PowerSensor3 measurements for all sensors at the native time resolution of the device. A dump file can also be created inside user code by calling the `dump` method of a `PowerSensor` object. In order to be able trace the dumpfile contents back to specific parts of the code that is being profiled, the user can call the `mark` function to put a specified character in the dump file. The user-provided marker replaces the 'S' that is put by default at the start of each line of the dump file. The marker timestamp is automatically synchronized with the PowerSensor3 device. For example:
+```
+    PowerSensor sensor("/dev/ttyACM0");
+    sensor.dump("dump_file.txt");  // start dump to file name dump_file.txt
+    sensor.mark("A");
+    ...
+    sensor.mark("B");
+    sensor.dump("");  // stops dumping to file
+```
 
 ## Python interface
 An optional Python interface is available. See [here](INSTALLATION_HOST.md#python-bindings) for installation instructions. The `PowerSensor` and `State` objects can be accessed from Python, as well as the `Joules`, `Watt`, and `seconds` functions. Example usage:
