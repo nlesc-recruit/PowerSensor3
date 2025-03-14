@@ -1,12 +1,12 @@
 # Configuration
 
-Please make sure that the PowerSensor is installed correctly by completing the [device installation guide](INSTALLATION_DEVICE.md) and [host library installation guide](INSTALLATION_HOST.md).
+Please make sure that PowerSensor3 is installed correctly by completing the [device installation guide](INSTALLATION_DEVICE.md) and [host library installation guide](INSTALLATION_HOST.md).
 
-## Configuring PowerSensor
+## Configuring PowerSensor3
 
-`psconfig` configures PowerSensor. For each of the up to 8 connected sensors, the type and calibration values can be set. These values are stored on the device's emulated EEPROM, so configuration only needs to happend once. `psconfig` can also toggle the attached display and print the current sensor values.
+`psconfig` configures PowerSensor3. For each of the up to 8 connected sensors, the type and calibration values can be set. These values are stored on the device's emulated EEPROM, so configuration only needs to happend once. `psconfig` can also toggle the attached display and print the current sensor values.
 
-`psconfig` accepts the parameters as described below.  The order of parameters is important.  Further on, we give examples of full configuration commands for a typical PowerSensor setup.
+`psconfig` accepts the parameters as described below.  The order of parameters is important.  Further on, we give examples of full configuration commands for a typical PowerSensor3 setup.
 
 ```bash
 $ psconfig -h
@@ -28,7 +28,7 @@ Known current sensor types: MLX10, MLX20, MLX50, MLX75.
 
 Parameters that are not specified are left unmodified on the device.
 
-The `-v` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure the PowerSensor from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically. Example when four sensors are connected:
+The `-v` values may be adjusted to get the right null levels, depending on the local magnetic field.  An easier way to calibrate them, is to fully turn of the host system power (so that no current is flowing through the current sensors), and to configure PowerSensor3 from another machine (by temporarily connecting the USB cable to that other machine).  In this case, the null levels can be configured automatically. Example when four sensors are connected:
 
 ```bash
 $ psconfig -d/dev/ttyACM0 -s 0 -a -s 1 -a -s2 -a -s 3 -a
@@ -36,9 +36,9 @@ $ psconfig -d/dev/ttyACM0 -s 0 -a -s 1 -a -s2 -a -s 3 -a
 
 This feature is especially useful for the current sensors. For voltage sensors, the reference voltage is typically (very close to) zero.
 
-## Testing the PowerSensor
+## Testing PowerSensor3
 
-To see if the PowerSensor works correctly, one can either use the `-p` option of `psconfig`:
+To see if PowerSensor3 works correctly, one can either use the `-p` option of `psconfig`:
 
 ```bash
 $ psconfig -p
@@ -84,4 +84,4 @@ exp. time: 3.2768 s, measured: 3.27701 s, 93.377 J, 28.4946 W
 
 ## Next steps
 
-Usage of the PowerSensor is described in [this guide](USERGUIDE.md).
+Usage of PowerSensor3 is described in [this guide](USERGUIDE.md).

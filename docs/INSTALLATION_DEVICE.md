@@ -1,7 +1,7 @@
 # Device installation guide
-Start with the physical installation of the PowerSensor, then install the firmware to the device. When both are completed succesfully, install the host library with [this guide](INSTALLATION_HOST.md) and get to know the device with the [user guide](USERGUIDE.md).
+Start with the physical installation of PowerSensor3, then install the firmware to the device. When both are completed succesfully, install the host library with [this guide](INSTALLATION_HOST.md) and get to know the device with the [user guide](USERGUIDE.md).
 
-## Installing the PowerSensor
+## Installing PowerSensor3
 Before starting, turn off and unplug the power of the host system. In the case of a GPU, a PCI-e riser card or cable is needed to be able to measure the 3.3 V and 12 V power coming from the PCI-e slot of the motherboard. 12 V power coming directly from the PSU can be connected to a PowerSensor3 sensor board. A second ATX power cable should be used to connect the PowerSensor3 sensor board to the GPU. Take care to use sensor boards with appropiate voltage and current sensors, taking into account the maximum voltage and current:
 
 Connection  | Voltage (V) | Maximum power (W) | Maximum current (A)
@@ -109,10 +109,10 @@ Then proceed with building the firmware with `arduino-cli` as usual.
 By default, PowerSensor3 shows up as a serial device, on Linux as `/dev/ttyACM0`. It is only accesible by `root` and members of the `dialout` group. It is possible to customize the path and accessibility using `udev` rules. To do this, first determine the product and vendor ID of the microcontroller. This is possible using `dfu-util -l`, which prints output starting with `Found DFU: [0483:5740]`. In this case, the vendor ID is 0483 and the product ID is 5740. Create a file `/etc/udev/rules.d/99-powersensor.rules` with the following content:
 
 ```
-SUBSYSTEM=="tty", ATTRS{idProduct}=="5740", ATTRS{idVendor}=="0483", SYMLINK+="PowerSensor0", MODE="0666"
+SUBSYSTEM=="tty", ATTRS{idProduct}=="5740", ATTRS{idVendor}=="0483", SYMLINK+="PowerSensor3", MODE="0666"
 SUBSYSTEM=="usb", ATTRS{idProduct}=="5740", ATTRS{idVendor}=="0483", MODE="0666"
 ```
-Then new udev rule with `sudo udevadm trigger` or reboot the system. This example creates a symlink to the device at `/dev/PowerSensor0` and gives every user access (equivalent to `chmod 0666`). The second line also gives every user access to the device in DFU mode, used for uploading new firmware.
+Then new udev rule with `sudo udevadm trigger` or reboot the system. This example creates a symlink to the device at `/dev/PowerSensor3` and gives every user access (equivalent to `chmod 0666`). The second line also gives every user access to the device in DFU mode, used for uploading new firmware.
 
 ## Next steps
 After installing the device, proceed with installing the host library with [this guide](INSTALLATION_HOST.md).
