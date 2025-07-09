@@ -33,6 +33,17 @@ Full documentation is available [here](https://powersensor3.readthedocs.io/). To
 4. [PowerSensor configuration](https://powersensor3.readthedocs.io/en/latest/CONFIGURATION.html)
 5. [PowerSensor user guide](https://powersensor3.readthedocs.io/en/latest/USERGUIDE.html)
 
+## Citation
+If you use PowerSensor3 in research or research software, please cite the following paper:
+```
+@inproceedings{powersensor3,
+    title={PowerSensor3: A Fast and Accurate Open Source Power Measurement Tool}, 
+    author={Steven van der Vlugt and Leon Oostrum and Gijs Schoonderbeek and Ben van Werkhoven and Bram Veenboer and Krijn Doekemeijer and John W. Romein},
+    year={2025},
+    booktitle={IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+}
+```
+
 ## Further reading
 
 Altering the firmware of the device could be necessary in certain use cases. For this please refer to the following documents:
