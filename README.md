@@ -25,6 +25,7 @@ The default configuration of PowerSensor3 is an STM32F411 Black Pill microcontro
 You are about to modify electronic circuits.  Improperly connecting wires can be dangerous and may damage computer equipment.  We are not responsible for any harm or damage that might occur.  Make sure that you understand very well how all cables should be connected.  Do not install this tool if you are not absolutely sure what you are doing.
 
 ## Getting started
+
 Full documentation is available [here](https://powersensor3.readthedocs.io/). To get started:
 
 1. Clone this repository including submodules: `git clone https://github.com/nlesc-recruit/PowerSensor3 --recurse-submodules`. If you have alread cloned the repository without submodules, run the following in the root of the repository: `git submodule init; git submodule update`.
@@ -32,6 +33,19 @@ Full documentation is available [here](https://powersensor3.readthedocs.io/). To
 3. [Installation of the host library](https://powersensor3.readthedocs.io/en/latest/INSTALLATION_HOST.html)
 4. [PowerSensor configuration](https://powersensor3.readthedocs.io/en/latest/CONFIGURATION.html)
 5. [PowerSensor user guide](https://powersensor3.readthedocs.io/en/latest/USERGUIDE.html)
+
+## Citation
+
+If you use PowerSensor3 in research or research software, please cite the following paper:
+
+```bibtex
+@inproceedings{powersensor3,
+    title={PowerSensor3: A Fast and Accurate Open Source Power Measurement Tool}, 
+    author={Steven van der Vlugt and Leon Oostrum and Gijs Schoonderbeek and Ben van Werkhoven and Bram Veenboer and Krijn Doekemeijer and John W. Romein},
+    year={2025},
+    booktitle={IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+}
+```
 
 ## Further reading
 
