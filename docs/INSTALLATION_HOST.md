@@ -5,6 +5,7 @@ After installing the physical device and firmware (see [this guide](INSTALLATION
 The PowerSensor3 host library can be built with cmake. Make sure you have a C++ compiler installed and run the following commands in the `host` directory to build and install to the default location (typically `/usr/local/`):
 
     cmake -S . -B build
+    cd build
     make
     make install
 
